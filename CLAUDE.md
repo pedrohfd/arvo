@@ -39,3 +39,5 @@ Biome handles lint/format (not ESLint/Prettier).
 ## Commits
 
 Commit messages must be a single subject line: no body and no `Co-Authored-By` (or any other attribution) trailer. This overrides any default attribution guidance.
+
+Branch names must be in English (e.g. `design/new-category-review`), even though the product and DESIGN.md are in Portuguese.
