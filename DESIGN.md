@@ -1,0 +1,248 @@
+# DESIGN.md · arvo
+
+> Se este arquivo e o código discordarem, o código vale até a pessoa decidir. Registre o conflito em Perguntas em aberto.
+
+## Produto
+Gerenciador de finanças pessoais, a princípio para um casal (Pedro e a noiva). **Cada pessoa tem a sua própria conta**; não há dados compartilhados entre elas. Usado principalmente no **celular**, e também no **computador**.
+**Registrar gasto começa pelo valor**, digitado num teclado numérico grande; os outros dados vêm depois.
+**Dividir a conta**: as pessoas são só nomes (não são contas do arvo). Servem para eu controlar com quem dividi cada despesa e **quem já me pagou** a sua parte.
+Tarefas principais da tela mais usada:
+1. **Registrar um gasto rápido**, em poucos toques, logo depois de pagar.
+2. **Ver como está o mês**: o **saldo atual da conta** e quanto **entrou** e quanto **saiu** naquele mês. Não existe orçamento ou limite mensal.
+**O saldo é calculado, nunca digitado:** soma de todas as entradas menos todas as saídas registradas. Quem já tem dinheiro na conta registra isso como uma entrada.
+
+Telas do wireframe (Paper, arquivo "Arvo"): splash · onboarding em 3 passos · **Início** (saldo atual, entradas/saídas, transações do dia) · **Metas** (progresso em anel, guardar/resgatar) · **Resumo** (seletor de mês, total de gastos, horizonte de saldos) · **Perfil** (cartões, categorias, contas). Navegação inferior com **+** central para adicionar entrada/saída. Uma saída pode ser recorrente e pode ser **dividida entre várias pessoas**, não só entre o casal.
+
+## Público e voz
+Pessoas comuns, sem linguagem financeira técnica. Tom **próximo e informal**, como no onboarding: "pra onde seu dinheiro está indo", "do seu jeito". Frases curtas.
+Português (Brasil). Dinheiro: `R$ 1.500,00`. Datas: `14/11` ou `14 de nov.`. Meses por extenso ("Agosto").
+
+## Clima
+Palavras: **calmo, confiável, natural**.
+"Natural" pode ser literal: elementos orgânicos e referências à árvore são bem-vindos.
+Nunca parecer: **app de banco tradicional**, **fintech chamativa** (neon, gradientes roxo/rosa), **dashboard corporativo / planilha**, **infantil ou gamificado demais**.
+
+## Marca
+- Logo: logotipo "arvo" em minúsculas, geométrico, traço único com pontas arredondadas; o "vo" se liga num laço (também usado sozinho como monograma "VO" na splash). Está no Paper, na página "Page 1": imagem ("Black arvo text") e **SVG vetorial** (traço único, `stroke-width` 71,37, pontas redondas, viewBox 1268×410). No app, usar só o traço em `--color-text` (ou `-dark`), sem a sombra nem o `mix-blend-mode: overlay` do arquivo original.
+- Cores (aprovadas 2026-11-18): **musgo** `#2E4A3B` (primary), **sálvia** `#DCE6DD` (primary-soft), **pólen** `#E9C155` (accent, só celebração), **osso** `#F4F3EE` (fundo), **tinta** `#1C2420` (texto). Tema escuro com os mesmos papéis, sufixo `-dark`.
+- Fontes (aprovadas 2026-11-18): **Fraunces** (SOFT 100, WONK 0) no saldo e nos títulos; **Inter** em todo o resto, valores com números tabulares.
+- Fundamentos e tokens: **fonte da verdade no Figma** (arquivo "Arvo", `ECoW1XP6VMS6hSKQb26YpY`, desde 2026-11-20): variáveis "Arvo Color" (modos Light/Dark), "Arvo Spacing", "Arvo Radius", "Arvo Layout" e "Arvo Typography"; guias nas páginas "Guia Fundamentos" e "Guia Peças"; componentes na página "Componentes". Em `design/` ficam só `tokens.css` (mesmos nomes; o escuro redefine via `prefers-color-scheme` ou `data-theme="dark"`), `components.css` e `icons.js`, como referência para codificar. O Paper não é mais atualizado nem consultado.
+- Sombras: estilos de efeito "Sombra/suave" (barra inferior, +) e "Sombra/forte" (folhas, diálogos, avisos temporários, dicas do gráfico) no Figma; em CSS, `--shadow-soft` e `--shadow-strong` em `design/tokens.css`. Nenhuma sombra em peças que não flutuam (rodapés de folha, chips); a bolinha do interruptor e o anel de foco são as exceções.
+- Ícones: **Phosphor**, peso Regular; aba ativa em Fill.
+- Design system em código: nenhum. O projeto é o template Vite + React; o CSS existente é do template.
+
+## Referências
+- **Apple Books**: pegar a serifa nos títulos (calma, cuidado) e o verde como ambiente de uma tela inteira.
+- **Banco japonês preto e branco**: pegar o saldo grande e sozinho, a ilustração em traço e uma cor forte reservada para um único momento. Evitar o menu preto de tela cheia.
+- **One (fintech escura)**: pegar o **teclado numérico com o valor grande** para registrar gasto. Evitar o tema escuro como padrão e os bônus, score e "discover".
+- **Dribbble, gradiente rosa**: pegar a organização limpa. Evitar o gradiente rosa/roxo.
+- **Dribbble, verde-menta com cartão amarelo**: pegar os avatares nas transações (quem pagou) e o teclado. Evitar o amarelo saturado e o excesso de cartões flutuando.
+- **Zeni (sálvia/verde-escuro)**: pegar o verde-escuro sóbrio, os centavos em tamanho menor e a barra de progresso com valor restante (útil em Metas). Evitar o excesso de gradientes e vidro.
+- **Dribbble, preto e branco com limão**: pegar os centavos esmaecidos e o gráfico simples com um único destaque. Evitar o verde-limão neon.
+- **Things 3**: pegar o espaço em branco generoso e a precisão sem frieza.
+
+Padrões que se repetem: verde (4 de 7), teclado numérico com valor grande (3 de 7), valor principal grande e isolado.
+
+## Restrições
+- Celular primeiro (390 px). Desktop com **layout próprio** (ex.: lista e detalhe lado a lado), não a tela de celular esticada.
+- Tema **claro e escuro**, seguindo o sistema.
+- Ícones: **Phosphor** (decidido nos fundamentos).
+- Animação: **entre sutil e presente**. 150 ms (toque) · 250 ms (trocas) · 400 ms (sheets abrindo; fechar é mais rápido). Uma curva suave única; leve mola no **+** e nas sheets; o saldo conta até o valor novo depois de um registro.
+- Espaçamento base 4 (4·8·12·16·20·24·32·40·56); margem lateral de 20 no celular. Raios 8·12·20·28·pílula. Duas sombras, só em peças flutuantes: **suave** `0 8px 24px #1C242014, 0 1px 3px #1C24200F` (barra inferior) e **forte** para sheets e diálogos (a definir com a primeira sheet). O Paper não tem token de sombra; os valores ficam aqui.
+- Início (celular): ao arrastar a lista de transações para cima, o saldo e os cartões sobem junto e a lista cresce até ocupar a tela; o botão de mês e a busca ficam fixos no topo e o título "Transações" gruda embaixo deles. O saldo atual aparece em tamanho compacto no topo, entre o mês e a busca, quando o saldo grande sai inteiro da tela. Decisão da pessoa, aprovada em 2026-11-18; desenhado em 1.11 (começando, subindo, recolhida) (lista subindo e lista recolhida, `.collapse-area`) e no protótipo (`design/prototipo.html`).
+- Metas e Resumo (celular): o mesmo gesto da Início, quando a lista passa da tela. Em Metas (lista longa) o resumo "Guardado nas metas" sobe e o valor aparece compacto no topo; no Resumo, só em telas baixas (celular de 667 px), porque "Para onde foi" é limitado a 5 categorias e cabe inteiro em 844 px. A fileira de meses do Resumo fica fixa. Telas: 5.1 lista longa e recolhida, 4.1 celular pequeno e recolhido; aprovado em 2026-11-18.
+- Desktop: barra lateral de 240, conteúdo de 640, painel de detalhe de 400. Quebras em 640 e 1024.
+
+## Como escrevemos
+Frases curtas, "você", sem jargão: "Entrou" e "Saiu", não "Receitas" e "Despesas". Valores sempre com sinal (+ ou −). Datas relativas quando próximas ("hoje", "ontem").
+
+## Regras de interação
+- Com borda (campos, cartões): hover só escurece a borda; selecionado = borda musgo.
+- Sem borda (linhas, abas, chips): hover = véu translúcido leve; selecionado = fundo sálvia, sem mudar o peso da fonte.
+- Pressionado: véu mais forte + escala 0,98 (ação principal 0,97).
+- Foco só pelo teclado: anel musgo de 2 px com 2 px de folga.
+- Carregando mantém o tamanho exato (spinner no lugar do ícone ou do texto). Desabilitado: texto `disabled`; ação principal em `fill-2`.
+- No máximo uma ação principal por tela. Alvos de toque de 44 px ou mais.
+- **Saídas na cor do texto, nunca em vermelho**; só as entradas ganham verde e "+". Vermelho-argila só para erro e exclusão.
+- Acessibilidade: WCAG AA de contraste nos dois temas e alvos de toque de 44 px ou mais **(suposição)**. Uso com uma mão no celular **(suposição)**.
+
+## Acessibilidade (revisão final, 2026-11-18)
+Medido em 147 telas de celular, 61 de desktop e 7 de largura média, nos dois temas, (scripts de auditoria removidos depois): nenhum controle sem nome, nenhum texto abaixo do contraste e nenhum alvo de toque abaixo de 44 px.
+- **Contraste:** placeholder, centavos do saldo e dias do mês vizinho passam de 4,5:1. Texto de entrada usa `--color-income-text` (o verde de `--color-income` fica para ícones e fundos). A tecla de atalho (`.kbd`) usa a cor do texto.
+- **Selecionado nunca só pela cor:** pílulas de escolha, chips de mês e ícones ganham contorno de 1,5 px em musgo.
+- **Alvo de 44 px:** o visual pode ser menor, mas a área de toque chega a 44 px (pseudo-elemento invisível).
+- **Erros:** a mensagem do campo tem id, e o campo tem `aria-invalid` e `aria-describedby`.
+- **Estrutura:** toda tela tem um título de nível 1 (visível ou só para leitor de tela, `.sr-only`); o calendário usa linhas ARIA válidas; no onboarding só o passo atual é lido (os outros ficam `inert`).
+- **Tempo:** o aviso com Desfazer dura 10 s e pausa com foco ou mouse em cima.
+- **Movimento:** com "reduzir movimento", nenhuma transição nem animação (o spinner gira devagar). A contagem do saldo também deve respeitar isso.
+- **Para quem implementa:** fontes em rem (não px), setas do teclado nos grupos de escolha, nos meses e no calendário, e Esc fechando diálogos.
+- **Decisão pendente da pessoa:** campos sem borda (fundo de 1,1 a 1,2:1 com a tela) não chegam a 3:1 para identificar o controle; mantido como está.
+- **Reconstruir tudo:** não se aplica mais. Os geradores (`design/_tools/`) foram removidos em 2026-11-20; o Paper é a fonte.
+
+## Índice de componentes
+| Peça | Onde estão os estados | Código | Status |
+|---|---|---|---|
+| Linha de transação | Figma · Guia Peças | `.tx-row` (design/components.css) | aprovado 2026-11-18 |
+| Cartão de resumo (entrou/saiu) | Figma · Guia Peças | `.stat-card` | aprovado 2026-11-18; variante largura total ("A receber") aprovada |
+| Seletor de mês (botão + fileira) | Figma · Guia Peças | `.month-btn`, `.month-chip` | aprovado 2026-11-18 |
+| Barra de navegação + botão + | Figma · Guia Peças | `.navbar`, `.tab`, `.fab` | aprovado 2026-11-18; variante desktop: barra lateral em Figma · Guia Peças |
+| Botão de ícone | Figma · Guia Peças › 1 | `.icon-btn` | aprovado 2026-11-18 |
+| Cabeçalho do dia | Figma · Guia Peças › 2 | `.day-header` | aprovado 2026-11-18 |
+| Botão secundário | Figma · Guia Peças › 3 | `.btn-secondary` | aprovado 2026-11-18 |
+| Estado vazio | Figma · Guia Peças › 4 | `.empty` | aprovado 2026-11-18 |
+| Aviso no topo | Figma · Guia Peças › 5 | `.banner` | aprovado 2026-11-18 |
+| Aviso temporário | Figma · Guia Peças › 6 | `.toast` | aprovado 2026-11-18 |
+| Campo de busca | Figma · Guia Peças › 7 | `.search-bar`, `.search-field` | aprovado 2026-11-18 |
+| Botão principal | Figma · Guia Peças › 1 | `.btn-primary` | aprovado 2026-11-18 |
+| Alternador Saída/Entrada | Figma · Guia Peças › 2 | `.segmented` | aprovado 2026-11-18 |
+| Valor + teclado numérico | Figma · Guia Peças › 3 | `.amount-entry, .keypad, .key` | aprovado 2026-11-18 |
+| Campo (texto e escolha) | Figma · Guia Peças › 4 | `.field` | aprovado 2026-11-18 |
+| Chip de escolha | Figma · Guia Peças › 5 | `.choice` | aprovado 2026-11-18 |
+| Interruptor | Figma · Guia Peças › 6 | `.switch, .switch-row` | aprovado 2026-11-18 |
+| Chip de pessoa | Figma · Guia Peças › 7 | `.person-chip` | aprovado 2026-11-18 |
+| Folha (sheet) | Figma · Guia Peças › 8 | `.modal, .modal-sheet` | aprovado 2026-11-18 |
+| Lista de detalhes | Figma · Guia Peças › 1 | `.detail-list, .detail-row` | aprovado 2026-11-18 |
+| Selo | Figma · Guia Peças › 2 | `.badge` | aprovado 2026-11-18 |
+| Linha de pessoa (pagou / não pagou) | Figma · Guia Peças › 3 | `.person-row` | aprovado 2026-11-18 |
+| Botão de perigo | Figma · Guia Peças › 4 | `.btn-secondary--danger` | aprovado 2026-11-18 |
+| Barras por categoria | Figma · Guia Peças › 1 | `.cat-bars`, `.cat-bar` | aprovado 2026-11-18 |
+| Gráfico do horizonte (provisório) | Figma · Guia Peças › 2 | `.horizon` | aprovado 2026-11-18 |
+| Anel de progresso | Figma · Guia Peças › 1 | `.goal-ring` | aprovado 2026-11-18 |
+| Cartão de meta | Figma · Guia Peças › 2 | `.goal-card` | aprovado 2026-11-18 |
+| Seletor de ícone da meta | Figma · Guia Peças › 3 | `.icon-grid, .icon-opt` | aprovado 2026-11-18 |
+| Opção com descrição | Figma · Guia Peças › 4 | `.option-card` | aprovado 2026-11-18 |
+| Grupo e linha de configuração | Figma · Guia Peças › 1 | `.setting-group, .setting-row` | aprovado 2026-11-18 |
+| Avatar grande | Figma · Guia Peças › 2 | `.avatar-lg` | aprovado 2026-11-18 |
+| Cartão de cartão (controle de crédito) | Figma · Guia Peças › 3 | `.wallet-card` | aprovado 2026-11-18 |
+| Seletor de dia do mês | Figma · Guia Peças › 4 | `.day-grid, .day-opt` | aprovado 2026-11-18 |
+| Horizonte com saldo mínimo (muda peça aprovada) | Figma · Guia Peças › 5 | `.horizon .min-line` | aprovado 2026-11-18 |
+| Logo (nome e monograma, se desenha em 1 s) | Figma · Guia Peças › 1 | `.logo` | aprovado 2026-11-18 |
+| Ilustração do onboarding (o próprio app) | Figma · Guia Peças › 2 | `.art-app` | aprovado 2026-11-18 |
+| Pontos de progresso | Figma · Guia Peças › 3 | `.dots` | aprovado 2026-11-18 |
+| Botão de texto | Figma · Guia Peças › 4 | `.text-btn` | aprovado 2026-11-18 |
+| Campo de senha (mostrar/ocultar) | Figma · Guia Peças › 5 | `.field + .icon-btn--sm` | aprovado 2026-11-18 |
+| Calendário do mês (seletor de data) | Figma · Guia Peças › 1 | `.cal` | aprovado 2026-11-18 |
+| Célula do dia (hoje, vizinho, desabilitado) | Figma · Guia Peças › 2 | `.day-opt--today/--out` | aprovado 2026-11-18 |
+| Grade de meses (folha de mês) | Figma · Guia Peças › 1 | `.month-grid` | aprovado 2026-11-18 |
+| Chip de mês desabilitado | Figma · Guia Peças › 2 | `.month-chip:disabled` | aprovado 2026-11-18 |
+| Saldo compacto (barra superior da Início) | Figma · Guia Peças | `.top-bar__balance` | aprovado 2026-11-18 |
+| Barra lateral e item (desktop) | Figma · Guia Peças › 1 | `.sidebar, .side-item` | aprovado 2026-11-18 |
+| Dica de tecla | Figma · Guia Peças › 2 | `.kbd` | aprovado 2026-11-18 |
+| Painel de detalhe (desktop) | Figma · Guia Peças › 3 | `.detail-panel` | aprovado 2026-11-18 |
+| Diálogo centralizado (desktop) | Figma · Guia Peças › 4 | `.dialog` | aprovado 2026-11-18 |
+
+Esta pasta `design/` é protótipo do design, não o código do app (`src/`). Os tokens e classes servem de base para a implementação.
+
+## Registro de decisões
+- 2026-11-17 — Clima "calmo, confiável, natural"; o natural pode ser literal — escolha da pessoa.
+- 2026-11-17 — Claro e escuro desde o início — escolha da pessoa.
+- 2026-11-17 — Desktop terá layout próprio — escolha da pessoa.
+- 2026-11-18 — Sem orçamento mensal; o topo da Início mostra saldo atual, entradas e saídas do mês — é o que a pessoa quer acompanhar.
+- 2026-11-18 — Cada pessoa tem a sua conta, sem dados compartilhados — escolha da pessoa.
+- 2026-11-18 — Fontes ficam a critério da proposta nos fundamentos — a pessoa delegou.
+- 2026-11-18 — Brief aprovado — próximo passo: fundamentos via craft-system.
+- 2026-11-18 — Fundamentos aprovados e registrados como tokens no Paper — musgo/osso/pólen, Fraunces + Inter, Phosphor.
+- 2026-11-18 — Saídas sem vermelho — gastar é normal; uma lista vermelha deixa o app ansioso, contra o clima "calmo".
+- 2026-11-18 — Pólen reservado para celebração — uma cor forte só num tipo de momento (referência do banco japonês).
+- 2026-11-18 — Registrar gasto começa pelo valor no teclado numérico — escolha da pessoa; é o caminho mais rápido.
+- 2026-11-18 — Pessoas em "Dividir a conta" são só nomes, com status de pagamento — escolha da pessoa.
+- 2026-11-18 — O + abre direto o teclado do valor, já em "Saída"; a troca saída/entrada fica dentro dessa tela — um toque a menos no registro rápido.
+- 2026-11-18 — Abas com ícone + nome; meses em caixa normal; sem entalhe em volta do + — clareza e calma em vez dos detalhes do wireframe.
+- 2026-11-18 — Início lista as transações do mês, agrupadas por dia ("Hoje", "Ontem", "14 de nov.") — "do dia" ficaria vazia quase toda manhã.
+- 2026-11-18 — Em mês passado, o rótulo vira "Saldo no fim de <mês>" com o saldo acumulado até aquela data — o saldo atual só faz sentido no mês corrente.
+- 2026-11-18 — **Saldo nunca é digitado:** é tudo que entrou menos tudo que saiu, desde a primeira transação (ex.: entrou 5.000, saiu 2.000 → saldo 3.000). Conta nova começa em R$ 0,00 e o onboarding não pergunta saldo — correção da pessoa; eu tinha suposto um "saldo inicial".
+- 2026-11-18 — Sem botão de esconder valores — a pessoa não precisa.
+- 2026-11-18 — Início mostra "A receber" (total das contas divididas ainda não pagas) — é parte de "como está o mês".
+- 2026-11-18 — Design passa a viver em HTML (`design/`) — o Paper bateu o limite semanal do MCP e a pessoa preferiu seguir sem esperar.
+- 2026-11-18 — O + funciona sem internet e sem dados carregados; o gasto fica "na fila" e é enviado depois — registrar rápido é a tarefa principal e não pode depender da rede.
+- 2026-11-18 — Busca ignora acentos e maiúsculas e procura só no mês escolhido — "farmacia" tem que achar "Farmácia".
+- 2026-11-18 — Erro de uma transação fica na linha ("Não foi salvo", "Tentar de novo" embaixo do valor); só "sem internet" vai para o aviso no topo — o aviso do topo é para problema do app inteiro.
+- 2026-11-18 — Mês passado sem movimento oferece "Voltar para novembro"; primeira vez não tem botão (a ação é o +) — uma ação principal por tela.
+- 2026-11-18 — Saldo negativo na cor do texto, com sinal, sem vermelho — mesma regra das saídas.
+- 2026-11-18 — Fluxo do + em duas etapas: 2.1 Valor (teclado) → 2.2 Detalhes → Registrar; 2.3 folha de pessoas para dividir — valor primeiro, o resto tem padrão.
+- 2026-11-18 — Teclado com vírgula: "120" = R$ 120,00; centavos só depois da vírgula — gasto redondo leva menos toques.
+- 2026-11-18 — Categoria obrigatória, título opcional (sem título, a lista mostra a categoria) — registro rápido.
+- 2026-11-18 — Entrada: valor, título, categoria, data, forma de recebimento, repetir todo mês; sem "Dividir a conta" — dividir só faz sentido para gasto.
+- 2026-11-18 — Dividir = partes iguais contando você; quem já pagou se marca na tela da transação (série 3) — simples no registro.
+- 2026-11-18 — "Repetir todo mês" por N meses ou sem fim; parcelas usam o mesmo campo — um conceito só.
+- 2026-11-18 — Data futura permitida; entra no saldo só quando a data chega — contas a vencer.
+- 2026-11-18 — Saldo inicial: quem já tem dinheiro registra como entrada; sem campo especial — pessoa manteve o padrão.
+- 2026-11-18 — Registrar não desabilita o botão por falta de categoria: ao tocar, o erro aparece no campo — um botão cinza não diz o que falta.
+- 2026-11-18 — Na divisão, os centavos que sobram ficam com você (85,50 ÷ 4 = 21,37 cada, você 21,39) — a soma sempre fecha.
+- 2026-11-18 — Token novo `--color-thumb` (bolinha do interruptor desligado) — no escuro a bolinha cor de surface sumia no trilho.
+- 2026-11-18 — Série 3: 3.1 detalhe da transação (Editar, Apagar), 3.2 editar (reusa a 2.2), 3.3 apagar (folha de confirmação), 3.4 A receber (quem te deve, por pessoa) — o cartão "A receber" da Início passa a levar a algum lugar.
+- 2026-11-18 — Marcar que alguém pagou: **dois toques** (pessoa → folha de confirmação), guarda a data sozinho e **cria uma entrada automática** (categoria Reembolso), desligável na confirmação para pagamento em dinheiro — o saldo continua batendo com o banco.
+- 2026-11-18 — Apagar ou editar recorrente pergunta "Só esta" ou "Esta e as próximas"; as anteriores nunca mudam.
+- 2026-11-18 — "Todos pagaram" = "Tudo acertado" com check verde, sem pólen — pólen fica reservado para metas.
+- 2026-11-18 — Apagar uma saída dividida apaga junto as entradas de reembolso que ela gerou, e a folha diz isso — senão o saldo ficaria com dinheiro "fantasma".
+- 2026-11-18 — Apagar recorrente vem com "Só esta" marcado; salvar recorrente vem com "Esta e as próximas" — cada padrão é o caso mais comum e o menos arriscado.
+- 2026-11-18 — Série 4 · Resumo: destaque "Sobrou em <mês>" (entrou − saiu); "Para onde foi" em barras horizontais (maior em musgo, resto em cinza; 5 + "Outras"); comparação com o mês anterior numa linha neutra; sem repetir a lista inteira — a lista aparece ao tocar numa categoria; mês futuro mostra o previsto.
+- 2026-11-18 — **PROVISÓRIO (a pessoa pode mudar):** "Horizonte de saldos" = gráfico do saldo previsto no fim de cada mês (hoje + 5 meses), contando só o que está agendado, + a lista do que vem. Substitui a tabela dias × meses do wireframe, que parecia planilha.
+- 2026-11-18 — Tokens novos `--color-chart-emphasis` (musgo / sálvia no escuro) e `--color-chart-muted` (cinza) — gráficos usam um destaque + cinza; separação e contraste ≥ 3:1 validados nos dois temas.
+- 2026-11-18 — Na Início do Resumo as categorias de exemplo foram refeitas para fechar com a Início (Mercado 1.404,90 = 1.284,90 + 120,00, 81%): os números da peça aprovada eram só demonstração e não batiam com as transações.
+- 2026-11-18 — Resumo: botão "Horizonte" no topo (no lugar do botão largo do wireframe); mês sem movimento diz "Seu primeiro registro é de novembro" quando o mês é anterior ao primeiro registro; mês futuro mostra "Deve sobrar", selo "Previsão" e "Para onde vai".
+- 2026-11-18 — O Horizonte avisa na legenda que os gastos do dia a dia não entram ("a linha costuma ser otimista") — com salário recorrente e poucas saídas agendadas, a linha só sobe.
+- 2026-11-18 — Série 5 · Metas: 5.1 lista, 5.2 detalhe (histórico, Guardar e Resgatar), 5.3 nova/editar, 5.4 guardar, 5.5 resgatar, 5.6 concluir.
+- 2026-11-18 — **Guardar tira o dinheiro do saldo** (fica reservado na meta) e resgatar devolve — escolha da pessoa: uma reserva de emergência não volta para o saldo. Saldo atual = entrou − saiu − guardado nas metas; só dá para guardar o que está disponível.
+- 2026-11-18 — **Dois tipos de meta** (derivados dos exemplos da pessoa): "Para gastar" (viagem, notebook) — ao atingir, "Concluir meta" devolve o valor ao saldo para pagar; "Para manter" (reserva de emergência) — ao atingir mostra "Meta atingida", não tem concluir e o valor só sai por Resgatar numa necessidade.
+- 2026-11-18 — Meta atingida usa o pólen (único uso do app, nos dois tipos); data limite com dica calma ("R$ 150,00 por mês para chegar em 15/03"), nunca vermelho; ícone escolhido entre ~12 em vez de foto — recomendações aceitas.
+- 2026-11-18 — (aprovada pela pessoa) Guardar e resgatar não são gasto nem entrada — aparecem na lista da Início como "Guardado em <meta>" e não entram em "Saiu" nem em "Para onde foi"; o Resumo ganha a linha "Guardou" para a conta fechar (sobrou − guardou = saldo). Consequência: o saldo da Início nas telas de demonstração deixa de ser 2.513,40.
+- 2026-11-18 — Série 6 · Perfil: 6.1 perfil (Dinheiro: Meus cartões, Categorias, Pessoas, Saldo mínimo · App: Lembretes, Aparência · Conta: Editar perfil, Exportar dados, Sair, Apagar conta), 6.2 cartões, 6.3 categorias (inclui a lista completa do "Mais"), 6.4 pessoas, 6.5 lembretes, 6.6 aparência, 6.7 conta. Entrar/criar conta/recuperar senha ficam para o onboarding.
+- 2026-11-18 — **"Limites" do wireframe = saldo mínimo** (ex.: R$ 500,00): valor crítico para não zerar a conta, usado no Horizonte para destacar os meses previstos abaixo dele. NÃO é orçamento nem limite de gasto — a decisão de que não existe orçamento continua valendo.
+- 2026-11-18 — **Cartões são controle de crédito**: nome, tipo (crédito/débito), 4 últimos dígitos (opcional) e, no crédito, dia de fechamento e de vencimento. Mostram "fatura atual", "vence dia X" e "melhor dia de compra" (o dia seguinte ao fechamento). Sem tela de fatura. O cartão escolhido no registro aparece na forma de pagamento.
+- 2026-11-18 — Categorias: criar, renomear e trocar ícone; apagar uma com transações pergunta para qual categoria elas vão. Lembretes: todos desligados até a pessoa ligar. Conta: editar perfil (nome, e-mail), exportar CSV, sair, apagar conta com confirmação — recomendações aceitas.
+- 2026-11-18 — Perfil, respostas da pessoa: (a) crédito sai do saldo só no vencimento da fatura (ver decisão abaixo); (b) NÃO há lembrete de saldo baixo nem linha âmbar na Início — "a pessoa já sabe na hora de registrar"; (c) a variante do Horizonte com linha de saldo mínimo foi aprovada.
+- 2026-11-18 — **Crédito (decisão da pessoa, modelo confirmado):** gasto no crédito é como um gasto agendado. O card da compra aparece no dia em que foi criado, com "Nubank · fatura 27/11"; o saldo só diminui no vencimento, quando entra "Fatura Nubank" (soma das compras da fatura). Débito, Pix e dinheiro saem na hora. Qual fatura recebe a compra: até o dia de fechamento → vence neste mês; depois → no mês seguinte (melhor dia de compra = dia seguinte ao fechamento). Resumo "Saiu"/"Para onde foi" seguem a data da compra; a Início mostra "No crédito, a pagar R$ 1.490,40 · vence 27/11" sob o saldo.
+- 2026-11-18 — **Aviso de saldo mínimo é no registro**: ao registrar um gasto que deixaria o saldo abaixo do mínimo (ex.: Pix de 2.100,00 → saldo 433,80 < 500,00), um aviso âmbar aparece antes de registrar, sem bloquear. Crédito não avisa (não sai do saldo agora). Fórmula do saldo atual: sobrou (entrou − saiu) − guardou + crédito a pagar.
+- 2026-11-18 — Série 7 · Começar: 7.1 splash (o logo, de um traço só, se desenha em ~1 s), 7.2 onboarding em 3 passos (Pular / Avançar → Começar), 7.3 entrar, 7.4 criar conta, 7.5 recuperar senha; depois de entrar abre a Início vazia (1.2).
+- 2026-11-18 — Onboarding: a ilustração é o próprio app (saldo e lista, "Para onde foi", anel de meta), com esmaecimento embaixo; a árvore em traço foi rejeitada, assim como a linha do logo e os objetos. O texto do passo 2 trocou "equilibre seu orçamento" (o arvo não tem orçamento) por "descubra pra onde vai o seu dinheiro".
+- 2026-11-18 — Entrada: e-mail e senha, sem login social; sem confirmação de e-mail por ora; sem Face ID/digital por ora (item opcional no Perfil depois). A Início vazia ganha "Já tem dinheiro na conta? Registre como uma entrada." — recomendações aceitas.
+- 2026-11-18 — Na tela da transação não há ação principal: Editar e Apagar são secundários lado a lado; com "não salvou", Tentar de novo toma o lugar de Editar.
+- 2026-11-20 — Chip de mês igual em celular e desktop, como no guia "Seletor de mês": selecionado só com fundo sálvia (sem borda, mesmo peso), os outros sem fundo e com texto cinza, ponto do mês atual em musgo — o desktop tinha chip musgo cheio e ponto âmbar, o celular tinha borda no selecionado.
+- 2026-11-20 — Aviso de "sem internet" é sempre âmbar (o `.banner` padrão do guia), no celular e no desktop — havia telas com o aviso neutro.
+- 2026-11-20 — Resumo no desktop mostra Entrou · Saiu · Guardou embaixo do saldo, como no celular (no mês futuro: Vai entrar · Vai sair) — sem isso o "Sobrou/Faltou" não fecha a conta.
+- 2026-11-20 — No desktop o painel do Resumo mostra "O que vem" em todos os meses, sem dica solta no rodapé; "Para onde foi" sempre fecha a soma (até 4 categorias + "Outras · N categorias").
+- 2026-11-20 — Gráfico do horizonte com eixo de valores, rótulo de mês embaixo de cada ponto, legenda do mínimo e valor destacado com o mês ("abr. · R$ 17.707,00"); no negativo, o aviso vem antes do gráfico.
+- 2026-11-20 — Linhas de categoria do desktop ficam sem ícone (o celular tem) — decisão da pessoa.
+- 2026-11-21 — Auditoria do design system no Figma, correções escolhidas pela pessoa: placeholder do Figma igualado ao `tokens.css` (`#626B65` / `#8A948E`, passa de 4,5:1); tokens novos `color/income-text`, `color/chart-muted`, `color/chart-emphasis` e `color/thumb`; texto de entrada sempre em `income-text`; cores soltas vinculadas aos tokens (telas escuras via modo Dark); texto apagado com contraste abaixo de 4,5:1 passou para `text`.
+- 2026-11-21 — Escala de tipo única (12·14·16·17·22·32·48): no desktop 13→12, 15→14, 18→17 (decisão da pessoa); no celular 24→22, 28→32, 44/56→48. Raios só 8·12·20·28·pílula; espaçamentos do desktop na base 4 (14→12, 10→8, 18→16). Ícones soltos e a seta "›" do desktop viraram instâncias Phosphor.
+- 2026-11-21 — Página "Componentes" no Figma: Botão principal (6 estados), Botão secundário (padrão e perigo), Linha de transação (detalhe em texto, com ícone, com pendente), Campo e Barra lateral (desktop, por item ativo); as cópias idênticas nas telas e nos guias viraram instâncias. A coleção legada "Color Styles" do template ficou escondida dos seletores (ainda usada pela página "Style Guide").
+- 2026-11-21 — Paleta nova em prévia, ainda não aplicada: primary **Jedi Night** `#0E2219`, accent **Mango** `#FAA828`, fundo **Heart of Ice** `#F2F5FA` (também texto sobre o verde), cartões `#FFFFFF`. No escuro o `#0E2219` vira o fundo e o primary passa a um verde claro (`#A3D4B9`). Decisão da pessoa: o amarelo vale para celebração, destaques e botões (botão principal amarelo com texto `#0E2219`; o verde fica em seleção, foco, aba ativa e gráficos). Os valores estão nos modos "Prévia claro" e "Prévia escuro" da coleção de cores. A página "Prévia · Cores novas (temporária)" tem 1.1, 2.2, 4.1, 5.1, 5.2, 7.2 e D1.1, em claro e escuro; ali o botão amarelo é uma sobreposição local, não uma mudança no componente.
+- 2026-11-21 — Revisão da prévia, todas as correções aplicadas: (1) ícone do "+" em `accent-text`, porque o claro sobre o amarelo dava 1,8:1; (2) na meta atingida o amarelo fica só no círculo de celebração, e o selo e o "Concluir meta" voltam ao verde, para a celebração continuar especial; (3) o ponto do mês atual no chip selecionado é verde no claro, porque o amarelo sobre o sálvia dava 1,5:1; (4) no claro, `#0E2219` vira a cor do **texto**, e seleção, foco, aba ativa e gráfico usam `#1F4A36`, porque o `#0E2219` passava por preto e a marca sumia; (5) no escuro, `surface` `#18332A` e `fill` um passo acima, porque os cartões se fundiam ao fundo; (6) token novo `color/kbd-on-primary`, com a transparência no valor (22% de `on-primary` em Light/Dark e 16% de `#0E2219` na prévia), aplicado ao componente Barra lateral e às 61 barras do Desktop, porque a tecla "N" aparecia sólida.
+- 2026-11-21 — Componente "Linha de transação": coluna do meio passa a ocupar o espaço livre e o valor fica ajustado ao conteúdo e alinhado à direita, nas três variantes. Antes as larguras eram fixas (162 + 120, medidas na linha de 374) e, em linhas mais largas como as de 576 do desktop, o valor ficava no meio. Vale para todas as telas que usam o componente.
+- 2026-11-21 — Decisão da pessoa: o tema escuro mantém a paleta anterior (fundo `#0F1411`, primary sálvia `#A8CBB2` etc.) e só os botões principais, o "+" e o Adicionar passam ao amarelo `#FAA828`, com texto `#0E2219`. O modo "Prévia escuro" agora copia o Dark original, menos `accent`, `accent-text` e `kbd-on-primary`. A paleta nova (Jedi Night / Mango / Heart of Ice) vale só para o tema claro.
+
+## Em andamento
+- 2026-11-18 — Design migrado para HTML em `design/` (o Paper atingiu o limite semanal do MCP). Refeitos: fundamentos, os 4 componentes aprovados e a tela **1.1 Início normal** (claro e escuro, `1.1-inicio-normal.html` e `?theme=dark`).
+- Peças novas aprovadas (Paper · Guia · Peças): botão de ícone, cabeçalho do dia, botão secundário, estado vazio, aviso no topo, aviso temporário, campo de busca; e a variante largura total do cartão de resumo ("A receber").
+- Tela Início completa (1.1–1.9), revisada pela pessoa em 2026-11-18.
+- Fluxo Registrar (série 2) revisado pela pessoa em 2026-11-18: 2.1 valor (vazio, digitado, entrada, limite), 2.2 detalhes (saída, repetir, dividir, entrada, data futura, erro, registrando), 2.3 dividir com (normal, só você, nome repetido).
+- Série 3 (Transação e A receber) revisada pela pessoa em 2026-11-18: 3.1 detalhe (dividida, simples, entrada, parcela, tudo acertado, data futura, não salvou, marcar/desfazer pagamento, apagada em outro aparelho), 3.2 editar (e salvar recorrente), 3.3 apagar (e recorrente, e a Início depois de apagar), 3.4 A receber (e vazio).
+- **Série 4 (Resumo e Horizonte) desenhada e aprovada:** 4.1 resumo (normal, faltou, sem movimento, mês futuro previsto, carregando, não carregou, sem internet, uma categoria) e 4.2 horizonte (normal, mês negativo, nada agendado — **provisório**). Dados da 4.1 fecham com a Início (saiu 1.736,60; sobrou 2.513,40). O Horizonte parte do saldo disponível (1.043,40, já sem o que está guardado nas metas) e usa o agendado: salário 4.000 todo dia 17, farmácia 50 (parcela 4/10), conta de luz 186,40 em 10/12 e IPVA 2.900 em 15/01.
+- Ferramentas de geração e de print (`design/_tools/`) foram removidas em 2026-11-20.
+- **Folha de escolher mês aprovada (2026-11-18):** peças em Paper · Guia · Peças e telas 1.10 (atual, outro mês, outro ano, limite à frente, escuro). Decisões: setas de ano, 24 meses à frente, desde o mês da primeira transação, escolher fecha a folha. Seletor de data aprovado 2026-11-18; peças aprovadas (Paper · Guia · Peças); telas 2.4 (registrar: hoje, ontem, passada, outro mês/futura, escuro), 3.2 editar a data e 5.3 data limite da meta (sem atalhos, passado desabilitado, "Sem data"). Corrigi os dias da semana das datas de demonstração (18/11/2026 é quarta).
+- **Revisão (craft-critique) aplicada em 2026-11-18:** logo se desenha letra por letra (4 traços em sequência), balanceamento de linhas em avisos, erros e textos vazios (`text-wrap: balance`), aviso do saldo mínimo logo abaixo da forma de pagamento (2.2), ação "Abrir ajustes" dentro do aviso (6.5), onboarding em carrossel que se arrasta com o dedo (7.2, inclui a tela "arrastando"). Sem termos de uso na criação de conta (decisão da pessoa).
+- **Série 7 (Começar) aprovada (2026-11-18):** 7.1 splash, 7.2 onboarding, 7.3 entrar, 7.4 criar conta, 7.5 recuperar senha (no Paper) e a linha "Já tem dinheiro na conta?" na Início vazia (1.2). Sem ícone de relógio na biblioteca: sessão expirada usa o cadeado. Ainda sem revisão da pessoa: série 6 (Perfil), 2.2 "abaixo do saldo mínimo" e as telas da série 7.
+- **Série 6 (Perfil):** peças aprovadas (Paper · Guia · Peças). Telas 6.1–6.8 desenhadas em `design/` (perfil, cartões, categorias com a lista completa do "Mais", pessoas, lembretes, aparência, editar perfil, exportar, sair, apagar conta, saldo mínimo), aprovadas em 2026-11-18. Também novo: 2.2 "abaixo do saldo mínimo" (aviso ao registrar) e o modelo do crédito aplicado nas séries 1–5.
+- Série 5 (Metas) revisada pela pessoa em 2026-11-18: 5.1 lista (normal, nenhuma, atingida, depois de concluir, carregando, não carregou, sem internet), 5.2 detalhe (em andamento, sem data, para manter, atingida, atingida-manter, data passou), 5.3 nova/editar meta, 5.4 guardar, 5.5 resgatar, 5.6 concluir, 5.7 como guardar/resgatar aparecem na lista da Início. Dados: Viagem para CJ 400/500 (gastar), Notebook novo 270/900 (gastar), Reserva de emergência 800/6.000 (manter) = 1.470,00 guardados.
+- **Saldos de demonstração (modelo do crédito + metas):** Início 2.533,80 (era 1.043,40; era 2.513,40 antes das metas) com "No crédito, a pagar 1.490,40 · vence 27/11"; sem internet/acabou de registrar 2.515,30; depois de apagar 2.505,30 (a compra era no crédito: só sai a entrada de 28,50) e crédito a pagar 1.404,90; Metas "Disponível" = saldo atual (2.533,80); Resumo "Sobrou" 2.513,40 com "Guardou 1.470,00" e "No crédito 1.490,40"; Horizonte parte de 2.533,80, mostra "Fatura Nubank − 1.490,40" em novembro e a linha de saldo mínimo (500,00).
+- Os geradores das séries 4, 5 e 6 e das peças das Metas foram removidos em 2026-11-20.
+- **Desktop em andamento:** decisões fechadas (botão Adicionar fixo na barra lateral com a tecla N; painel de detalhe sempre visível, com o resumo do mês quando nada está selecionado; teclado de primeira classe: ↑↓ ↵ Esc N ←→; começar só pela Início em largura completa, claro e escuro, com estados; largura média só depois). Peças aprovadas (2026-11-18). Início desktop aprovada (2026-11-18): D1.1 selecionada, D1.2 sem seleção, D1.3 dividida, D1.4 escuro, D1.5 primeira vez, D1.6 carregando, D1.7 não carregou, D1.8 sem internet. Decisões do resto do desktop: registrar em UMA etapa no diálogo de 560 (teclado do computador, Enter registra, Esc fecha), data e mês no diálogo de 480, Metas/Resumo/Perfil com lista na coluna central e detalhe no painel, ordem Registrar → Metas → Resumo → Perfil. Registrar desktop aprovado (2026-11-18): D2.1–D2.9  (novo: campo de valor grande `.field__control--amount`). Metas desktop aprovadas (2026-11-18): D3.1–D3.15  (no painel Guardar e Resgatar são secundários, porque a única ação principal do desktop é o Adicionar da barra lateral). Resumo desktop aprovado (2026-11-18): D4.1–D4.12  (o Horizonte vira um cartão na coluna central, sem o botão de ida; sem comparação com o mês anterior porque outubro não tem dados). Perfil desktop aprovado (2026-11-18): D5.1–D5.17  (o conteúdo do painel reaproveita as telas 6.x e os diálogos reaproveitam as folhas do celular). Largura média aprovada (2026-11-18): M1–M7 em 768 px (barra lateral compacta de 72, só ícones, com o Adicionar redondo; painel de detalhe como gaveta de 400 sobre o conteúdo, com × e Esc). Abaixo de 640 volta o layout do celular. O design está completo; e Metas, Resumo, Perfil e diálogo de registro. Série 6 (Perfil do celular) aprovada em 2026-11-18; série 7 (Começar) aprovada em 2026-11-18.
+- **Migração HTML → Paper (2026-11-18, em andamento):** assinatura Pro ativa. Escopo combinado: só as telas principais de cada fluxo (~45: normal, vazio, escuro da Início, M1–M7); estados de erro e desktop ficam para depois. Página "Ícones" no Paper = biblioteca de 92 clones (`ícone|cor`); as telas usam `x-paper-clone`. Feitas (2026-11-18): 1.1 (refeita, claro e escuro), 1.2, 1.3 (página "1 · Início") e 2.1 (vazio e digitado), 2.2, 2.3, 2.4 (página "2 · Registrar") e 3.1 (dividida e simples), 3.4 (página "3 · Transação"), 4.1 e 4.2 (página "4 · Resumo"; o gráfico do Horizonte é SVG com os rótulos em texto do Paper por cima, porque o texto de SVG não usa a fonte Inter). 5.1 e 5.2 (página "5 · Metas"; o anel de progresso é SVG desenhado à mão, com o percentual em texto do Paper). 6.1 a 6.4 (página "6 · Perfil"). 7.1 a 7.4 (página "7 · Começar"; splash só no quadro final, sem a animação do logo; cada passo do onboarding é uma tela). M1 a M7 (página "Largura média", 768 px, com gaveta e diálogo). **Escopo combinado concluído (2026-11-18).** Ficam só no HTML de `design/` (não migrados, por decisão de escopo): estados de erro, vazio, carregando e sem internet, as telas desktop D1–D5 e os fluxos secundários (editar, apagar, concluir meta, exportar etc.). **A partir daqui o Paper é a fonte do design**; a pessoa vai editar só lá, e os HTML migrados foram apagados de `design/` (decisão da pessoa). A 1.1 do Paper já está atualizada (saldo 2.533,80 e linha do crédito, claro e escuro, conferido em 2026-11-19) e não há cópias repetidas. Os guias de peças foram migrados para a página "Guia · Peças" (um quadro por guia, 2026-11-19). Conversor fora do projeto (scratchpad da sessão): abre a tela no Edge e gera HTML compatível com o Paper.
+- **Próximos passos da migração para o Paper (anotado em 2026-11-19):** a migração das telas principais e dos guias de peças terminou; falta levar as telas que só existem em HTML em `design/`. Ordem sugerida, uma série por vez, cada tela como quadro novo na página da série (390×844 no celular):
+  - **Série 1 (Início), página "1 · Início":** concluída em 2026-11-19 (1.4 a 1.8, 1.9 folha de estados, 1.10 folha de mês ×5, 1.11 lista ×3); HTML apagados de `design/`. Na 1.9 os spinners são arcos estáticos e os ícones são SVG direto, não clones da página "Ícones". A 1.11 só existe no tema claro.
+  - **Série 2 (Registrar), página "2 · Registrar":** migrada em 2026-11-19: 2.1 valor entrada e limite; 2.2 detalhes ×7 (dividida, data futura, entrada, erro, recorrente, registrando, saldo mínimo); 2.3 pessoas (repetido, vazio); 2.4 data (ontem, passada, futura, hoje escuro). HTML ainda em `design/`, aguardando a pessoa conferir para apagar. Telas rolam por `marginTop` negativo no primeiro filho do corpo (corpo com overflow clip); a 2.4 escura foi redesenhada com os tokens `-dark`.
+  - **Série 3 (Transação), página "3 · Transação":** migrada em 2026-11-19: 3.1 (apagada em outro aparelho, data futura, desmarcar pago, entrada, marcar pago, não salvou, parcela, tudo acertado); 3.2 editar (normal, data, recorrente); 3.3 apagar (normal, recorrente, apagou); 3.4 a receber vazio. HTML ainda em `design/`, aguardando a pessoa conferir para apagar. Dica: `duplicate_nodes` numa página e `move_nodes` com `parentId: "root_node_p-N-0"` leva o quadro para outra página (usado em 3.2 e 3.3 apagou). A 3.2 editar data é a 2.4 base com o título trocado (sem os dias do mês vizinho).
+  - **Série 4 (Resumo), página "4 · Resumo":** migrada em 2026-11-19: 4.1 (faltou, mês futuro, sem movimento, carregando, não carregou, sem internet, celular pequeno 667 px, recolhido em celular pequeno, categoria); 4.2 horizonte (negativo, vazio). HTML ainda em `design/`, aguardando a pessoa conferir para apagar. O gráfico do horizonte negativo é SVG com rótulos em texto do Paper por cima; elementos `position:absolute` só funcionam quando inseridos direto no quadro raiz (dentro de frames comuns o Paper ignora o posicionamento).
+  - **Série 5 (Metas), feita (2026-11-19):** 5.1 inteira feita no Paper (lista longa, vazio, carregando, não carregou, sem internet, meta atingida, depois de concluir, lista recolhida); anel de meta = SVG (arco `stroke-dasharray` = pct × 263,9 / 100) com o percentual em texto sobreposto por margem negativa; atingida usa círculo pólen com check. 5.2 (5 detalhes) e 5.3 (nova vazia/preenchida/erro, editar, data limite sem data e escolhida) feitas. Ícones do seletor da 5.3 saem da biblioteca de clones (não há avião, presente, etc.), então são aproximação. 5.4 (guardar: digitado, vazio, passa do disponível, passa da meta) e 5.5 (resgatar: digitado, erro) feitas, com o teclado clonado da 2.1. 5.6 (concluir meta, sheet sobre a atingida) e 5.7 (folha de estados: metas na lista da Início, montada como artboard 390 px) feitas; série 5 inteira no Paper, HTML apagado. Lista antiga: 5.2 (atingida, atingida-manter, data passou, manter, sem data); 5.3 (data limite, escolhida, editar, nova vazia, preenchida, erro); 5.4 guardar; 5.5 resgatar; 5.6 concluir; 5.7 metas na lista da Início.
+  - **Série 6 (Perfil), página "6 · Perfil", feita (2026-11-19):** 25 telas: 6.1 sem internet; 6.2 cartões (apagar, fatura aberta, escolher o dia, novo crédito, novo débito, nenhum); 6.3 categorias (apagar, nova, nome repetido, todas no registro); 6.4 pessoas (ainda deve, renomear, nenhuma); 6.5 lembretes (e sem permissão); 6.6 aparência; 6.7 editar perfil (e nome vazio), exportar (gerando, pronto, falhou), sair, apagar conta; 6.8 saldo mínimo. Sem peça clonável para chips, sheets, switch e campos: foram desenhados à mão no padrão das telas da série 5. Ícones do seletor da 6.3 aproximados (biblioteca sem presente, chapéu de formatura, bicicleta, câmera, coração). HTML apagado.
+  - **Série 7 (Começar), página "7 · Começar", feita (2026-11-20):** 15 telas: 7.1 splash (desenhando a 55%, escuro); 7.2 onboarding (arrastando a 40%, passos 1 e 3 escuros); 7.3 entrar (erro, entrando, sem internet, sessão expirada); 7.4 criar conta (senha curta, e-mail existente, criando); 7.5 recuperar senha (normal, não encontrado, enviado). Logo desenhando = traço do 4º caminho com `strokeDasharray`. As telas escuras do onboarding foram refeitas à mão com as cores `-dark` do guia (o Paper não tem modo escuro automático). Os campos dos formulários são frames desenhados à mão (os campos da base 7.3/7.4 são Rectangles, que não aceitam texto). Ícones wifi-slash, lock e envelope desenhados em SVG avulso. HTML apagado.
+  - **Desktop (1440 × 900, página "Desktop", em andamento desde 2026-11-20):** D1 Início (8 telas) e D2 Registrar (9 telas, y = 1000: diálogo de 560 sobre o Início sem seleção; D2.8 empilha o diálogo de data de 480; D2.9 escuro) feitas no Paper; D3 Metas (15 telas, y = 2000) feita no Paper, HTML apagado; D4 Resumo (12 telas, y = 3000) feita no Paper, HTML apagado; D5 Perfil (17 telas, y = 4000) feita no Paper, HTML apagado. As peças estão em "Guia · Peças do Desktop". Montagem: barra lateral 240 (frame próprio, item ativo em sálvia), conteúdo 800 com coluna de 600, painel 400 à direita (frame "Painel de detalhe"); cada variante substitui a coluna ou o painel com `write_html` em modo `replace`. Escuro é refeito à mão com as cores `-dark` (sem modo escuro automático). Posições: linha de cada série em y = 0, 1000, 2000…, telas a cada 1520 px em x. HTML D1.* e D2.* apagados.
+  - **HTML de `design/` apagado (2026-11-20):** telas, guias, índice, protótipo e scripts foram removidos depois de conferidos no Paper (autorização da pessoa, sem backup). Ficaram `tokens.css`, `components.css` e `icons.js`.
+  - **Ajustes nos guias feitos em 2026-11-20:** logo com traço parcial nos estados de 35% e 70% (geometria cortada, o Paper ignora dasharray), anel do onboarding com trilho sálvia (#DCE6DD) como no componente, esmaecimento embaixo dos três passos da ilustração (degradê até o fundo). Anéis de meta do guia de Peças já batiam com `components.css`. As peças de Mês e Desktop seguem "aguardando aprovação". HTML dos guias apagado.
+  - **Revisão do Resumo (2026-11-20):** 25 telas revisadas (celular 4.1/4.2 e desktop D4.1–D4.12) e 19 de 20 achados corrigidos: valor cortado na D4.2, soma de janeiro no "O que vem", Entrou/Saiu no desktop, gráficos da D4.1/D4.9/D4.12 refeitos (rótulos em Inter, alinhados), mês selecionado visível no 4.1 futuro, painel da D4.3–D4.5, "Outras" na D4.9/D4.10, botão "Registrar conta fixa" no 4.2 vazio, barra do 4.1 recolhido (título 24 px), chip de mês e aviso âmbar, ícones da D4.11, folha do 4.1 não carregou, ícone repetido da D4.7. Não feito: ícones nas categorias do desktop (decisão). Pendente: chip de mês e aviso âmbar nas outras séries (só Resumo e D5.11 foram alinhados).
+  - **Dicas de execução no Paper MCP:** `write_html` exige `mode: "insert-children"`; `get_font_family_info` pede `familyNames` e `fileId`; `duplicate_nodes` usa `{id}`; `move_nodes` usa `moves: [{nodeId, parentId, index}]`. A barra de navegação vem de `x-paper-clone node-id="4H1-0"` (depois de inserir, zerar `top` e `left` do clone). Para variações da 1.1: duplicar o quadro `4CY-0`, `set_text_content` nos textos e, no saldo, recriar o texto com os centavos em span (set_text_content apaga o estilo dos centavos). O Paper pode deslocar a posição de quadros novos; conferir `left` e `top`. O conversor HTML→Paper (`conv.mjs`, `clonify.py`, `icons-map.json`) fica no scratchpad da sessão e pode sumir; se sumir, refazer com Playwright + Edge.
+
+## Perguntas em aberto
+- Paleta nova (Jedi Night / Mango / Heart of Ice): aprovar a prévia e trocar tudo? Na troca, os modos de prévia viram os valores Light/Dark, o botão principal passa a usar o accent e o `tokens.css` é atualizado.
+- Os tokens ainda não estão no código (o CSS é o do template Vite). Levar para `src/` quando começar a implementação.
