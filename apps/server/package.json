@@ -15,18 +15,18 @@
 		"@arvo/api": "workspace:*",
 		"@arvo/auth": "workspace:*",
 		"@arvo/db": "workspace:*",
-		"@fastify/cors": "^11.3.0",
-		"@hono/trpc-server": "^0.4.2",
+		"@fastify/cors": "11.3.0",
+		"@hono/trpc-server": "0.4.2",
 		"@trpc/server": "catalog:",
 		"better-auth": "catalog:",
-		"fastify": "^5.12.3",
+		"fastify": "5.12.5",
 		"varlock": "catalog:",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@arvo/config": "workspace:*",
 		"@types/bun": "catalog:",
-		"tsdown": "^0.23.0",
+		"tsdown": "0.23.0",
 		"typescript": "catalog:"
 	}
 }
