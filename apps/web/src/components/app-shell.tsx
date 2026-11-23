@@ -8,6 +8,10 @@ import {
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/logo";
+import {
+	RegisterProvider,
+	useRegister,
+} from "@/components/register/register-provider";
 
 const tabs = [
 	{ to: "/inicio", label: "Início", Icon: HouseIcon },
@@ -34,18 +38,21 @@ export function AppShell({
 	children: ReactNode;
 }) {
 	return (
-		<div className="min-h-svh sm:flex">
-			<CompactSidebar />
-			<FullSidebar user={user} />
-			<main className="min-w-0 flex-1 pb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] sm:pb-0">
-				{children}
-			</main>
-			<BottomBar />
-		</div>
+		<RegisterProvider>
+			<div className="min-h-svh sm:flex">
+				<CompactSidebar />
+				<FullSidebar user={user} />
+				<main className="min-w-0 flex-1 pb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] sm:pb-0">
+					{children}
+				</main>
+				<BottomBar />
+			</div>
+		</RegisterProvider>
 	);
 }
 
 function BottomBar() {
+	const { open } = useRegister();
 	const [first, second, third, fourth] = tabs;
 	return (
 		<nav
@@ -55,7 +62,12 @@ function BottomBar() {
 			<div className="navbar">
 				<TabLink tab={first} />
 				<TabLink tab={second} />
-				<button type="button" className="fab" aria-label="Adicionar">
+				<button
+					type="button"
+					className="fab"
+					aria-label="Adicionar"
+					onClick={() => open()}
+				>
 					<PlusIcon size={26} weight="bold" aria-hidden />
 				</button>
 				<TabLink tab={third} />
@@ -115,11 +127,13 @@ function SideLink({
 }
 
 function CompactSidebar() {
+	const { open } = useRegister();
 	return (
 		<aside className="sidebar sidebar--compact sticky top-0 hidden h-svh sm:flex lg:hidden">
 			<button
 				type="button"
 				className="btn-primary btn-primary--icon"
+				onClick={() => open()}
 				aria-label="Adicionar"
 			>
 				<PlusIcon size={24} weight="bold" aria-hidden />
@@ -134,12 +148,17 @@ function CompactSidebar() {
 }
 
 function FullSidebar({ user }: { user: ShellUser }) {
+	const { open } = useRegister();
 	return (
 		<aside className="sidebar sticky top-0 hidden h-svh lg:flex">
 			<div className="sidebar__brand">
 				<Logo />
 			</div>
-			<button type="button" className="btn-primary btn-primary--side">
+			<button
+				type="button"
+				className="btn-primary btn-primary--side"
+				onClick={() => open()}
+			>
 				<span className="btn-primary__label">
 					<PlusIcon size={24} weight="bold" aria-hidden />
 					Adicionar
