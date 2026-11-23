@@ -81,7 +81,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Retomada (próxima sessão)
 
-1. Fase 2 (Começar): criar conta (7.4) para poder entrar de fato, conferir a casca no navegador agora que o `/login` existe, decidir Rive × SVG para o splash (C8).
+1. Fase 2 (Começar): conferir a casca no navegador agora que `/login` e `/cadastro` existe, decidir Rive × SVG para o splash (C8).
 3. Fase 1 (modelo de dados e API) pode ir em paralelo; as regras de dinheiro seguem TESTES.md.
 4. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 (apagar a prévia no Figma), propagar o Campo nas telas do Figma.
 5. Nada foi enviado ao remoto: `git push` da `dev` e PR para a `master` quando quiser (o CI roda no PR).
@@ -106,7 +106,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [ ] 7.1 Splash (logo se desenha em ~1 s)
 - [ ] 7.2 Onboarding em 3 passos (arrastável)
 - [ ] 7.3 Entrar (erro, entrando, sem internet, sessão expirada)
-- [ ] 7.4 Criar conta (senha curta, e-mail existente, criando)
+- [x] 7.4 Criar conta (senha curta, e-mail existente, criando): rota `/cadastro` (`apps/web/src/routes/cadastro.tsx`), com nome, e-mail e senha de 8+ caracteres; o campo compartilhado com o login está em `components/auth-field.tsx`. Construída pelas peças do guia, sem o desenho do Paper à vista: conferir o texto e o espaçamento contra a 7.4
 - [ ] 7.5 Recuperar senha (normal, não encontrado, enviado)
 - [ ] 1.2 Início vazia ("Já tem dinheiro na conta? Registre como uma entrada.")
 
