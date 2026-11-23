@@ -26,8 +26,11 @@ export default defineConfig({
 			manifest: {
 				name: "arvo",
 				short_name: "arvo",
-				description: "arvo - PWA Application",
-				theme_color: "#0c0c0c",
+				description: "Suas finanças, do seu jeito.",
+				lang: "pt-BR",
+				display: "standalone",
+				theme_color: "#F2F5FA",
+				background_color: "#F2F5FA",
 			},
 			pwaAssets: { disabled: false, config: true },
 			devOptions: { enabled: true },
