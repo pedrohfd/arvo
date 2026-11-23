@@ -11,6 +11,7 @@ Definição dos testes automáticos. Cobrem só as **regras de dinheiro e de dat
   - Dinheiro em **centavos inteiros** (`number`); nenhum teste usa ponto flutuante.
   - Datas fixas nos testes (nunca "hoje" real); a regra recebe a data de referência como parâmetro.
   - Cada caso tem nome em português, no formato "faz X quando Y".
+  - Datas são texto "AAAA-MM-DD" (dia de calendário, sem `Date` nem fuso); a aritmética fica em `dates.ts`, que tem os seus próprios testes.
 
 Status: `[ ]` a escrever · `[x]` escrito e passando
 
@@ -18,45 +19,46 @@ Status: `[ ]` a escrever · `[x]` escrito e passando
 
 Fórmula: entrou − saiu − guardado nas metas + crédito a pagar. Nunca é armazenado.
 
-- [ ] Conta nova, sem transações: saldo 0
-- [ ] Entrou 5.000,00, saiu 2.000,00: saldo 3.000,00
-- [ ] Saldo negativo é um número negativo (a tela mostra sem vermelho, mas o valor não é truncado em 0)
-- [ ] Guardar 500,00 numa meta reduz o saldo em 500,00; resgatar devolve
-- [ ] Guardar e resgatar não contam como entrou nem como saiu
-- [ ] Compra no crédito não reduz o saldo na data da compra
-- [ ] Compra no crédito reduz o saldo no vencimento da fatura (entra "Fatura <cartão>")
-- [ ] "Crédito a pagar" soma as compras ainda não vencidas
-- [ ] Transação com data futura não entra no saldo atual
-- [ ] Transação com data futura passa a entrar quando a data de referência chega nela (inclusive no próprio dia)
-- [ ] Saldo "no fim de <mês passado>" soma só até o último dia daquele mês
-- [ ] Entrada de reembolso (de pagamento de divisão) conta como entrada
+- [x] Conta nova, sem transações: saldo 0
+- [x] Entrou 5.000,00, saiu 2.000,00: saldo 3.000,00
+- [x] Saldo negativo é um número negativo (a tela mostra sem vermelho, mas o valor não é truncado em 0)
+- [x] Guardar 500,00 numa meta reduz o saldo em 500,00; resgatar devolve
+- [x] Guardar e resgatar não contam como entrou nem como saiu
+- [x] Compra no crédito não reduz o saldo na data da compra
+- [x] Compra no crédito reduz o saldo no vencimento da fatura (entra "Fatura <cartão>")
+- [x] "Crédito a pagar" soma as compras ainda não vencidas
+- [x] Transação com data futura não entra no saldo atual
+- [x] Transação com data futura passa a entrar quando a data de referência chega nela (inclusive no próprio dia)
+- [x] Saldo "no fim de <mês passado>" soma só até o último dia daquele mês
+- [x] Entrada de reembolso (de pagamento de divisão) conta como entrada
 
 ## 2. Divisão da conta — `split.ts`
 
 Partes iguais contando você; os centavos que sobram ficam com você.
 
-- [ ] 85,50 entre 4 pessoas: cada uma 21,37; você 21,39
-- [ ] A soma das partes é sempre igual ao total (testar vários totais e quantidades)
-- [ ] 100,00 entre 2: 50,00 e 50,00, sem sobra
-- [ ] 0,01 entre 3: as outras duas ficam com 0,00 e você com 0,01
-- [ ] Dividir só com você: uma parte, igual ao total
-- [ ] Quantidade de pessoas menor que 1 é erro
-- [ ] Total zero ou negativo é erro
+- [x] 85,50 entre 4 pessoas: cada uma 21,37; você 21,39
+- [x] A soma das partes é sempre igual ao total (testar vários totais e quantidades)
+- [x] 100,00 entre 2: 50,00 e 50,00, sem sobra
+- [x] 0,01 entre 3: as outras duas ficam com 0,00 e você com 0,01
+- [x] Dividir só com você: uma parte, igual ao total
+- [x] Quantidade de pessoas menor que 1 é erro
+- [x] Total zero ou negativo é erro
 
 ## 3. Fatura do cartão de crédito — `invoice.ts`
 
 Compra até o dia de fechamento vence neste mês; depois, no mês seguinte. O melhor dia de compra é o dia seguinte ao fechamento.
 
-- [ ] Fechamento dia 20, vencimento dia 27: compra no dia 20 vence 27 do mesmo mês
-- [ ] Mesmo cartão: compra no dia 21 vence 27 do mês seguinte
-- [ ] Compra no dia 1 vence neste mês
-- [ ] Fechamento no fim do ano: compra em 25/12 com fechamento dia 20 vence em janeiro do ano seguinte
-- [ ] Vencimento antes do fechamento no calendário (fechamento 28, vencimento 5): a fatura vence no mês seguinte ao do fechamento
-- [ ] Mês sem o dia de fechamento ou vencimento (dia 31 em fevereiro, 30 em fevereiro): usa o último dia do mês
-- [ ] Melhor dia de compra é o dia seguinte ao fechamento (fechamento 20 → 21; fechamento 31 em mês de 30 dias → dia 1 do mês seguinte)
-- [ ] Valor da fatura é a soma das compras que caem nela
-- [ ] Débito, Pix e dinheiro não geram fatura (saem na hora)
-- [ ] Compra parcelada: cada parcela cai na fatura do seu mês, na ordem
+- [x] Fechamento dia 20, vencimento dia 27: compra no dia 20 vence 27 do mesmo mês
+- [x] Mesmo cartão: compra no dia 21 vence 27 do mês seguinte
+- [x] Compra no dia 1 vence neste mês
+- [x] Fechamento no fim do ano: compra em 25/12 com fechamento dia 20 vence em janeiro do ano seguinte
+- [x] Vencimento antes do fechamento no calendário (fechamento 28, vencimento 5): a fatura vence no mês seguinte ao do fechamento
+- [x] Fechamento e vencimento no mesmo dia (fecha 20, vence 20): vence no mês seguinte
+- [x] Mês sem o dia de fechamento ou vencimento (dia 31 em fevereiro, 30 em fevereiro): usa o último dia do mês
+- [x] Melhor dia de compra é o dia seguinte ao fechamento (fechamento 20 → 21; fechamento 31 em mês de 30 dias → dia 1 do mês seguinte)
+- [x] Valor da fatura é a soma das compras que caem nela
+- [x] Débito, Pix e dinheiro não geram fatura (saem na hora)
+- [x] Compra parcelada: cada parcela cai na fatura do seu mês, na ordem
 
 ## 4. Recorrência — `recurrence.ts`
 
@@ -113,11 +115,11 @@ Ocorrências são geradas ao criar; "sem fim" gera 24 meses à frente e é renov
 
 ## 8. Aviso de saldo mínimo — `minimum-balance.ts`
 
-- [ ] Gasto que deixaria o saldo abaixo do mínimo gera aviso (saldo 2.533,80, mínimo 500,00, Pix de 2.100,00 → 433,80 < 500,00)
-- [ ] Gasto que deixa o saldo exatamente no mínimo não avisa
-- [ ] Gasto no crédito não avisa
-- [ ] Entrada nunca avisa
-- [ ] Sem saldo mínimo configurado, nunca avisa
+- [x] Gasto que deixaria o saldo abaixo do mínimo gera aviso (saldo 2.533,80, mínimo 500,00, Pix de 2.100,00 → 433,80 < 500,00)
+- [x] Gasto que deixa o saldo exatamente no mínimo não avisa
+- [x] Gasto no crédito não avisa
+- [x] Entrada nunca avisa
+- [x] Sem saldo mínimo configurado, nunca avisa
 
 ## 9. Valor digitado no teclado — `amount-input.ts` (no app web)
 
