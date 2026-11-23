@@ -94,6 +94,7 @@
       },
       "devDependencies": {
         "@arvo/config": "workspace:*",
+        "@types/bun": "catalog:",
         "typescript": "catalog:",
       },
     },

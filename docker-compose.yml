@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: arvo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: arvo
+      POSTGRES_PASSWORD: arvo
+      POSTGRES_DB: arvo
+    ports:
+      - "5432:5432"
+    volumes:
+      - arvo-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arvo -d arvo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  arvo-db-data:
