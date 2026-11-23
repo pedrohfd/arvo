@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 import { protectedProcedure, publicProcedure, router } from "../index";
+import { categoryRouter } from "./category";
+import { transactionRouter } from "./transaction";
 
 export const appRouter = router({
 	healthCheck: publicProcedure.query(() => {
@@ -16,6 +18,8 @@ export const appRouter = router({
 			});
 			return user !== null;
 		}),
+	category: categoryRouter,
+	transaction: transactionRouter,
 	privateData: protectedProcedure.query(({ ctx }) => {
 		return {
 			message: "This is private",
