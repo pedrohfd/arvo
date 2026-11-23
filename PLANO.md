@@ -4,6 +4,7 @@ Controle de andamento da implementação. O design está em [DESIGN.md](DESIGN.m
 
 Convenções:
 - Marque `[x]` ao terminar um item e anote a data no Registro no fim do arquivo.
+- Nunca se faz commit direto na `dev`: todo trabalho entra por uma branch (em inglês) criada a partir da `dev`.
 - Cada fase vira um ou mais PRs para `dev`; `dev` é mesclada na `master` só depois de conferida.
 - Se o código e o DESIGN.md discordarem, o código vale até a pessoa decidir (ver DESIGN.md).
 
