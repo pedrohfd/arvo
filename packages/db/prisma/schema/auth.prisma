@@ -1,13 +1,20 @@
 model User {
-  id            String    @id
+  id            String        @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean       @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   sessions      Session[]
   accounts      Account[]
+  categories    Category[]
+  cards         Card[]
+  people        Person[]
+  series        Series[]
+  transactions  Transaction[]
+  goals         Goal[]
+  settings      UserSettings?
 
   @@unique([email])
   @@map("user")

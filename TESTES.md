@@ -67,7 +67,9 @@ Ocorrências são geradas ao criar; "sem fim" gera 24 meses à frente e é renov
 - [ ] Ano bissexto: dia 29/02 e dia 31 em fevereiro de 2028 caem em 29
 - [ ] Virada de ano: série de 15/11 por 4 meses gera 15/11, 15/12, 15/01, 15/02
 - [ ] Parcelas numeradas: "parcela 3/10"
-- [ ] Valor da parcela: total dividido com a sobra de centavos na primeira parcela (a soma fecha)
+- [ ] Parcelamento (compra no crédito): a pessoa digita o valor da parcela e quantas parcelas; R$ 50,00 × 10 gera 10 ocorrências de R$ 50,00, sem divisão nem sobra de centavos
+- [ ] "Repetir" a cada 12 meses (licenciamento do carro, 10/03): gera 10/03 de cada ano; "sem fim" gera 24 meses à frente, ou seja, 2 ocorrências
+- [ ] "Repetir" a cada 3 meses a partir de 31/01: 31/01, 30/04, 31/07, 31/10 (último dia nos meses curtos, sem perder o dia âncora)
 - [ ] "Sem fim" gera 24 meses à frente e nada além disso
 - [ ] Renovar uma série sem fim acrescenta só as ocorrências novas, sem duplicar as existentes
 - [ ] Editar "só esta" muda só aquela ocorrência

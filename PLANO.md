@@ -56,6 +56,7 @@ Design (em aberto no DESIGN.md):
 - [x] D4 · Campos sem borda abaixo de 3:1: mantidos sem borda, decisão consciente registrada em Acessibilidade no DESIGN.md
 - [x] D5 · Componente Campo aprovado (2026-11-22). Fica pendente, sem bloquear o código, propagar nas telas do Figma (cópias à mão viram instâncias)
 - [x] D6 · Peças de Mês e Desktop aprovadas (2026-11-22); o aviso "aguardando aprovação" saiu do DESIGN.md
+- [ ] D9 · (com você) Figma 2.2: desenhar "Parcelamento" (só no cartão de crédito: valor da parcela e número de parcelas) e a periodicidade do "Repetir" (todo mês, a cada X meses, uma vez por ano); decisão de 2026-11-23 no DESIGN.md. Não bloqueia a Fase 1
 - [ ] D7 · (com você) Apagar no Figma a página "Prévia · Cores novas (temporária)" e os modos "Prévia claro" e "Prévia escuro" da coleção Arvo Color; não bloqueia nada
 - [x] D8 · Chip de mês e aviso âmbar nas outras séries: alinhar junto da implementação; ao codar cada série, se a tela do Figma divergir do guia (chip: sálvia + ponto verde; aviso âmbar padrão), seguir o guia e corrigir o Figma
 
@@ -88,9 +89,9 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Fase 1 · Modelo de dados e API
 
-- [ ] Schema Prisma: `Category`, `Card`, `Person`, `Transaction`, `TransactionSplit`, `Goal`, `GoalMovement`, `UserSettings`; tudo ligado ao usuário com `onDelete: Cascade` (P6)
-- [ ] Dinheiro em centavos inteiros
-- [ ] Recorrência: gerar as ocorrências ao criar, com limite à frente para "sem fim" e renovação depois
+- [x] Schema Prisma (`packages/db/prisma/schema/finance.prisma` + migração `finance_model`): `Category`, `Card`, `Person`, `Series`, `Transaction`, `TransactionSplit`, `Goal`, `GoalMovement`, `UserSettings`; tudo ligado ao usuário com `onDelete: Cascade` (P6). Categoria e pessoa em uso não se apagam (`NoAction`, conferido só no fim da transação para a cascata da conta passar); apagar cartão mantém as compras. Restrições `CHECK` no SQL da migração. As relações com `User` são injetadas em `auth.prisma` por `scripts/patch-auth-schema.ts` (roda dentro do `auth:generate`)
+- [x] Dinheiro em centavos inteiros (`amountCents`, até 999.999.999 por `CHECK`)
+- [ ] Recorrência e parcelamento (`Series`): gerar as ocorrências ao criar, com limite à frente para "sem fim" e renovação depois; "repetir" com periodicidade (`intervalMonths`: 1, 3, 12...) e parcelamento no crédito (N parcelas do valor digitado)
 - [ ] Regra do saldo: entrou − saiu − guardado + crédito a pagar (nunca armazenado)
 - [ ] Regra da divisão: partes iguais contando você; os centavos que sobram ficam com você
 - [ ] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento
@@ -178,3 +179,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-23 — Logo SVG na barra lateral (como máscara, para seguir a cor do texto nos dois temas) e rota `/login` criada; `continue-on-error` do CI removido.
 - 2026-11-23 — Fase 2: telas Entrar, Criar conta e Recuperar senha conferidas contra o Figma; splash feito em SVG/CSS e Rive removido (C8).
 - 2026-11-23 — Fase 2: onboarding (7.2) feito. Descoberto que as fontes Inter e Fraunces não eram empacotadas (dev e build): corrigido em PR separado.
+- 2026-11-23 — Fase 1: schema de finanças e migração. Decisões: parcelamento (crédito) e repetir (com periodicidade) são conceitos separados; apagar cartão mantém o histórico. O banco local foi migrado com um teste de 22 casos (restrições, cascatas, apagar conta).
