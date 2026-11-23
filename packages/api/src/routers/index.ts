@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { protectedProcedure, publicProcedure, router } from "../index";
+import { cardRouter } from "./card";
 import { categoryRouter } from "./category";
 import { goalRouter } from "./goal";
 import { personRouter } from "./person";
@@ -23,6 +24,7 @@ export const appRouter = router({
 			});
 			return user !== null;
 		}),
+	card: cardRouter,
 	category: categoryRouter,
 	transaction: transactionRouter,
 	summary: summaryRouter,

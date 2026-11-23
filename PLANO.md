@@ -97,7 +97,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [~] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento (`invoice.ts`, pronta; falta ligar)
 - [~] Data futura entra no saldo só quando a data chega (em `balance.ts`, pronta; falta ligar)
 - [~] Marcar pago cria entrada de reembolso (desligável); apagar a saída apaga os reembolsos gerados (`settlement.ts`, pronta; no banco, a cascata de `reimbursedSplitId` já apaga; falta ligar)
-- [~] Routers tRPC prontos: `category`, `transaction` (listar, criar, apagar), `summary` (Início, Resumo do mês, Horizonte), `goal` (criar, editar, guardar, resgatar, concluir, apagar), `person`, `split` (A receber, marcar/desmarcar pago com reembolso) e `settings` (saldo mínimo); faltam `card`, o perfil (editar dados, exportar CSV, apagar conta) e editar transação
+- [~] Routers tRPC prontos: `category`, `transaction` (listar, criar, apagar), `summary` (Início, Resumo do mês, Horizonte), `card` (listar, criar, editar, apagar), `goal` (criar, editar, guardar, resgatar, concluir, apagar), `person`, `split` (A receber, marcar/desmarcar pago com reembolso) e `settings` (saldo mínimo); falta o perfil (editar dados, exportar CSV, apagar conta) e editar transação
 - [x] Categorias padrão criadas no cadastro (`packages/db/src/default-categories.ts`, hook `databaseHooks.user.create.after` no Better-Auth)
 - [~] Testes das regras de dinheiro, conforme [TESTES.md](TESTES.md): grupos 1 a 8 escritos (130 testes, verificados por mutação); faltam os grupos 9 a 11, do app web (teclado de valor, busca, fila offline)
 
@@ -118,8 +118,8 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [ ] Seletor de mês (folha 1.10) e saldo "no fim de <mês>" em mês passado
 - [ ] Busca sem acento e sem maiúsculas, só no mês escolhido
 - [ ] Estados: carregando, não carregou, sem internet, erro na linha da transação
-- [ ] 2.1 Valor com teclado numérico (vírgula, centavos só depois dela)
-- [ ] 2.2 Detalhes: categoria obrigatória, título opcional, data, forma de pagamento, repetir, dividir
+- [x] 2.1 Valor com teclado numérico (vírgula, centavos só depois dela): `components/register/register-sheet.tsx` e `lib/amount-input.ts` (grupo 9 do TESTES.md, 14 testes); teclado do computador também
+- [~] 2.2 Detalhes: categoria (com a folha "Mais"), título, forma de pagamento, repetir (sem fim, 2, 3, 6, 10, 12) e aviso de saldo mínimo feitos; faltam o seletor de data (2.4), "Dividir a conta" (2.3), "Outro" em "Por quantos meses" e o parcelamento (D9, sem tela)
 - [ ] 2.3 Dividir com (pessoas só como nomes)
 - [ ] 2.4 Seletor de data
 - [ ] Aviso de saldo mínimo ao registrar (âmbar, não bloqueia)
