@@ -91,15 +91,15 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 - [x] Schema Prisma (`packages/db/prisma/schema/finance.prisma` + migração `finance_model`): `Category`, `Card`, `Person`, `Series`, `Transaction`, `TransactionSplit`, `Goal`, `GoalMovement`, `UserSettings`; tudo ligado ao usuário com `onDelete: Cascade` (P6). Categoria e pessoa em uso não se apagam (`NoAction`, conferido só no fim da transação para a cascata da conta passar); apagar cartão mantém as compras. Restrições `CHECK` no SQL da migração. As relações com `User` são injetadas em `auth.prisma` por `scripts/patch-auth-schema.ts` (roda dentro do `auth:generate`)
 - [x] Dinheiro em centavos inteiros (`amountCents`, até 999.999.999 por `CHECK`)
-- [ ] Recorrência e parcelamento (`Series`): gerar as ocorrências ao criar, com limite à frente para "sem fim" e renovação depois; "repetir" com periodicidade (`intervalMonths`: 1, 3, 12...) e parcelamento no crédito (N parcelas do valor digitado)
-- [ ] Regra do saldo: entrou − saiu − guardado + crédito a pagar (nunca armazenado)
-- [ ] Regra da divisão: partes iguais contando você; os centavos que sobram ficam com você
-- [ ] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento
-- [ ] Data futura entra no saldo só quando a data chega
-- [ ] Marcar pago cria entrada de reembolso (desligável); apagar a saída apaga os reembolsos gerados
+- [~] Recorrência e parcelamento (`Series`) — regra pura pronta em `recurrence.ts`; falta gravar no banco e a renovação ao abrir o app: gerar as ocorrências ao criar, com limite à frente para "sem fim" e renovação depois; "repetir" com periodicidade (`intervalMonths`: 1, 3, 12...) e parcelamento no crédito (N parcelas do valor digitado)
+- [~] Regra do saldo: entrou − saiu − guardado + crédito a pagar (nunca armazenado). Regra e testes prontos (`packages/api/src/rules/balance.ts`); falta ligar nos routers
+- [~] Regra da divisão: partes iguais contando você; os centavos que sobram ficam com você (`split.ts`, pronta; falta ligar)
+- [~] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento (`invoice.ts`, pronta; falta ligar)
+- [~] Data futura entra no saldo só quando a data chega (em `balance.ts`, pronta; falta ligar)
+- [~] Marcar pago cria entrada de reembolso (desligável); apagar a saída apaga os reembolsos gerados (`settlement.ts`, pronta; no banco, a cascata de `reimbursedSplitId` já apaga; falta ligar)
 - [ ] Routers tRPC: `transaction`, `summary`, `goal`, `person`, `card`, `category`, `profile`
 - [ ] Categorias padrão criadas no cadastro
-- [ ] Testes das regras de dinheiro, conforme [TESTES.md](TESTES.md)
+- [~] Testes das regras de dinheiro, conforme [TESTES.md](TESTES.md): grupos 1 a 8 escritos (130 testes, verificados por mutação); faltam os grupos 9 a 11, do app web (teclado de valor, busca, fila offline)
 
 ## Fase 2 · Começar
 
@@ -180,3 +180,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-23 — Fase 2: telas Entrar, Criar conta e Recuperar senha conferidas contra o Figma; splash feito em SVG/CSS e Rive removido (C8).
 - 2026-11-23 — Fase 2: onboarding (7.2) feito. Descoberto que as fontes Inter e Fraunces não eram empacotadas (dev e build): corrigido em PR separado.
 - 2026-11-23 — Fase 1: schema de finanças e migração. Decisões: parcelamento (crédito) e repetir (com periodicidade) são conceitos separados; apagar cartão mantém o histórico. O banco local foi migrado com um teste de 22 casos (restrições, cascatas, apagar conta).
+- 2026-11-23 — Fase 1: regras de dinheiro puras (saldo, divisão, fatura, saldo mínimo, recorrência e parcelamento, reembolso, metas, Resumo e Horizonte) com 130 testes, verificados por mutação. Falta ligar nos routers tRPC.

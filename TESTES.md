@@ -64,54 +64,57 @@ Compra até o dia de fechamento vence neste mês; depois, no mês seguinte. O me
 
 Ocorrências são geradas ao criar; "sem fim" gera 24 meses à frente e é renovado para manter sempre 24 à frente.
 
-- [ ] "Todo mês" por 3 meses gera 3 ocorrências, no mesmo dia de cada mês
-- [ ] Série iniciada no dia 31 usa o último dia dos meses menores (31/01, 28/02 ou 29/02, 31/03, 30/04)
-- [ ] Ano bissexto: dia 29/02 e dia 31 em fevereiro de 2028 caem em 29
-- [ ] Virada de ano: série de 15/11 por 4 meses gera 15/11, 15/12, 15/01, 15/02
-- [ ] Parcelas numeradas: "parcela 3/10"
-- [ ] Parcelamento (compra no crédito): a pessoa digita o valor da parcela e quantas parcelas; R$ 50,00 × 10 gera 10 ocorrências de R$ 50,00, sem divisão nem sobra de centavos
-- [ ] "Repetir" a cada 12 meses (licenciamento do carro, 10/03): gera 10/03 de cada ano; "sem fim" gera 24 meses à frente, ou seja, 2 ocorrências
-- [ ] "Repetir" a cada 3 meses a partir de 31/01: 31/01, 30/04, 31/07, 31/10 (último dia nos meses curtos, sem perder o dia âncora)
-- [ ] "Sem fim" gera 24 meses à frente e nada além disso
-- [ ] Renovar uma série sem fim acrescenta só as ocorrências novas, sem duplicar as existentes
-- [ ] Editar "só esta" muda só aquela ocorrência
-- [ ] Editar "esta e as próximas" muda aquela e as seguintes, nunca as anteriores
-- [ ] Apagar "só esta" remove só aquela; apagar "esta e as próximas" remove aquela e as seguintes, nunca as anteriores
-- [ ] Ocorrências já passadas nunca são alteradas ao editar a série
+- [x] "Todo mês" por 3 meses gera 3 ocorrências, no mesmo dia de cada mês
+- [x] Série iniciada no dia 31 usa o último dia dos meses menores (31/01, 28/02 ou 29/02, 31/03, 30/04)
+- [x] Ano bissexto: dia 29/02 e dia 31 em fevereiro de 2028 caem em 29
+- [x] Virada de ano: série de 15/11 por 4 meses gera 15/11, 15/12, 15/01, 15/02
+- [x] Parcelas numeradas: "parcela 3/10"
+- [x] Parcelamento (compra no crédito): a pessoa digita o valor da parcela e quantas parcelas; R$ 50,00 × 10 gera 10 ocorrências de R$ 50,00, sem divisão nem sobra de centavos
+- [x] "Repetir" a cada 12 meses (licenciamento do carro, 10/03): gera 10/03 de cada ano; "sem fim" gera 24 meses à frente, ou seja, 2 ocorrências
+- [x] "Repetir" a cada 3 meses a partir de 31/01: 31/01, 30/04, 31/07, 31/10 (último dia nos meses curtos, sem perder o dia âncora)
+- [x] "Sem fim" gera até o fim do 24º mês à frente (todo mês a partir de hoje: 25 ocorrências) e nada além disso; a que cai no último dia do horizonte entra
+- [x] Renovar uma série sem fim acrescenta só as ocorrências novas, sem duplicar as existentes
+- [x] Editar "só esta" muda só aquela ocorrência
+- [x] Editar "esta e as próximas" muda aquela e as seguintes, nunca as anteriores
+- [x] Apagar "só esta" remove só aquela; apagar "esta e as próximas" remove aquela e as seguintes, nunca as anteriores
+- [x] Ocorrências já passadas nunca são alteradas ao editar a série
+- [x] Limites: quantidade de 1 a 600 por série; periodicidade de pelo menos 1 mês; parcelamento sempre com quantidade
 
 ## 5. Reembolso ao marcar pago — `settlement.ts`
 
-- [ ] Marcar que uma pessoa pagou cria uma entrada de Reembolso com o valor da parte dela e a data do pagamento
-- [ ] Com a opção desligada (pagou em dinheiro), marca como pago e não cria entrada
-- [ ] Desmarcar o pagamento remove a entrada de reembolso gerada
-- [ ] Apagar a saída dividida apaga as entradas de reembolso geradas por ela
-- [ ] "A receber" soma só as partes ainda não pagas, por pessoa
-- [ ] Todos pagaram: "A receber" dessa transação é 0 (estado "Tudo acertado")
-- [ ] A parte do próprio usuário nunca entra em "A receber"
+- [x] Marcar que uma pessoa pagou cria uma entrada de Reembolso com o valor da parte dela e a data do pagamento
+- [x] Com a opção desligada (pagou em dinheiro), marca como pago e não cria entrada
+- [x] Desmarcar o pagamento remove a entrada de reembolso gerada
+- [x] Apagar a saída dividida apaga as entradas de reembolso geradas por ela
+- [x] "A receber" soma só as partes ainda não pagas, por pessoa
+- [x] Todos pagaram: "A receber" dessa transação é 0 (estado "Tudo acertado")
+- [x] A parte do próprio usuário nunca entra em "A receber"
 
 ## 6. Metas — `goals.ts`
 
-- [ ] Só dá para guardar até o valor disponível (saldo atual); acima disso é erro
-- [ ] Só dá para resgatar até o valor guardado naquela meta
-- [ ] Meta atinge o alvo quando o guardado é maior ou igual ao valor da meta
-- [ ] "Para gastar" atingida: concluir devolve o valor guardado ao saldo
-- [ ] "Para manter" atingida: não tem concluir; o valor só sai por resgate
-- [ ] Dica de data limite: valor mensal = (alvo − guardado) ÷ meses restantes, arredondado para cima em centavos
-- [ ] Data limite que já passou não gera dica de valor mensal
-- [ ] Guardar valor zero ou negativo é erro
+- [x] Só dá para guardar até o valor disponível (saldo atual); acima disso é erro
+- [x] Só dá para resgatar até o valor guardado naquela meta
+- [x] Meta atinge o alvo quando o guardado é maior ou igual ao valor da meta
+- [x] "Para gastar" atingida: concluir devolve o valor guardado ao saldo
+- [x] "Para manter" atingida: não tem concluir; o valor só sai por resgate
+- [x] Dica de data limite: valor mensal = (alvo − guardado) ÷ meses restantes, arredondado para cima em centavos
+- [x] Data limite que já passou não gera dica de valor mensal
+- [x] Guardar valor zero ou negativo é erro
 
 ## 7. Resumo e Horizonte — `summary.ts`
 
-- [ ] "Sobrou" = entrou − saiu do mês; fecha com o saldo: sobrou − guardou (+ crédito) = saldo
-- [ ] "Saiu" e "Para onde foi" seguem a data da compra, inclusive no crédito
-- [ ] "Para onde foi": 5 maiores categorias + "Outras"; a soma sempre fecha com o total
-- [ ] Menos de 6 categorias: sem "Outras"
-- [ ] Guardar e resgatar não entram em "Saiu" nem em "Para onde foi"
-- [ ] Mês futuro usa só o que está agendado ("Deve sobrar")
-- [ ] Horizonte: saldo previsto no fim de cada mês, de hoje até hoje + 5 meses
-- [ ] Horizonte parte do saldo disponível (já sem o guardado nas metas) e inclui a fatura no mês do vencimento
-- [ ] Meses abaixo do saldo mínimo são marcados; com saldo mínimo 0 ou sem configuração, nenhum é marcado
-- [ ] Nada agendado: a linha fica reta no saldo atual
+- [x] "Sobrou" = entrou − saiu do mês; fecha com o saldo: sobrou − guardou (+ crédito) = saldo
+- [x] "Saiu" e "Para onde foi" seguem a data da compra, inclusive no crédito
+- [x] "Para onde foi": 5 maiores categorias + "Outras"; a soma sempre fecha com o total
+- [x] Menos de 6 categorias: sem "Outras"
+- [x] Guardar e resgatar não entram em "Saiu" nem em "Para onde foi"
+- [x] Mês futuro usa só o que está agendado ("Deve sobrar")
+- [x] Horizonte: saldo previsto no fim de cada mês, de hoje até hoje + 5 meses
+- [x] Horizonte parte do saldo disponível (já sem o guardado nas metas) e inclui a fatura no mês do vencimento
+- [x] Meses abaixo do saldo mínimo são marcados; com saldo mínimo 0 ou sem configuração, nenhum é marcado
+- [x] Nada agendado: a linha fica reta no saldo atual
+- [x] O que é de hoje (e a fatura que vence hoje) já está no saldo atual: não entra de novo no "o que vem" nem no horizonte
+- [x] Compras no crédito viram uma fatura por cartão e vencimento em "o que vem"
 
 ## 8. Aviso de saldo mínimo — `minimum-balance.ts`
 
