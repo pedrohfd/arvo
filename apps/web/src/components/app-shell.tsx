@@ -1,7 +1,7 @@
 import {
-	ChartLineUpIcon,
 	HouseIcon,
 	PlusIcon,
+	ReceiptIcon,
 	TargetIcon,
 	UserIcon,
 } from "@phosphor-icons/react";
@@ -12,7 +12,7 @@ import { Logo } from "@/components/logo";
 const tabs = [
 	{ to: "/inicio", label: "Início", Icon: HouseIcon },
 	{ to: "/metas", label: "Metas", Icon: TargetIcon },
-	{ to: "/resumo", label: "Resumo", Icon: ChartLineUpIcon },
+	{ to: "/resumo", label: "Resumo", Icon: ReceiptIcon },
 	{ to: "/perfil", label: "Perfil", Icon: UserIcon },
 ] as const;
 
