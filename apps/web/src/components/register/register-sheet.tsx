@@ -22,11 +22,13 @@ import {
 	pressKey,
 	toCents,
 } from "@/lib/amount-input";
-import { formatMoney, moneyParts, monthShort } from "@/lib/format";
+import { formatMoney, moneyParts } from "@/lib/format";
 import {
 	creditHint,
+	dateFieldLabel,
 	defaultPayment,
 	type Flow,
+	futureDateHint,
 	type Payment,
 	paymentOptions,
 	REPEAT_COUNTS,
@@ -35,6 +37,8 @@ import {
 	visibleCategories,
 } from "@/lib/register";
 import { trpc } from "@/utils/trpc";
+import { DateSheet } from "./date-sheet";
+import { Chip, Grabber, useEscape } from "./parts";
 
 export type Registered = {
 	/** Transações criadas (várias quando repete ou parcela). */
@@ -66,7 +70,7 @@ export function RegisterSheet({
 		document.body.style.overflow = "hidden";
 		dialogRef.current?.focus();
 		function onKey(event: KeyboardEvent) {
-			if (event.key === "Escape") onClose();
+			if (event.key === "Escape" && !event.defaultPrevented) onClose();
 		}
 		window.addEventListener("keydown", onKey);
 		return () => {
@@ -87,9 +91,7 @@ export function RegisterSheet({
 				tabIndex={-1}
 				className="relative flex h-[calc(100svh-56px)] w-full max-w-[480px] flex-col rounded-t-[var(--radius-xl)] bg-[var(--color-surface)] shadow-[var(--shadow-strong)] outline-none"
 			>
-				<div className="flex shrink-0 justify-center pt-2">
-					<div className="h-[5px] w-9 rounded-full bg-[var(--color-fill-2)]" />
-				</div>
+				<Grabber />
 				{step === "amount" ? (
 					<AmountStep
 						flow={flow}
@@ -286,6 +288,8 @@ function DetailsStep({
 	const [categoryError, setCategoryError] = useState(false);
 	const [moreOpen, setMoreOpen] = useState(false);
 	const [title, setTitle] = useState("");
+	const [date, setDate] = useState(today);
+	const [dateOpen, setDateOpen] = useState(false);
 	const [pickedPayment, setPickedPayment] = useState<Payment | null>(null);
 	const [repeat, setRepeat] = useState(false);
 	const [repeatCount, setRepeatCount] = useState<number | null>(null);
@@ -310,6 +314,8 @@ function DetailsStep({
 		kind: flow,
 		isCredit: selectedCard?.type === "CREDIT",
 	});
+	// Gasto agendado não mexe no saldo agora: o aviso só vale para hoje ou datas passadas.
+	const showWarning = warning.warn && date <= today;
 
 	const create = useMutation(
 		trpc.transaction.create.mutationOptions({
@@ -330,17 +336,18 @@ function DetailsStep({
 			amountCents: cents,
 			title: title.trim() || undefined,
 			categoryId,
-			date: today,
+			date,
 			paymentMethod: payment.kind === "card" ? "CARD" : payment.kind,
 			cardId: payment.kind === "card" ? payment.cardId : undefined,
 			repeat: repeat ? { intervalMonths: 1, count: repeatCount } : undefined,
 		});
 	}
 
-	const day = Number(today.slice(8, 10));
-	const dateText = `Hoje, ${day} de ${monthShort(today.slice(0, 7))}`;
 	const money = moneyParts(cents);
-	const hint = creditHint(selectedCard, today);
+	const hint = creditHint(selectedCard, date);
+	// Compra no crédito já tem o aviso da fatura; as demais avisam que a data ainda não chegou.
+	const futureHint =
+		selectedCard?.type === "CREDIT" ? null : futureDateHint(date, today);
 
 	return (
 		<>
@@ -373,7 +380,7 @@ function DetailsStep({
 					</span>
 				</button>
 
-				{warning.warn ? (
+				{showWarning ? (
 					<div className="banner m-0">
 						<WarningCircleIcon size={20} aria-hidden />
 						<p className="banner__text">
@@ -433,13 +440,30 @@ function DetailsStep({
 					</div>
 				</div>
 
-				<div className="field field--select">
-					<span className="field__label">Data</span>
-					<div className="field__control">
-						<CalendarBlankIcon size={18} aria-hidden />
-						<span className="field__value">{dateText}</span>
-						<CaretDownIcon size={18} aria-hidden />
+				<div className="flex flex-col gap-3">
+					<div className="field field--select">
+						<span className="field__label" id="register-date-label">
+							Data
+						</span>
+						<button
+							type="button"
+							className="field__control text-left"
+							aria-labelledby="register-date-label"
+							aria-haspopup="dialog"
+							onClick={() => setDateOpen(true)}
+						>
+							<CalendarBlankIcon size={18} aria-hidden />
+							<span className="field__value">
+								{dateFieldLabel(date, today)}
+							</span>
+							<CaretDownIcon size={18} aria-hidden />
+						</button>
 					</div>
+					{futureHint ? (
+						<p className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-5">
+							{futureHint}
+						</p>
+					) : null}
 				</div>
 
 				<Group
@@ -541,6 +565,17 @@ function DetailsStep({
 				</button>
 			</div>
 
+			{dateOpen ? (
+				<DateSheet
+					value={date}
+					today={today}
+					onSelect={(picked) => {
+						setDate(picked);
+						setDateOpen(false);
+					}}
+					onClose={() => setDateOpen(false)}
+				/>
+			) : null}
 			{moreOpen ? (
 				<CategorySheet
 					categories={flowCategories}
@@ -565,35 +600,6 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
 	);
 }
 
-// Chip de escolha: o selecionado ganha o contorno verde do Figma.
-function Chip({
-	selected,
-	onClick,
-	icon,
-	children,
-}: {
-	selected: boolean;
-	onClick: () => void;
-	icon?: ReactNode;
-	children: ReactNode;
-}) {
-	return (
-		<button
-			type="button"
-			aria-pressed={selected}
-			className={cn(
-				"choice",
-				icon && "choice--icon",
-				selected && "is-selected shadow-[inset_0_0_0_1px_var(--color-focus)]",
-			)}
-			onClick={onClick}
-		>
-			{icon ? <span className="icon">{icon}</span> : null}
-			{children}
-		</button>
-	);
-}
-
 // "Todas as categorias" (tela 6.3 no registro): a folha do "Mais". "Nova categoria" fica para a
 // tela de categorias do Perfil.
 function CategorySheet({
@@ -607,6 +613,7 @@ function CategorySheet({
 	onSelect: (id: string) => void;
 	onClose: () => void;
 }) {
+	useEscape(onClose);
 	return (
 		<div className="fixed inset-0 z-[60] flex items-end justify-center bg-[var(--color-overlay)]">
 			<div
@@ -615,9 +622,7 @@ function CategorySheet({
 				aria-label="Categoria"
 				className="w-full max-w-[480px] rounded-t-[var(--radius-xl)] bg-[var(--color-surface)] shadow-[var(--shadow-strong)]"
 			>
-				<div className="flex justify-center pt-2">
-					<div className="h-[5px] w-9 rounded-full bg-[var(--color-fill-2)]" />
-				</div>
+				<Grabber />
 				<div className="flex h-14 items-center px-3 pt-1 pb-2">
 					<button
 						type="button"

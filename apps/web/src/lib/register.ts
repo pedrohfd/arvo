@@ -1,7 +1,7 @@
 import { addMonths, parseDate } from "@arvo/api/rules/dates";
 import { dueDateForPurchase } from "@arvo/api/rules/invoice";
 
-import { formatMoney, formatShortDate, monthShort } from "./format";
+import { dayLabel, formatMoney, formatShortDate, monthShort } from "./format";
 
 // Regras de tela do Registrar (série 2 do Figma): textos de apoio e escolhas padrão.
 
@@ -116,3 +116,24 @@ export function visibleCategories<T extends { id: string }>(
 
 /** Números de meses oferecidos em "Por quantos meses" (além de "Sem fim"). */
 export const REPEAT_COUNTS = [2, 3, 6, 10, 12] as const;
+
+/**
+ * Texto do campo Data: "Hoje, 18 de nov." e "Qui., 10 de dez."; ontem e amanhã levam a data junto
+ * ("Ontem, 17 de nov."), e o ano aparece quando não é o de hoje.
+ */
+export function dateFieldLabel(date: string, today: string) {
+	const label = dayLabel(date, today);
+	if (label !== "Hoje" && label !== "Ontem" && label !== "Amanhã") return label;
+	const { day } = parseDate(date);
+	return `${label}, ${day} de ${monthShort(date.slice(0, 7))}`;
+}
+
+/** Aviso sob o campo Data quando a data é futura: só entra no saldo quando o dia chega. */
+export function futureDateHint(date: string, today: string): string | null {
+	if (date <= today) return null;
+	const { day, year } = parseDate(date);
+	const sameYear = year === parseDate(today).year;
+	// A abreviação do mês já termina em ponto: "10 de dez." fecha a frase.
+	const when = `${day} de ${monthShort(date.slice(0, 7))}`;
+	return `Ainda não entra no saldo. Entra em ${sameYear ? when : `${when} de ${year}.`}`;
+}

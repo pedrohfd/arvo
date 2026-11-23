@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 
 import {
 	creditHint,
+	dateFieldLabel,
 	defaultPayment,
+	futureDateHint,
 	paymentOptions,
 	type RegisterCard,
 	repeatSummary,
@@ -127,5 +129,34 @@ describe("chips de categoria", () => {
 
 	test("com até 6 categorias não há Mais", () => {
 		expect(visibleCategories(all.slice(0, 3), null).hasMore).toBe(false);
+	});
+});
+
+describe("campo Data", () => {
+	const hoje = "2026-11-18";
+
+	test("hoje, ontem e amanhã levam a data junto", () => {
+		expect(dateFieldLabel("2026-11-18", hoje)).toBe("Hoje, 18 de nov.");
+		expect(dateFieldLabel("2026-11-17", hoje)).toBe("Ontem, 17 de nov.");
+		expect(dateFieldLabel("2026-11-19", hoje)).toBe("Amanhã, 19 de nov.");
+	});
+
+	test("outros dias mostram o dia da semana, como no Figma", () => {
+		expect(dateFieldLabel("2026-12-10", hoje)).toBe("Qui., 10 de dez.");
+		expect(dateFieldLabel("2027-01-05", hoje)).toBe("Ter., 5 de jan. 2027");
+	});
+
+	test("aviso de data futura", () => {
+		expect(futureDateHint("2026-12-10", hoje)).toBe(
+			"Ainda não entra no saldo. Entra em 10 de dez.",
+		);
+		expect(futureDateHint("2027-01-05", hoje)).toBe(
+			"Ainda não entra no saldo. Entra em 5 de jan. de 2027.",
+		);
+	});
+
+	test("hoje e dias passados não têm aviso", () => {
+		expect(futureDateHint("2026-11-18", hoje)).toBeNull();
+		expect(futureDateHint("2026-11-10", hoje)).toBeNull();
 	});
 });
