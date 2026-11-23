@@ -27,7 +27,8 @@
 			"!**/wrangler.jsonc",
 			"!**/.source",
 			"!**/convex/_generated",
-			"!**/prisma/generated"
+			"!**/prisma/generated",
+			"!**/src/env.ts"
 		]
 	},
 	"formatter": {
