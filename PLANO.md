@@ -24,7 +24,7 @@ Resolvidas uma a uma, em ordem.
 - [x] C3 · Cliente Prisma gerado e migração inicial `init` (tabelas do auth) aplicada no Docker; fluxo do banco = `db:migrate` (migrações versionadas, commitadas). Obs.: `bun run db:generate` via Turbo só funciona em terminal interativo; fora dele, `bunx prisma generate` dentro de `packages/db`
 - [x] C4 · Cookie de sessão: `sameSite: "lax"` e `secure` só quando `BETTER_AUTH_URL` é https (`packages/auth/src/index.ts`). Para testar no celular pela rede local, `CORS_ORIGIN` e `BETTER_AUTH_URL` precisam usar o IP do PC (ainda não configurado)
 - [ ] C5 · (adiado até haver algo para publicar) Projeto na Vercel: `vercel link`, bancos de preview e produção, `env:preview` e `env:production`; `dev` como preview
-- [~] C6 · PWA: manifest feito (descrição "Suas finanças, do seu jeito.", `lang` pt-BR, `display` standalone, `theme_color` e `background_color` `#F2F5FA`; `<html lang="pt-BR">`). Falta trocar `public/logo.png` (template) pelo ícone do monograma "vo" e regerar os ícones (`bun run generate-pwa-assets` em `apps/web`); precisa do SVG do Figma. Obs.: `theme_color` no tema escuro depende de `<meta name="theme-color">` com `media`, a fazer na Fase 0
+- [~] C6 · PWA: manifest feito (descrição, `lang` pt-BR, `display` standalone, cores `#F2F5FA`). SVGs do Figma salvos em `apps/web/public/` (`logo.svg` com o nome inteiro, `monogram.svg`, `icon.svg` = monograma sobre `#F2F5FA` para os ícones) e `pwa-assets.config.ts` aponta para `icon.svg`. Falta rodar o build/dev para o plugin gerar os PNGs, conferir o ícone (inclusive maskable) e trocar o ícone do `index.html`/favicon
 - [x] C7 · Decidido: instalar `@phosphor-icons/react` e remover `lucide-react` na Fase 0, ao reconstruir os 6 arquivos que o usam (`loader`, `mode-toggle`, `checkbox`, `dropdown-menu`, `message-scroller`, `sonner`); item na Fase 0
 - [x] C8 · `@rive-app/react-webgl2` mantido: a rota `/` usa `apps/web/src/assets/arvo-animation.riv` (arquivo do projeto, provavelmente a animação do logo). Reavaliar na Fase 2 (splash): Rive ou SVG/CSS, como o design descreve
 - [x] C9 · `bun run test` funcionando (script na raiz, task `test` no `turbo.json`, `test` em `@arvo/api`, `packages/api/src/rules/smoke.test.ts` de exemplo, para apagar com o primeiro teste real)
@@ -68,7 +68,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [ ] Wrappers React das peças: botão (principal, secundário, perigo, texto, ícone), campo, chip, linha de transação, folha, aviso, estado vazio, spinner (junto de cada tela)
 - [x] Ícones Phosphor: `@phosphor-icons/react` instalado e `lucide-react` e `@fontsource-variable/geist` removidos; os 6 arquivos trocados
 - [ ] Ícones novos entram como componente na página de ícones do Figma antes de serem usados (regra da memória do projeto); os do shell (house, target, chart-line-up, user, plus) já existem lá
-- [ ] Ícones do PWA a partir do monograma "vo" do Figma (C6)
+- [~] Ícones do PWA: SVG do monograma exportado do Figma (C6); falta gerar e conferir os PNGs
 - [x] `<meta name="theme-color">` com `media` para claro e escuro (C6)
 - [x] Casca do celular: barra inferior com **+** central (`apps/web/src/components/app-shell.tsx`; o + ainda não faz nada, entra na Fase 3)
 - [x] Casca do desktop: barra lateral de 240 e, de 640 a 1024, barra compacta de 72. Falta o painel de detalhe de 400 (por tela, Fase 7)
@@ -77,6 +77,14 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [ ] PWA: service worker revisado e ícones (junto do item de ícones do PWA)
 - [x] Template removido: `header.tsx` e `dashboard.tsx`. Rotas provisórias `/inicio`, `/metas`, `/resumo` e `/perfil` com o título; ainda falta trocar `/` (Rive), `user-menu`, `mode-toggle` e as formas de entrar/criar conta (Fase 2)
 - [ ] Conferir o app no navegador (claro e escuro, celular e desktop): a casca só foi validada por build e tipos; não dá para abrir as telas autenticadas antes da rota `/login`
+
+## Retomada (próxima sessão)
+
+1. Fase 0 restante: gerar e conferir os ícones do PWA (`bun run dev:web`, ou `bun run build` em `apps/web`); usar `public/logo.svg` no lugar do texto "arvo" na barra lateral (`app-shell.tsx`).
+2. Fase 2 (Começar): criar a rota `/login` (destrava a conferência visual da casca e o `check-types`), tirar o `continue-on-error` do CI, decidir Rive × SVG para o splash (C8).
+3. Fase 1 (modelo de dados e API) pode ir em paralelo; as regras de dinheiro seguem TESTES.md.
+4. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 (apagar a prévia no Figma), propagar o Campo nas telas do Figma.
+5. Nada foi enviado ao remoto: `git push` da `dev` e PR para a `master` quando quiser (o CI roda no PR).
 
 ## Fase 1 · Modelo de dados e API
 
