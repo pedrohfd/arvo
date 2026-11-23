@@ -1,6 +1,12 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	redirect,
+	useNavigate,
+} from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 
+import { AuthField } from "@/components/auth-field";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
@@ -53,46 +59,26 @@ function LoginPage() {
 				<p className="text-text-muted">Que bom ter você de volta.</p>
 			</header>
 			<form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-				<div className={error ? "field field--error" : "field"}>
-					<label className="field__label" htmlFor="email">
-						E-mail
-					</label>
-					<div className="field__control">
-						<input
-							id="email"
-							type="email"
-							autoComplete="email"
-							inputMode="email"
-							placeholder="voce@exemplo.com"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							aria-invalid={error ? true : undefined}
-							required
-						/>
-					</div>
-				</div>
-				<div className={error ? "field field--error" : "field"}>
-					<label className="field__label" htmlFor="password">
-						Senha
-					</label>
-					<div className="field__control">
-						<input
-							id="password"
-							type="password"
-							autoComplete="current-password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							aria-invalid={error ? true : undefined}
-							aria-describedby={error ? "login-error" : undefined}
-							required
-						/>
-					</div>
-					{error && (
-						<p id="login-error" role="alert" className="field__error">
-							{error}
-						</p>
-					)}
-				</div>
+				<AuthField
+					id="email"
+					label="E-mail"
+					type="email"
+					autoComplete="email"
+					inputMode="email"
+					placeholder="voce@exemplo.com"
+					value={email}
+					onChange={(e) => setEmail(e.target.value)}
+					invalid={Boolean(error)}
+				/>
+				<AuthField
+					id="password"
+					label="Senha"
+					type="password"
+					autoComplete="current-password"
+					value={password}
+					onChange={(e) => setPassword(e.target.value)}
+					error={error}
+				/>
 				<button
 					type="submit"
 					className={
@@ -106,6 +92,12 @@ function LoginPage() {
 					<span>Entrar</span>
 				</button>
 			</form>
+			<p className="text-center text-text-muted">
+				Ainda não tem conta?{" "}
+				<Link to="/cadastro" className="text-btn text-btn--accent">
+					Criar conta
+				</Link>
+			</p>
 		</main>
 	);
 }
