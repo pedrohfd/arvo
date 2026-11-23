@@ -53,26 +53,26 @@
 	/* Tipografia */
 	--font-display: "Fraunces", Georgia, serif;
 	--font-sans: "Inter", system-ui, sans-serif;
-	--font-weight-regular: 400;
-	--font-weight-medium: 500;
-	--font-weight-semibold: 600;
-	--text-label: 12px;
-	--leading-label: 16px;
-	--text-small: 14px;
-	--leading-small: 20px;
-	--text-body: 16px;
-	--leading-body: 24px;
-	--text-headline: 17px;
-	--leading-headline: 24px;
-	--text-title: 22px;
-	--leading-title: 28px;
-	--text-display: 32px;
-	--leading-display: 38px;
-	--text-amount-xl: 48px;
-	--leading-amount-xl: 52px;
-	--tracking-tight: -0.02em;
-	--tracking-normal: 0em;
-	--tracking-label: 0.08em;
+	--text-weight-regular: 400;
+	--text-weight-medium: 500;
+	--text-weight-semibold: 600;
+	--text-size-label: 12px;
+	--text-leading-label: 16px;
+	--text-size-small: 14px;
+	--text-leading-small: 20px;
+	--text-size-body: 16px;
+	--text-leading-body: 24px;
+	--text-size-headline: 17px;
+	--text-leading-headline: 24px;
+	--text-size-title: 22px;
+	--text-leading-title: 28px;
+	--text-size-display: 32px;
+	--text-leading-display: 38px;
+	--text-size-amount-xl: 48px;
+	--text-leading-amount-xl: 52px;
+	--text-tracking-tight: -0.02em;
+	--text-tracking-normal: 0em;
+	--text-tracking-label: 0.08em;
 
 	/* Espaço, raio, layout */
 	--spacing-1: 4px;
@@ -89,13 +89,13 @@
 	--radius-lg: 20px;
 	--radius-xl: 28px;
 	--radius-full: 999px;
-	--opacity-disabled: 40%;
-	--container-sidebar: 240px;
-	--container-content: 640px;
-	--container-side-panel: 400px;
-	--breakpoint-mobile: 390px;
-	--breakpoint-tablet: 640px;
-	--breakpoint-desktop: 1024px;
+	--text-opacity-disabled: 40%;
+	--layout-container-sidebar: 240px;
+	--layout-container-content: 640px;
+	--layout-container-side-panel: 400px;
+	--layout-breakpoint-mobile: 390px;
+	--layout-breakpoint-tablet: 640px;
+	--layout-breakpoint-desktop: 1024px;
 
 	/* Movimento */
 	--duration-quick: 150ms;
