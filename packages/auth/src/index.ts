@@ -1,4 +1,5 @@
 import type { Database } from "@arvo/db";
+import { createDefaultCategories } from "@arvo/db/default-categories";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
@@ -36,6 +37,16 @@ export function createAuth(
 				sameSite: "lax",
 				secure: env.BETTER_AUTH_URL.startsWith("https://"),
 				httpOnly: true,
+			},
+		},
+		databaseHooks: {
+			user: {
+				create: {
+					// Toda conta nova já começa com as categorias padrão.
+					after: async (user) => {
+						await createDefaultCategories(database, user.id);
+					},
+				},
 			},
 		},
 		plugins: [],
