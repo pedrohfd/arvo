@@ -81,8 +81,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Retomada (próxima sessão)
 
-1. Fase 0 restante: usar `public/logo.svg` no lugar do texto "arvo" na barra lateral (`app-shell.tsx`).
-2. Fase 2 (Começar): criar a rota `/login` (destrava a conferência visual da casca e o `check-types`), tirar o `continue-on-error` do CI, decidir Rive × SVG para o splash (C8).
+1. Fase 2 (Começar): criar conta (7.4) para poder entrar de fato, conferir a casca no navegador agora que o `/login` existe, decidir Rive × SVG para o splash (C8).
 3. Fase 1 (modelo de dados e API) pode ir em paralelo; as regras de dinheiro seguem TESTES.md.
 4. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 (apagar a prévia no Figma), propagar o Campo nas telas do Figma.
 5. Nada foi enviado ao remoto: `git push` da `dev` e PR para a `master` quando quiser (o CI roda no PR).
@@ -103,7 +102,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Fase 2 · Começar
 
-- [ ] Criar a rota `/login` e tirar o `continue-on-error` do passo de tipos no CI (C10)
+- [x] Criar a rota `/login` (e-mail e senha, erro, entrando, sem internet; `apps/web/src/routes/login.tsx`) e tirar o `continue-on-error` do passo de tipos no CI (C10). Falta: "Esqueci a senha" e "Criar conta" na tela (7.4 e 7.5 ainda não existem), e conferir no navegador
 - [ ] 7.1 Splash (logo se desenha em ~1 s)
 - [ ] 7.2 Onboarding em 3 passos (arrastável)
 - [ ] 7.3 Entrar (erro, entrando, sem internet, sessão expirada)
@@ -176,3 +175,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-22 — Fase 0 quase pronta: tokens, fontes, CSS de componentes, Phosphor, tema e casca do app; faltam wrappers por tela, ícones do PWA e conferência visual.
 - 2026-11-22 — Pendências de configuração C1–C10 resolvidas ou adiadas (Docker + Neon, `.env.local`, migração inicial, cookie `lax`, manifest do PWA, testes, CI); restam C5 (Vercel, adiada), C6 (ícones do PWA na Fase 0) e C11 (roteiro, com você). Pendências de decisão P1–P6 e D1–D8 fechadas; resta D7 (com você).
 - 2026-11-23 — C6 concluída: PNGs do PWA gerados a partir do monograma e conferidos; build do web passa.
+- 2026-11-23 — Logo SVG na barra lateral (como máscara, para seguir a cor do texto nos dois temas) e rota `/login` criada; `continue-on-error` do CI removido.
