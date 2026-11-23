@@ -1,0 +1,218 @@
+// Modelo de dados do app (finanças). Decisões em DESIGN.md e PLANO.md (Fase 1).
+//
+// - Dinheiro em centavos inteiros (`amountCents`); valor máximo de R$ 9.999.999,99 (P1).
+// - Datas de transação são dias de calendário (`@db.Date`, sem hora); "hoje" é calculado em
+//   America/Sao_Paulo, fora do banco (P3).
+// - Tudo é ligado ao usuário com `onDelete: Cascade`: apagar a conta apaga tudo (P6). Categoria e
+//   pessoa usam `NoAction` (não `Restrict`): barram apagar um item em uso, mas deixam a cascata
+//   da conta passar, porque o `NoAction` só é conferido no fim do comando.
+// - O saldo nunca é guardado: é calculado a partir das transações e das metas.
+// - As relações com `User` (campos em `model User`) são injetadas em `auth.prisma` por
+//   `scripts/patch-auth-schema.ts`, que roda depois de `bun run auth:generate`.
+
+enum Flow {
+  EXPENSE // saída
+  INCOME // entrada
+}
+
+enum PaymentMethod {
+  CARD // cartão (crédito ou débito, conforme `Card.type`)
+  PIX
+  CASH // dinheiro
+  DEPOSIT // depósito (só entradas)
+}
+
+enum CardType {
+  CREDIT
+  DEBIT
+}
+
+enum SeriesKind {
+  RECURRING // repetir: o mesmo valor a cada N meses (conta fixa, salário, licenciamento)
+  INSTALLMENT // parcelamento: N parcelas de um valor (compra no crédito)
+}
+
+enum GoalKind {
+  SPEND // para gastar: ao atingir, "concluir" devolve o valor ao saldo
+  KEEP // para manter: o valor só sai por resgate
+}
+
+enum GoalMovementType {
+  DEPOSIT // guardar: tira do saldo
+  WITHDRAW // resgatar: devolve ao saldo
+  COMPLETE // concluir a meta: devolve ao saldo o que estava guardado
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  icon      String
+  kind      Flow
+  // Identifica categorias que o app precisa achar (ex.: "reimbursement"), mesmo renomeadas.
+  systemKey String?
+  createdAt DateTime @default(now())
+
+  transactions Transaction[]
+
+  @@unique([userId, kind, name])
+  @@unique([userId, systemKey])
+  @@index([userId])
+  @@map("category")
+}
+
+model Card {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  type       CardType
+  last4      String?
+  // Só no crédito: dia de fechamento e de vencimento da fatura (1 a 31; em mês curto vale o último dia).
+  closingDay Int?
+  dueDay     Int?
+  createdAt  DateTime @default(now())
+
+  // Apagar o cartão mantém as compras (o vencimento da fatura já está gravado nelas).
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("card")
+}
+
+// Pessoa de "Dividir a conta": só um nome, não é conta do app.
+model Person {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+
+  splits TransactionSplit[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("person")
+}
+
+// Série de transações: "repetir" (RECURRING) ou parcelamento (INSTALLMENT). As ocorrências são
+// geradas ao criar; "sem fim" (`count` nulo) gera 24 meses à frente e é renovada (P2).
+model Series {
+  id             String     @id @default(cuid())
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind           SeriesKind
+  // A cada quantos meses: 1 = todo mês, 12 = uma vez por ano.
+  intervalMonths Int        @default(1)
+  // Dia do mês da primeira ocorrência (1 a 31); em mês curto cai no último dia.
+  anchorDay      Int
+  startDate      DateTime   @db.Date
+  // Número de ocorrências; nulo = sem fim (só em RECURRING).
+  count          Int?
+  createdAt      DateTime   @default(now())
+
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("series")
+}
+
+model Transaction {
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Gerado no aparelho: evita duplicar ao reenviar um registro feito offline.
+  clientId          String?
+  kind              Flow
+  amountCents       Int
+  title             String?
+  categoryId        String
+  category          Category          @relation(fields: [categoryId], references: [id], onDelete: NoAction)
+  // Dia da compra / do recebimento. Data futura só entra no saldo quando chega.
+  date              DateTime          @db.Date
+  paymentMethod     PaymentMethod
+  cardId            String?
+  card              Card?             @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  // Só em compra no crédito: vencimento da fatura que recebe esta compra. O saldo só diminui nessa data.
+  dueDate           DateTime?         @db.Date
+  seriesId          String?
+  series            Series?           @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  // Posição na série (1 = primeira): "parcela 3/10".
+  seriesIndex       Int?
+  // Entrada gerada ao marcar que alguém pagou a sua parte; some junto com a divisão.
+  reimbursedSplitId String?           @unique
+  reimbursedSplit   TransactionSplit? @relation("Reimbursement", fields: [reimbursedSplitId], references: [id], onDelete: Cascade)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  splits TransactionSplit[] @relation("Split")
+
+  @@unique([userId, clientId])
+  @@index([userId, date])
+  @@index([userId, dueDate])
+  @@index([seriesId, seriesIndex])
+  @@index([categoryId])
+  @@map("transaction")
+}
+
+// Parte de uma saída dividida que cabe a outra pessoa. A parte do próprio usuário não é
+// guardada: é o total menos a soma destas partes (e nunca entra em "A receber").
+model TransactionSplit {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation("Split", fields: [transactionId], references: [id], onDelete: Cascade)
+  personId      String
+  person        Person      @relation(fields: [personId], references: [id], onDelete: NoAction)
+  amountCents   Int
+  // Dia em que a pessoa pagou; nulo = ainda deve.
+  paidAt        DateTime?   @db.Date
+
+  reimbursement Transaction? @relation("Reimbursement")
+
+  @@unique([transactionId, personId])
+  @@index([personId])
+  @@map("transaction_split")
+}
+
+model Goal {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  icon        String
+  kind        GoalKind
+  targetCents Int
+  deadline    DateTime? @db.Date
+  // Preenchido ao concluir uma meta "para gastar".
+  completedAt DateTime? @db.Date
+  createdAt   DateTime  @default(now())
+
+  movements GoalMovement[]
+
+  @@index([userId])
+  @@map("goal")
+}
+
+// Guardado na meta = soma de DEPOSIT − WITHDRAW − COMPLETE.
+model GoalMovement {
+  id          String           @id @default(cuid())
+  goalId      String
+  goal        Goal             @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  type        GoalMovementType
+  amountCents Int
+  date        DateTime         @db.Date
+  createdAt   DateTime         @default(now())
+
+  @@index([goalId, date])
+  @@map("goal_movement")
+}
+
+model UserSettings {
+  userId              String @id
+  user                User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // "Saldo mínimo" (não é orçamento): usado no aviso ao registrar e no Horizonte. 0 = sem aviso.
+  minimumBalanceCents Int    @default(0)
+
+  @@map("user_settings")
+}
