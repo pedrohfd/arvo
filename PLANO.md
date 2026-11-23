@@ -102,11 +102,11 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Fase 2 · Começar
 
-- [x] Criar a rota `/login` (e-mail e senha, erro, entrando, sem internet; `apps/web/src/routes/login.tsx`) e tirar o `continue-on-error` do passo de tipos no CI (C10). Falta: "Esqueci a senha" e "Criar conta" na tela (7.4 e 7.5 ainda não existem), e conferir no navegador
+- [x] Criar a rota `/login` (e-mail e senha, erro, entrando, sem internet; `apps/web/src/routes/login.tsx`) e tirar o `continue-on-error` do passo de tipos no CI (C10).
 - [ ] 7.1 Splash (logo se desenha em ~1 s)
 - [ ] 7.2 Onboarding em 3 passos (arrastável)
-- [ ] 7.3 Entrar (erro, entrando, sem internet, sessão expirada)
-- [x] 7.4 Criar conta (senha curta, e-mail existente, criando): rota `/cadastro` (`apps/web/src/routes/cadastro.tsx`), com nome, e-mail e senha de 8+ caracteres; o campo compartilhado com o login está em `components/auth-field.tsx`. Construída pelas peças do guia, sem o desenho do Paper à vista: conferir o texto e o espaçamento contra a 7.4
+- [x] 7.3 Entrar (erro, entrando, sem internet, sessão expirada): conferida contra o Figma (página "7 · Começar"). Sessão expirada = `/login?sessao=expirada`, disparado quando o tRPC responde `UNAUTHORIZED` (`utils/trpc.ts`). Falta só o link "Esqueci a senha", que entra junto da 7.5
+- [x] 7.4 Criar conta (senha curta, e-mail existente, criando): rota `/cadastro` (`apps/web/src/routes/cadastro.tsx`), com nome, e-mail e senha de 8+ caracteres; o campo compartilhado com o login está em `components/auth-field.tsx`. Conferida contra o Figma
 - [ ] 7.5 Recuperar senha (normal, não encontrado, enviado)
 - [ ] 1.2 Início vazia ("Já tem dinheiro na conta? Registre como uma entrada.")
 
