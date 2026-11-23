@@ -24,7 +24,7 @@ Resolvidas uma a uma, em ordem.
 - [x] C3 · Cliente Prisma gerado e migração inicial `init` (tabelas do auth) aplicada no Docker; fluxo do banco = `db:migrate` (migrações versionadas, commitadas). Obs.: `bun run db:generate` via Turbo só funciona em terminal interativo; fora dele, `bunx prisma generate` dentro de `packages/db`
 - [x] C4 · Cookie de sessão: `sameSite: "lax"` e `secure` só quando `BETTER_AUTH_URL` é https (`packages/auth/src/index.ts`). Para testar no celular pela rede local, `CORS_ORIGIN` e `BETTER_AUTH_URL` precisam usar o IP do PC (ainda não configurado)
 - [ ] C5 · (adiado até haver algo para publicar) Projeto na Vercel: `vercel link`, bancos de preview e produção, `env:preview` e `env:production`; `dev` como preview
-- [~] C6 · PWA: manifest feito (descrição, `lang` pt-BR, `display` standalone, cores `#F2F5FA`). SVGs do Figma salvos em `apps/web/public/` (`logo.svg` com o nome inteiro, `monogram.svg`, `icon.svg` = monograma sobre `#F2F5FA` para os ícones) e `pwa-assets.config.ts` aponta para `icon.svg`. Falta rodar o build/dev para o plugin gerar os PNGs, conferir o ícone (inclusive maskable) e trocar o ícone do `index.html`/favicon
+- [x] C6 · PWA: manifest feito (descrição, `lang` pt-BR, `display` standalone, cores `#F2F5FA`). Ícones gerados de `apps/web/public/icon.svg` por `bun run generate-pwa-assets` (`pwa-assets.config.ts`, sem padding extra, fundo `#F2F5FA`): `pwa-64/192/512`, `maskable-icon-512`, `apple-touch-icon-180` e `favicon.ico`, commitados em `public/`. Conferidos a olho (maskable preenche o quadrado, monograma na zona segura); o plugin injeta os `<link>` do favicon e do apple-touch no build, então o `index.html` não muda. Pendente só ver o ícone instalado num aparelho
 - [x] C7 · Decidido: instalar `@phosphor-icons/react` e remover `lucide-react` na Fase 0, ao reconstruir os 6 arquivos que o usam (`loader`, `mode-toggle`, `checkbox`, `dropdown-menu`, `message-scroller`, `sonner`); item na Fase 0
 - [x] C8 · `@rive-app/react-webgl2` mantido: a rota `/` usa `apps/web/src/assets/arvo-animation.riv` (arquivo do projeto, provavelmente a animação do logo). Reavaliar na Fase 2 (splash): Rive ou SVG/CSS, como o design descreve
 - [x] C9 · `bun run test` funcionando (script na raiz, task `test` no `turbo.json`, `test` em `@arvo/api`, `packages/api/src/rules/smoke.test.ts` de exemplo, para apagar com o primeiro teste real)
@@ -68,7 +68,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [ ] Wrappers React das peças: botão (principal, secundário, perigo, texto, ícone), campo, chip, linha de transação, folha, aviso, estado vazio, spinner (junto de cada tela)
 - [x] Ícones Phosphor: `@phosphor-icons/react` instalado e `lucide-react` e `@fontsource-variable/geist` removidos; os 6 arquivos trocados
 - [ ] Ícones novos entram como componente na página de ícones do Figma antes de serem usados (regra da memória do projeto); os do shell (house, target, chart-line-up, user, plus) já existem lá
-- [~] Ícones do PWA: SVG do monograma exportado do Figma (C6); falta gerar e conferir os PNGs
+- [x] Ícones do PWA: SVG do monograma exportado do Figma e PNGs gerados e conferidos (C6)
 - [x] `<meta name="theme-color">` com `media` para claro e escuro (C6)
 - [x] Casca do celular: barra inferior com **+** central (`apps/web/src/components/app-shell.tsx`; o + ainda não faz nada, entra na Fase 3)
 - [x] Casca do desktop: barra lateral de 240 e, de 640 a 1024, barra compacta de 72. Falta o painel de detalhe de 400 (por tela, Fase 7)
@@ -80,7 +80,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Retomada (próxima sessão)
 
-1. Fase 0 restante: gerar e conferir os ícones do PWA (`bun run dev:web`, ou `bun run build` em `apps/web`); usar `public/logo.svg` no lugar do texto "arvo" na barra lateral (`app-shell.tsx`).
+1. Fase 0 restante: usar `public/logo.svg` no lugar do texto "arvo" na barra lateral (`app-shell.tsx`).
 2. Fase 2 (Começar): criar a rota `/login` (destrava a conferência visual da casca e o `check-types`), tirar o `continue-on-error` do CI, decidir Rive × SVG para o splash (C8).
 3. Fase 1 (modelo de dados e API) pode ir em paralelo; as regras de dinheiro seguem TESTES.md.
 4. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 (apagar a prévia no Figma), propagar o Campo nas telas do Figma.
@@ -174,3 +174,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-22 — Decisões fechadas: fila simples offline, ocorrências geradas ao criar, testes com `bun test` (definições em TESTES.md).
 - 2026-11-22 — Fase 0 quase pronta: tokens, fontes, CSS de componentes, Phosphor, tema e casca do app; faltam wrappers por tela, ícones do PWA e conferência visual.
 - 2026-11-22 — Pendências de configuração C1–C10 resolvidas ou adiadas (Docker + Neon, `.env.local`, migração inicial, cookie `lax`, manifest do PWA, testes, CI); restam C5 (Vercel, adiada), C6 (ícones do PWA na Fase 0) e C11 (roteiro, com você). Pendências de decisão P1–P6 e D1–D8 fechadas; resta D7 (com você).
+- 2026-11-23 — C6 concluída: PNGs do PWA gerados a partir do monograma e conferidos; build do web passa.
