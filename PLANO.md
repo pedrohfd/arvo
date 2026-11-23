@@ -27,7 +27,7 @@ Resolvidas uma a uma, em ordem.
 - [ ] C5 · (adiado até haver algo para publicar) Projeto na Vercel: `vercel link`, bancos de preview e produção, `env:preview` e `env:production`; `dev` como preview
 - [x] C6 · PWA: manifest feito (descrição, `lang` pt-BR, `display` standalone, cores `#F2F5FA`). Ícones gerados de `apps/web/public/icon.svg` por `bun run generate-pwa-assets` (`pwa-assets.config.ts`, sem padding extra, fundo `#F2F5FA`): `pwa-64/192/512`, `maskable-icon-512`, `apple-touch-icon-180` e `favicon.ico`, commitados em `public/`. Conferidos a olho (maskable preenche o quadrado, monograma na zona segura); o plugin injeta os `<link>` do favicon e do apple-touch no build, então o `index.html` não muda. Pendente só ver o ícone instalado num aparelho
 - [x] C7 · Decidido: instalar `@phosphor-icons/react` e remover `lucide-react` na Fase 0, ao reconstruir os 6 arquivos que o usam (`loader`, `mode-toggle`, `checkbox`, `dropdown-menu`, `message-scroller`, `sonner`); item na Fase 0
-- [x] C8 · `@rive-app/react-webgl2` mantido: a rota `/` usa `apps/web/src/assets/arvo-animation.riv` (arquivo do projeto, provavelmente a animação do logo). Reavaliar na Fase 2 (splash): Rive ou SVG/CSS, como o design descreve
+- [x] C8 · Decidido na Fase 2: splash em SVG/CSS (como o design descreve); `@rive-app/react-webgl2` e `arvo-animation.riv` removidos (o arquivo continua no histórico do git)
 - [x] C9 · `bun run test` funcionando (script na raiz, task `test` no `turbo.json`, `test` em `@arvo/api`, `packages/api/src/rules/smoke.test.ts` de exemplo, para apagar com o primeiro teste real)
 - [x] C10 · CI criado em `.github/workflows/ci.yml` (PRs e pushes para `dev` e `master`: `biome ci`, `check-types`, `test`). O passo de tipos está com `continue-on-error` porque o `check-types` do web falha na `master` (rota `/login` inexistente em `user-menu.tsx:26` e `_auth/route.tsx:11`); remover o `continue-on-error` na Fase 2. Ainda não rodou no GitHub (só validado localmente: lint e testes passam, 0 erros de lint)
 - [ ] C11 · Proteção da `master` (merge só por PR) e deploy de preview da `dev` — roteiro abaixo; marcar quando aplicado
@@ -81,7 +81,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Retomada (próxima sessão)
 
-1. Fase 2 (Começar): conferir a casca no navegador agora que `/login` e `/cadastro` existe, decidir Rive × SVG para o splash (C8).
+1. Fase 2 (Começar): conferir a casca no navegador agora que `/login`, `/cadastro` e `/recuperar-senha` existem.
 3. Fase 1 (modelo de dados e API) pode ir em paralelo; as regras de dinheiro seguem TESTES.md.
 4. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 (apagar a prévia no Figma), propagar o Campo nas telas do Figma.
 5. Nada foi enviado ao remoto: `git push` da `dev` e PR para a `master` quando quiser (o CI roda no PR).
@@ -103,7 +103,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 ## Fase 2 · Começar
 
 - [x] Criar a rota `/login` (e-mail e senha, erro, entrando, sem internet; `apps/web/src/routes/login.tsx`) e tirar o `continue-on-error` do passo de tipos no CI (C10).
-- [ ] 7.1 Splash (logo se desenha em ~1 s)
+- [x] 7.1 Splash (logo se desenha em ~1 s): rota `/` com `LogoDraw` (SVG, traço do "vo" com `pathLength` e `stroke-dashoffset`; sem animação em `prefers-reduced-motion`); segue para `/inicio` com sessão ou `/login`. Quadro final conferido contra o Figma. O onboarding (7.2) entra no lugar do `/login` para quem abre pela primeira vez
 - [ ] 7.2 Onboarding em 3 passos (arrastável)
 - [x] 7.3 Entrar (erro, entrando, sem internet, sessão expirada): conferida contra o Figma (página "7 · Começar"). Sessão expirada = `/login?sessao=expirada`, disparado quando o tRPC responde `UNAUTHORIZED` (`utils/trpc.ts`). O link "Esqueci a senha" leva à 7.5
 - [x] 7.4 Criar conta (senha curta, e-mail existente, criando): rota `/cadastro` (`apps/web/src/routes/cadastro.tsx`), com nome, e-mail e senha de 8+ caracteres; o campo compartilhado com o login está em `components/auth-field.tsx`. Conferida contra o Figma
@@ -176,3 +176,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-22 — Pendências de configuração C1–C10 resolvidas ou adiadas (Docker + Neon, `.env.local`, migração inicial, cookie `lax`, manifest do PWA, testes, CI); restam C5 (Vercel, adiada), C6 (ícones do PWA na Fase 0) e C11 (roteiro, com você). Pendências de decisão P1–P6 e D1–D8 fechadas; resta D7 (com você).
 - 2026-11-23 — C6 concluída: PNGs do PWA gerados a partir do monograma e conferidos; build do web passa.
 - 2026-11-23 — Logo SVG na barra lateral (como máscara, para seguir a cor do texto nos dois temas) e rota `/login` criada; `continue-on-error` do CI removido.
+- 2026-11-23 — Fase 2: telas Entrar, Criar conta e Recuperar senha conferidas contra o Figma; splash feito em SVG/CSS e Rive removido (C8).

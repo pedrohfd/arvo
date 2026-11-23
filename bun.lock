@@ -5,7 +5,6 @@
     "": {
       "name": "arvo",
       "dependencies": {
-        "@rive-app/react-webgl2": "4.34.3",
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -799,10 +798,6 @@
     "@radix-ui/react-use-layout-effect": ["@radix-ui/react-use-layout-effect@1.1.1", "", { "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-RbJRS4UWQFkzHTTwVymMTUv8EqYhOp8dOOviLj2ugtTiXRaRQS7GLGxZTLL1jWhMeoSCf5zmcZkqTl9IiYfXcQ=="],
 
     "@renovatebot/pep440": ["@renovatebot/pep440@4.2.1", "", {}, "sha512-2FK1hF93Fuf1laSdfiEmJvSJPVIDHEUTz68D3Fi9s0IZrrpaEcj6pTFBTbYvsgC5du4ogrtf5re7yMMvrKNgkw=="],
-
-    "@rive-app/react-webgl2": ["@rive-app/react-webgl2@4.34.3", "", { "dependencies": { "@rive-app/webgl2": "2.42.2" }, "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0" } }, "sha512-+PXs1KEeCSG7ivtDFnfqGgQc9gZ3APNU4OAd9LBWF7zSCScpFNi7oWAUeI9j0GncVgtkGSO+by1t5eNIJUj+xw=="],
-
-    "@rive-app/webgl2": ["@rive-app/webgl2@2.42.2", "", {}, "sha512-UjESaGjAlacYsZBszNG9mv6omhz6rciozNAWflVtXVk4WlpIRDPxb9ULZxQXa+sCBMGUiH2ZFtqsd0FwLXiNWg=="],
 
     "@rolldown/binding-android-arm-eabi": ["@rolldown/binding-android-arm-eabi@1.2.9", "", { "os": "android", "cpu": "arm" }, "sha512-tNISae1QEf/vkb3xkRcjV5SEdzPE97We5IVaa2Z8jSszQPZ8U60B/YCYpw4QI7VidYsBtKavczXf+DyDs9WGxw=="],
 
