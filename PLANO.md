@@ -60,17 +60,23 @@ Design (em aberto no DESIGN.md):
 
 ## Fase 0 · Fundação
 
-- [ ] Tokens de `design/tokens.css` (claro e escuro) em `packages/ui/src/globals.css`
-- [ ] Fontes Fraunces (SOFT 100, WONK 0) e Inter, com números tabulares nos valores
-- [ ] Componentes base de `design/components.css` como componentes do `@arvo/ui` (botões, campo, chip, linha de transação, folha, aviso, etc.)
-- [ ] Ícones Phosphor como componentes (ver regra da página de ícones do Figma); instalar `@phosphor-icons/react` e remover `lucide-react` (C7)
+Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/ui/src/styles/components.css` (classes como `.navbar`, `.btn-primary`, `.tx-row`) e já está carregado no app. Os wrappers React de cada peça são escritos junto da tela que os usa (Fases 2 a 6), em vez de todos de uma vez.
+
+- [x] Tokens de `design/tokens.css` (claro e escuro) em `packages/ui/src/styles/tokens.css`, ligados ao Tailwind (`bg-surface`, `text-text-muted`, `rounded-md`, `shadow-soft`) e às variáveis do shadcn
+- [x] Fontes Fraunces (variável completa, com SOFT) e Inter (variável com opsz) via `@fontsource-variable`; números tabulares ficam nas classes `.num` e nas peças de valor
+- [x] CSS de componentes portado para `@arvo/ui` (sem as pranchas de protótipo `.phone`, `.status-bar`, `.home-indicator`)
+- [ ] Wrappers React das peças: botão (principal, secundário, perigo, texto, ícone), campo, chip, linha de transação, folha, aviso, estado vazio, spinner (junto de cada tela)
+- [x] Ícones Phosphor: `@phosphor-icons/react` instalado e `lucide-react` e `@fontsource-variable/geist` removidos; os 6 arquivos trocados
+- [ ] Ícones novos entram como componente na página de ícones do Figma antes de serem usados (regra da memória do projeto); os do shell (house, target, chart-line-up, user, plus) já existem lá
 - [ ] Ícones do PWA a partir do monograma "vo" do Figma (C6)
-- [ ] `<meta name="theme-color">` com `media` para claro e escuro (C6)
-- [ ] Casca do celular: barra inferior com **+** central
-- [ ] Casca do desktop: barra lateral de 240, conteúdo de 640, painel de detalhe de 400; quebras em 640 e 1024
-- [ ] Tema claro/escuro seguindo o sistema
-- [ ] PWA: manifest, ícones, service worker
-- [ ] Remover o CSS e as telas do template (`dashboard.tsx`, `header.tsx`, etc.) quando deixarem de servir
+- [x] `<meta name="theme-color">` com `media` para claro e escuro (C6)
+- [x] Casca do celular: barra inferior com **+** central (`apps/web/src/components/app-shell.tsx`; o + ainda não faz nada, entra na Fase 3)
+- [x] Casca do desktop: barra lateral de 240 e, de 640 a 1024, barra compacta de 72. Falta o painel de detalhe de 400 (por tela, Fase 7)
+- [x] Tema claro/escuro seguindo o sistema (`next-themes` com `data-theme`, padrão `system`)
+- [x] Botão **+** em amarelo (Mango): `.fab` corrigido em `design/components.css` e na cópia do `@arvo/ui`, que ainda estava em verde
+- [ ] PWA: service worker revisado e ícones (junto do item de ícones do PWA)
+- [x] Template removido: `header.tsx` e `dashboard.tsx`. Rotas provisórias `/inicio`, `/metas`, `/resumo` e `/perfil` com o título; ainda falta trocar `/` (Rive), `user-menu`, `mode-toggle` e as formas de entrar/criar conta (Fase 2)
+- [ ] Conferir o app no navegador (claro e escuro, celular e desktop): a casca só foi validada por build e tipos; não dá para abrir as telas autenticadas antes da rota `/login`
 
 ## Fase 1 · Modelo de dados e API
 
@@ -158,4 +164,5 @@ Design (em aberto no DESIGN.md):
 
 - 2026-11-22 — Plano criado; branch `dev` criada.
 - 2026-11-22 — Decisões fechadas: fila simples offline, ocorrências geradas ao criar, testes com `bun test` (definições em TESTES.md).
+- 2026-11-22 — Fase 0 quase pronta: tokens, fontes, CSS de componentes, Phosphor, tema e casca do app; faltam wrappers por tela, ícones do PWA e conferência visual.
 - 2026-11-22 — Pendências de configuração C1–C10 resolvidas ou adiadas (Docker + Neon, `.env.local`, migração inicial, cookie `lax`, manifest do PWA, testes, CI); restam C5 (Vercel, adiada), C6 (ícones do PWA na Fase 0) e C11 (roteiro, com você). Pendências de decisão P1–P6 e D1–D8 fechadas; resta D7 (com você).
