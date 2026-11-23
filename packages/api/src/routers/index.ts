@@ -2,6 +2,11 @@ import { z } from "zod";
 
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { categoryRouter } from "./category";
+import { goalRouter } from "./goal";
+import { personRouter } from "./person";
+import { settingsRouter } from "./settings";
+import { splitRouter } from "./split";
+import { summaryRouter } from "./summary";
 import { transactionRouter } from "./transaction";
 
 export const appRouter = router({
@@ -20,6 +25,11 @@ export const appRouter = router({
 		}),
 	category: categoryRouter,
 	transaction: transactionRouter,
+	summary: summaryRouter,
+	goal: goalRouter,
+	person: personRouter,
+	split: splitRouter,
+	settings: settingsRouter,
 	privateData: protectedProcedure.query(({ ctx }) => {
 		return {
 			message: "This is private",

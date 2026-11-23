@@ -97,7 +97,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [~] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento (`invoice.ts`, pronta; falta ligar)
 - [~] Data futura entra no saldo só quando a data chega (em `balance.ts`, pronta; falta ligar)
 - [~] Marcar pago cria entrada de reembolso (desligável); apagar a saída apaga os reembolsos gerados (`settlement.ts`, pronta; no banco, a cascata de `reimbursedSplitId` já apaga; falta ligar)
-- [~] Routers tRPC: `category` (listar, criar, renomear/ícone, apagar movendo as transações) e `transaction` (listar por mês, criar com repetir/parcelas/divisão, apagar só esta ou esta e as próximas) prontos; faltam `summary`, `goal`, `person`, `card`, `profile`, editar transação e marcar pago
+- [~] Routers tRPC prontos: `category`, `transaction` (listar, criar, apagar), `summary` (Início, Resumo do mês, Horizonte), `goal` (criar, editar, guardar, resgatar, concluir, apagar), `person`, `split` (A receber, marcar/desmarcar pago com reembolso) e `settings` (saldo mínimo); faltam `card`, o perfil (editar dados, exportar CSV, apagar conta) e editar transação
 - [x] Categorias padrão criadas no cadastro (`packages/db/src/default-categories.ts`, hook `databaseHooks.user.create.after` no Better-Auth)
 - [~] Testes das regras de dinheiro, conforme [TESTES.md](TESTES.md): grupos 1 a 8 escritos (130 testes, verificados por mutação); faltam os grupos 9 a 11, do app web (teclado de valor, busca, fila offline)
 
