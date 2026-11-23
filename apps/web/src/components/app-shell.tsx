@@ -136,8 +136,12 @@ function FullSidebar({ user }: { user: ShellUser }) {
 	return (
 		<aside className="sidebar sticky top-0 hidden h-svh lg:flex">
 			<div className="sidebar__brand">
-				{/* Troque pelo logo em SVG quando o traço do Figma for exportado */}
-				<span className="display text-(length:--text-size-title)">arvo</span>
+				{/* Máscara: o traço do SVG é fixo, então o logo segue a cor do texto nos dois temas */}
+				<span
+					role="img"
+					aria-label="arvo"
+					className="block h-[39px] w-[120px] bg-text [mask:url(/logo.svg)_center/contain_no-repeat]"
+				/>
 			</div>
 			<button type="button" className="btn-primary btn-primary--side">
 				<span className="btn-primary__label">
