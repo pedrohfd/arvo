@@ -52,7 +52,6 @@
 		"prepare": "husky"
 	},
 	"dependencies": {
-		"@rive-app/react-webgl2": "4.34.3",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
