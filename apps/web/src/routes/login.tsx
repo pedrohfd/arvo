@@ -122,6 +122,11 @@ function LoginPage() {
 						disabled={loading}
 						autoFocus={sessao === "expirada"}
 					/>
+					<div className="auth__aside">
+						<Link to="/recuperar-senha" className="text-btn text-btn--accent">
+							Esqueci a senha
+						</Link>
+					</div>
 					<button
 						type="submit"
 						className={

@@ -6,6 +6,7 @@ export type AuthConfig = {
 	BETTER_AUTH_URL: string;
 	BETTER_AUTH_SECRET: string;
 	CORS_ORIGIN: string;
+	NODE_ENV?: string;
 };
 
 export function createAuth(
@@ -18,7 +19,16 @@ export function createAuth(
 			provider: "postgresql",
 		}),
 		trustedOrigins: [env.CORS_ORIGIN, ...desktopOrigins],
-		emailAndPassword: { enabled: true },
+		emailAndPassword: {
+			enabled: true,
+			sendResetPassword: async ({ user, url }) => {
+				// P5: o envio real é pelo Resend (ainda não configurado). Em dev, o link vai para o log.
+				if (env.NODE_ENV === "production") {
+					throw new Error("Envio de e-mail ainda não configurado (P5).");
+				}
+				console.log(`[recuperar senha] ${user.email}: ${url}`);
+			},
+		},
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: env.BETTER_AUTH_URL,
 		advanced: {

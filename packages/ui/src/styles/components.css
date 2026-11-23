@@ -1630,6 +1630,12 @@
 .btn-secondary--block {
 	width: 100%;
 }
+/* Secundário na altura do principal (52), para ficar junto dele numa tela de formulário */
+.btn-secondary--lg {
+	height: 52px;
+	font-size: var(--text-size-body);
+	line-height: var(--text-leading-body);
+}
 .btn-row {
 	display: flex;
 	gap: var(--spacing-3);
@@ -2592,7 +2598,6 @@
 .auth__aside {
 	display: flex;
 	justify-content: flex-end;
-	margin: calc(var(--spacing-2) * -1) calc(var(--spacing-3) * -1) 0;
 }
 .auth__foot .text-btn {
 	padding: 0 var(--spacing-1);
