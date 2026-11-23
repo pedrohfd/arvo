@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/inter/opsz.css";
-@import "@fontsource-variable/fraunces/full.css";
 @import "./tokens.css";
 @import "./components.css";
 @source "../../../apps/**/*.{ts,tsx}";
