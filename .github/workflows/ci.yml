@@ -38,11 +38,8 @@ jobs:
       - name: Lint and format
         run: bunx biome ci .
 
-      # TODO(Fase 2): remover continue-on-error quando a rota /login existir.
-      # Hoje falha em user-menu.tsx e _auth/route.tsx, que apontam para ela.
       - name: Types
         run: bun run check-types
-        continue-on-error: true
 
       - name: Tests
         run: bun run test
