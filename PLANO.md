@@ -105,9 +105,9 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [x] Criar a rota `/login` (e-mail e senha, erro, entrando, sem internet; `apps/web/src/routes/login.tsx`) e tirar o `continue-on-error` do passo de tipos no CI (C10).
 - [ ] 7.1 Splash (logo se desenha em ~1 s)
 - [ ] 7.2 Onboarding em 3 passos (arrastável)
-- [x] 7.3 Entrar (erro, entrando, sem internet, sessão expirada): conferida contra o Figma (página "7 · Começar"). Sessão expirada = `/login?sessao=expirada`, disparado quando o tRPC responde `UNAUTHORIZED` (`utils/trpc.ts`). Falta só o link "Esqueci a senha", que entra junto da 7.5
+- [x] 7.3 Entrar (erro, entrando, sem internet, sessão expirada): conferida contra o Figma (página "7 · Começar"). Sessão expirada = `/login?sessao=expirada`, disparado quando o tRPC responde `UNAUTHORIZED` (`utils/trpc.ts`). O link "Esqueci a senha" leva à 7.5
 - [x] 7.4 Criar conta (senha curta, e-mail existente, criando): rota `/cadastro` (`apps/web/src/routes/cadastro.tsx`), com nome, e-mail e senha de 8+ caracteres; o campo compartilhado com o login está em `components/auth-field.tsx`. Conferida contra o Figma
-- [ ] 7.5 Recuperar senha (normal, não encontrado, enviado)
+- [x] 7.5 Recuperar senha (normal, não encontrado, enviado): rota `/recuperar-senha`, conferida contra o Figma. O "não achamos" vem do tRPC `emailExists` (a criação de conta já revela se o e-mail existe). Em dev o link sai no log do server (`[recuperar senha]`); a rota `/redefinir-senha` (nova senha) não existe no Figma e foi montada com as peças da 7.4: falta desenhá-la. Pendente do P5: Resend de verdade (hoje, em produção, o envio falha de propósito)
 - [ ] 1.2 Início vazia ("Já tem dinheiro na conta? Registre como uma entrada.")
 
 ## Fase 3 · Início e Registrar
