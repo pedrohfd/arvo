@@ -2,13 +2,13 @@
 
 import { Button } from "@arvo/ui/components/button";
 import { cn } from "@arvo/ui/lib/utils";
+import { ArrowDownIcon } from "@phosphor-icons/react";
 import {
 	MessageScroller as MessageScrollerPrimitive,
 	useMessageScroller,
 	useMessageScrollerScrollable,
 	useMessageScrollerVisibility,
 } from "@shadcn/react/message-scroller";
-import { ArrowDownIcon } from "lucide-react";
 import type * as React from "react";
 
 function MessageScrollerProvider(

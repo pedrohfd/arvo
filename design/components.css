@@ -448,8 +448,8 @@ body {
 	flex-shrink: 0;
 	border: 0;
 	border-radius: var(--radius-full);
-	background: var(--color-primary);
-	color: var(--color-on-primary);
+	background: var(--color-accent);
+	color: var(--color-accent-text);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -460,11 +460,11 @@ body {
 }
 .fab:hover,
 .fab.is-hover {
-	background: var(--color-primary-hover);
+	background: color-mix(in srgb, var(--color-accent) 92%, #000);
 }
 .fab:active,
 .fab.is-pressed {
-	background: var(--color-primary-pressed);
+	background: color-mix(in srgb, var(--color-accent) 84%, #000);
 	transform: scale(0.92);
 }
 
