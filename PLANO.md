@@ -113,7 +113,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Fase 3 · Início e Registrar
 
-- [ ] 1.1 Início: saldo, entrou/saiu, "A receber", "No crédito, a pagar"
+- [~] 1.1 Início: saldo, entrou/saiu, "A receber", "No crédito, a pagar" e lista por dia feitos (`routes/_auth/inicio.tsx`, com carregando, não carregou e 1.2 vazia); falta conferir no navegador contra o Figma, o gesto de recolher, o seletor de mês e a tela 3.4 atrás do "A receber"
 - [ ] Lista agrupada por dia (Hoje, Ontem, "14 de nov."), com o gesto de recolher o saldo ao subir a lista
 - [ ] Seletor de mês (folha 1.10) e saldo "no fim de <mês>" em mês passado
 - [ ] Busca sem acento e sem maiúsculas, só no mês escolhido

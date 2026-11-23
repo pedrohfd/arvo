@@ -9,6 +9,7 @@
 		"serve": "vite preview",
 		"start": "vite",
 		"check-types": "vite build && tsc --noEmit",
+		"test": "bun test",
 		"generate-pwa-assets": "pwa-assets-generator",
 		"env:generate": "varlock codegen"
 	},
@@ -34,6 +35,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
+		"@types/bun": "catalog:",
 		"@arvo/config": "workspace:*",
 		"@tanstack/react-query-devtools": "5.103.1",
 		"@tanstack/react-router-devtools": "1.167.2",

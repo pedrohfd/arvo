@@ -2,7 +2,12 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
-import { fromDbDate, toDbDate, todayInSaoPaulo } from "../lib/calendar";
+import {
+	entryTime,
+	fromDbDate,
+	toDbDate,
+	todayInSaoPaulo,
+} from "../lib/calendar";
 import { monthRange, planTransaction } from "../lib/plan-transaction";
 import { splitBill } from "../rules/split";
 
@@ -55,6 +60,7 @@ export const transactionRouter = router({
 				orderBy: [{ date: "desc" }, { createdAt: "desc" }],
 				include: {
 					category: { select: { id: true, name: true, icon: true } },
+					card: { select: { name: true, type: true } },
 					series: { select: { kind: true, count: true } },
 					splits: {
 						select: {
@@ -76,6 +82,10 @@ export const transactionRouter = router({
 				dueDate: row.dueDate ? fromDbDate(row.dueDate) : null,
 				paymentMethod: row.paymentMethod,
 				cardId: row.cardId,
+				cardName: row.card?.name ?? null,
+				cardType: row.card?.type ?? null,
+				// Hora do registro, só quando foi feito no próprio dia da transação.
+				time: entryTime(row.createdAt, fromDbDate(row.date)),
 				seriesId: row.seriesId,
 				seriesIndex: row.seriesIndex,
 				seriesKind: row.series?.kind ?? null,

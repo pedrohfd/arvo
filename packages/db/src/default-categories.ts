@@ -1,27 +1,28 @@
 import type { Database } from "./index";
 
-// Categorias criadas no cadastro. A pessoa pode renomear, trocar o ícone e apagar (menos as que
-// têm `systemKey`, que o app precisa achar mesmo renomeadas). Ícones são nomes do Phosphor.
+// Categorias criadas no cadastro, como no Figma (6.3 Categorias e "Todas as categorias"). A pessoa
+// pode renomear, trocar o ícone e apagar (menos as que têm `systemKey`, que o app precisa achar
+// mesmo renomeadas). Ícones são nomes do Phosphor.
 export const REIMBURSEMENT_KEY = "reimbursement";
 
 export const DEFAULT_CATEGORIES = [
 	{ kind: "EXPENSE", name: "Mercado", icon: "shopping-cart" },
-	{ kind: "EXPENSE", name: "Restaurantes", icon: "fork-knife" },
+	{ kind: "EXPENSE", name: "Restaurante", icon: "fork-knife" },
 	{ kind: "EXPENSE", name: "Transporte", icon: "car" },
-	{ kind: "EXPENSE", name: "Moradia", icon: "house" },
-	{ kind: "EXPENSE", name: "Contas", icon: "lightning" },
-	{ kind: "EXPENSE", name: "Saúde", icon: "first-aid" },
+	{ kind: "EXPENSE", name: "Casa", icon: "house" },
+	{ kind: "EXPENSE", name: "Saúde", icon: "pill" },
 	{ kind: "EXPENSE", name: "Lazer", icon: "film-strip" },
-	{ kind: "EXPENSE", name: "Compras", icon: "shopping-bag" },
-	{ kind: "EXPENSE", name: "Outros", icon: "dots-three" },
+	{ kind: "EXPENSE", name: "Presentes", icon: "tag" },
+	{ kind: "EXPENSE", name: "Educação", icon: "receipt" },
+	{ kind: "EXPENSE", name: "Plantas", icon: "plant" },
 	{ kind: "INCOME", name: "Salário", icon: "briefcase" },
+	{ kind: "INCOME", name: "Extra", icon: "money" },
 	{
 		kind: "INCOME",
 		name: "Reembolso",
-		icon: "arrow-u-up-left",
+		icon: "arrow-clockwise",
 		systemKey: REIMBURSEMENT_KEY,
 	},
-	{ kind: "INCOME", name: "Outras entradas", icon: "plus-circle" },
 ] as const satisfies readonly {
 	kind: "EXPENSE" | "INCOME";
 	name: string;

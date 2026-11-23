@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+	entryTime,
 	fromDbDate,
 	referenceForMonth,
 	toDbDate,
@@ -26,5 +27,30 @@ describe("calendar", () => {
 		expect(referenceForMonth("2026-10", "2026-11-23")).toBe("2026-10-31");
 		expect(referenceForMonth("2026-11", "2026-11-23")).toBe("2026-11-23");
 		expect(referenceForMonth("2027-03", "2026-11-23")).toBe("2026-11-23");
+	});
+});
+
+describe("entryTime", () => {
+	test("hora de Brasília quando o registro foi no próprio dia", () => {
+		// 11:10 UTC = 08:10 em Brasília
+		expect(entryTime(new Date("2026-11-23T11:10:00Z"), "2026-11-23")).toBe(
+			"08h10",
+		);
+	});
+
+	test("sem hora em registro agendado ou retroativo", () => {
+		expect(
+			entryTime(new Date("2026-11-23T11:10:00Z"), "2026-12-05"),
+		).toBeNull();
+		expect(
+			entryTime(new Date("2026-11-23T11:10:00Z"), "2026-11-20"),
+		).toBeNull();
+	});
+
+	test("usa o dia de Brasília, não o UTC", () => {
+		// 02:30 UTC de 24/11 ainda é 23h30 de 23/11 em Brasília
+		expect(entryTime(new Date("2026-11-24T02:30:00Z"), "2026-11-23")).toBe(
+			"23h30",
+		);
 	});
 });

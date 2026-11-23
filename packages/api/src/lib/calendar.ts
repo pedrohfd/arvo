@@ -29,3 +29,18 @@ export function referenceForMonth(
 	const end = lastDayOfMonth(`${month}-01`);
 	return compareDates(end, today) < 0 ? end : today;
 }
+
+// Hora de registro ("08h10", em Brasília), só quando o registro foi feito no próprio dia da
+// transação. Em lançamento agendado ou retroativo a hora não diz nada e não aparece.
+export function entryTime(createdAt: Date, date: CalendarDate): string | null {
+	if (todayInSaoPaulo(createdAt) !== date) return null;
+	const parts = new Intl.DateTimeFormat("pt-BR", {
+		timeZone: "America/Sao_Paulo",
+		hour: "2-digit",
+		minute: "2-digit",
+		hourCycle: "h23",
+	}).formatToParts(createdAt);
+	const get = (type: string) =>
+		parts.find((p) => p.type === type)?.value ?? "00";
+	return `${get("hour")}h${get("minute")}`;
+}
