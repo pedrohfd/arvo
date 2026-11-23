@@ -1146,6 +1146,7 @@
 }
 .field__control:focus-within,
 .field__control.is-active {
+	background: var(--color-surface);
 	box-shadow: inset 0 0 0 1px var(--color-focus);
 }
 .field--select .field__control {
@@ -2491,9 +2492,9 @@
 	cursor: default;
 }
 
-/* Campo de senha: o olho mostra ou oculta */
+/* Campo de senha: o olho mostra ou oculta. Alvo de 44, centro a 24 da borda (como o botão de 32 do desenho) */
 .field__control .icon-btn {
-	margin-right: calc(var(--spacing-2) * -1);
+	margin-right: -14px;
 	color: var(--color-text-muted);
 }
 
@@ -2592,6 +2593,9 @@
 	display: flex;
 	justify-content: flex-end;
 	margin: calc(var(--spacing-2) * -1) calc(var(--spacing-3) * -1) 0;
+}
+.auth__foot .text-btn {
+	padding: 0 var(--spacing-1);
 }
 .auth__foot {
 	margin-top: auto;

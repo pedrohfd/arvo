@@ -93,11 +93,11 @@ function SignUpPage() {
 	}
 
 	return (
-		<main className="mx-auto flex min-h-svh w-full max-w-sm flex-col">
+		<main className="mx-auto flex min-h-svh w-full max-w-md flex-col">
 			<div className="auth">
-				<Logo width={66} />
-				<header className="auth__head">
-					<h1 className="display text-(length:--text-size-title)">
+				<header className="auth__head mb-3">
+					<Logo width={72} />
+					<h1 className="display text-(length:--text-size-display) pt-2 leading-(--text-leading-display)">
 						Criar conta
 					</h1>
 					<p className="auth__text">

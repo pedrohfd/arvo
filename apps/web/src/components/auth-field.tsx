@@ -55,7 +55,7 @@ export function AuthField({
 				hint && (
 					<p
 						id={messageId}
-						className="text-(length:--text-size-small) text-text-muted"
+						className="text-(length:--text-size-small) text-text-muted leading-(--text-leading-small)"
 					>
 						{hint}
 					</p>
@@ -84,9 +84,9 @@ export function PasswordField(
 					onClick={() => setVisible((v) => !v)}
 				>
 					{visible ? (
-						<EyeSlashIcon size={20} aria-hidden />
+						<EyeSlashIcon size={18} aria-hidden />
 					) : (
-						<EyeIcon size={20} aria-hidden />
+						<EyeIcon size={18} aria-hidden />
 					)}
 				</button>
 			}

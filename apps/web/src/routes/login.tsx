@@ -73,7 +73,7 @@ function LoginPage() {
 	}
 
 	return (
-		<main className="mx-auto flex min-h-svh w-full max-w-sm flex-col">
+		<main className="mx-auto flex min-h-svh w-full max-w-md flex-col">
 			{!online && (
 				<div className="banner" role="status">
 					<WifiSlashIcon size={20} aria-hidden />
@@ -91,9 +91,11 @@ function LoginPage() {
 				</div>
 			)}
 			<div className="auth">
-				<Logo width={66} />
-				<header className="auth__head">
-					<h1 className="display text-(length:--text-size-title)">Entrar</h1>
+				<header className="auth__head mb-3">
+					<Logo width={72} />
+					<h1 className="display text-(length:--text-size-display) pt-2 leading-(--text-leading-display)">
+						Entrar
+					</h1>
 					<p className="auth__text">Que bom te ver de novo.</p>
 				</header>
 				<form onSubmit={onSubmit} noValidate className="auth__form">
