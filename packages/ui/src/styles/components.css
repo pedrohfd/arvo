@@ -2504,18 +2504,22 @@
 	color: var(--color-text-muted);
 }
 
-/* Ilustração do onboarding: o próprio app, peças reais com esmaecimento embaixo */
+/* Ilustração do onboarding: o próprio app, com as peças reais */
 .art-app {
 	width: 100%;
 	display: flex;
 	flex-direction: column;
 	gap: var(--spacing-3);
 	padding-top: var(--spacing-2);
-	-webkit-mask-image: linear-gradient(to bottom, #000 74%, transparent);
-	mask-image: linear-gradient(to bottom, #000 74%, transparent);
 }
 .art-app .goal-card {
 	box-shadow: none;
+}
+.art-app .tx-row__amount {
+	width: auto;
+}
+.art-app .cat-bars {
+	gap: 0;
 }
 
 /* Onboarding e entrada (série 7) */
@@ -2564,6 +2568,9 @@
 	align-items: center;
 	justify-content: space-between;
 	width: 100%;
+}
+.onb__actions .btn-primary {
+	padding: 0 var(--spacing-8);
 }
 .splash {
 	flex: 1;

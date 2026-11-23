@@ -104,7 +104,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 - [x] Criar a rota `/login` (e-mail e senha, erro, entrando, sem internet; `apps/web/src/routes/login.tsx`) e tirar o `continue-on-error` do passo de tipos no CI (C10).
 - [x] 7.1 Splash (logo se desenha em ~1 s): rota `/` com `LogoDraw` (SVG, traço do "vo" com `pathLength` e `stroke-dashoffset`; sem animação em `prefers-reduced-motion`); segue para `/inicio` com sessão ou `/login`. Quadro final conferido contra o Figma. O onboarding (7.2) entra no lugar do `/login` para quem abre pela primeira vez
-- [ ] 7.2 Onboarding em 3 passos (arrastável)
+- [x] 7.2 Onboarding em 3 passos (arrastável): rota `/onboarding` com carrossel de rolagem nativa (`scroll-snap`; arrasto com o mouse e setas do teclado), ilustrações com as peças reais e dados de exemplo (`onboarding-art.tsx`, `goal-ring.tsx`), conferido contra o Figma. O splash leva para ele só na primeira vez (`localStorage`); "Pular" e "Começar" vão para `/cadastro`
 - [x] 7.3 Entrar (erro, entrando, sem internet, sessão expirada): conferida contra o Figma (página "7 · Começar"). Sessão expirada = `/login?sessao=expirada`, disparado quando o tRPC responde `UNAUTHORIZED` (`utils/trpc.ts`). O link "Esqueci a senha" leva à 7.5
 - [x] 7.4 Criar conta (senha curta, e-mail existente, criando): rota `/cadastro` (`apps/web/src/routes/cadastro.tsx`), com nome, e-mail e senha de 8+ caracteres; o campo compartilhado com o login está em `components/auth-field.tsx`. Conferida contra o Figma
 - [x] 7.5 Recuperar senha (normal, não encontrado, enviado): rota `/recuperar-senha`, conferida contra o Figma. O "não achamos" vem do tRPC `emailExists` (a criação de conta já revela se o e-mail existe). Em dev o link sai no log do server (`[recuperar senha]`); a rota `/redefinir-senha` (nova senha) não existe no Figma e foi montada com as peças da 7.4: falta desenhá-la. Pendente do P5: Resend de verdade (hoje, em produção, o envio falha de propósito)
@@ -177,3 +177,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-23 — C6 concluída: PNGs do PWA gerados a partir do monograma e conferidos; build do web passa.
 - 2026-11-23 — Logo SVG na barra lateral (como máscara, para seguir a cor do texto nos dois temas) e rota `/login` criada; `continue-on-error` do CI removido.
 - 2026-11-23 — Fase 2: telas Entrar, Criar conta e Recuperar senha conferidas contra o Figma; splash feito em SVG/CSS e Rive removido (C8).
+- 2026-11-23 — Fase 2: onboarding (7.2) feito. Descoberto que as fontes Inter e Fraunces não eram empacotadas (dev e build): corrigido em PR separado.

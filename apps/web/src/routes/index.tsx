@@ -3,9 +3,10 @@ import { useEffect } from "react";
 
 import { LogoDraw } from "@/components/logo-draw";
 import { authClient } from "@/lib/auth-client";
+import { hasSeenOnboarding } from "@/lib/onboarding";
 
 // 7.1 Splash: o logo se desenha (~1 s) e, passado esse tempo, segue para o app (com
-// sessão) ou para o login. O onboarding (7.2) entra aqui quando existir.
+// sessão), para o login (já viu o onboarding) ou para o onboarding (primeira vez).
 const SPLASH_MS = 1500;
 
 export const Route = createFileRoute("/")({
@@ -21,7 +22,12 @@ function Splash() {
 		Promise.all([authClient.getSession().catch(() => null), minimum]).then(
 			([session]) => {
 				if (cancelled) return;
-				navigate({ to: session?.data ? "/inicio" : "/login", replace: true });
+				const to = session?.data
+					? "/inicio"
+					: hasSeenOnboarding()
+						? "/login"
+						: "/onboarding";
+				navigate({ to, replace: true });
 			},
 		);
 		return () => {
