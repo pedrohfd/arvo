@@ -126,7 +126,10 @@ function Inicio() {
 					/>
 				</div>
 				{receivable.totalCents > 0 ? (
-					<div className="stat-card stat-card--wide stat-card--owed">
+					<Link
+						to="/receber"
+						className="stat-card stat-card--wide stat-card--owed"
+					>
 						<span className="stat-card__badge">
 							<UsersThreeIcon size={16} aria-hidden />
 						</span>
@@ -144,7 +147,7 @@ function Inicio() {
 							className="stat-card__chevron"
 							aria-hidden
 						/>
-					</div>
+					</Link>
 				) : null}
 			</section>
 

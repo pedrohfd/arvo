@@ -83,7 +83,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 ## Retomada (próxima sessão)
 
 1. A Fase 1 está completa, salvo os testes dos grupos 10 e 11 do TESTES.md.
-2. Falta na Fase 3: 3.4 A receber por pessoa, seletor de mês (1.10), busca, gesto de recolher o saldo, fila offline do **+** e "Outro" em "Por quantos meses".
+2. Falta na Fase 3: seletor de mês (1.10), busca, gesto de recolher o saldo, fila offline do **+** e "Outro" em "Por quantos meses".
 3. Falta na Fase 4: Horizonte (4.2) com a lista "O que vem" e a linha de saldo mínimo, a lista ao tocar numa categoria e o aviso de sem internet.
 4. Fase 7 inteira (desktop e acabamento) e a conferência visual da Fase 0 no navegador.
 5. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 e D9 (Figma), propagar o Campo nas telas do Figma, desenhar `/redefinir-senha`.
@@ -114,7 +114,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Fase 3 · Início e Registrar
 
-- [~] 1.1 Início: saldo, entrou/saiu, "A receber", "No crédito, a pagar" e lista por dia feitos (`routes/_auth/inicio.tsx`, com carregando, não carregou e 1.2 vazia); falta conferir no navegador contra o Figma, o gesto de recolher, o seletor de mês e a tela 3.4 atrás do "A receber"
+- [~] 1.1 Início: saldo, entrou/saiu, "A receber", "No crédito, a pagar" e lista por dia feitos (`routes/_auth/inicio.tsx`, com carregando, não carregou e 1.2 vazia); falta conferir no navegador contra o Figma, o gesto de recolher e o seletor de mês
 - [~] Lista agrupada por dia (`groupByDay`, em `inicio.tsx`) feita; falta o gesto de recolher o saldo ao subir a lista
 - [ ] Seletor de mês (folha 1.10) e saldo "no fim de <mês>" em mês passado
 - [ ] Busca sem acento e sem maiúsculas, só no mês escolhido
@@ -128,7 +128,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [~] 3.1 Detalhe da transação: rota `/transacao/$transactionId` (simples, dividida, tudo acertado, entrada, parcela/repete, data futura, apagada em outro aparelho, carregando, erro), marcar/desmarcar pago e apagar; textos em `lib/transaction-detail.ts` (com testes). Falta "não salvou" (depende da fila offline)
 - [x] 3.2 Editar: o mesmo `RegisterSheet` em modo edição (`editing`), sem repetir nem dividir; valor travado em saída dividida, parcela só em cartão de crédito, reembolso não se edita; em série, folha "Salvar em quais parcelas/repetições?" (começa em "Esta e as próximas"); com outra data, as seguintes acompanham (`lib/plan-edit.ts`, com testes), e o início e o dia da série são refeitos para a renovação continuar do mesmo ponto; "Só esta" / "Esta e as próximas" em recorrentes
 - [x] 3.3 Apagar: folha de confirmação, "Só esta" / "Esta e as próximas" em série, e aviso "Saída apagada · Desfazer" (10 s) na Início. O `transaction.delete` devolve um retrato do que saiu (com os reembolsos) e o `transaction.restore` recria com os mesmos ids. Obs. para a renovação do "sem fim" (P2): "esta e as próximas" não encerra a série, então a renovação não pode recriar o que foi apagado
-- [ ] 3.4 A receber, por pessoa
+- [x] 3.4 A receber, por pessoa: rota `/receber` (`routes/_auth/receber.tsx`), aberta pelo cartão "A receber" da Início; pessoas e contas via `split.pending` (`lib/pending-splits.ts`, com testes), bolinha abre "Fulano pagou?"; normal e "Tudo acertado" do Figma, carregando e não carregou sem quadro
 - [ ] Contagem do saldo ao registrar (respeitando "reduzir movimento")
 
 ## Fase 4 · Resumo e Horizonte
@@ -170,6 +170,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Folhas "Editar cartão" e "Editar categoria": reaproveitam "Novo cartão" e "Nova categoria" (DEV-119)
 - [ ] Gesto de deslizar a linha (editar à direita, apagar à esquerda) em cartões, categorias e pessoas (DEV-120)
 - [ ] Detalhe da meta concluída (o cartão não abre nada) e "Apagar meta" na edição, sem folha de confirmação (DEV-121)
+- [ ] Estados carregando e não carregou do A receber (3.4), e a ordem das pessoas e das contas (DEV-123)
 - [ ] Escolhas da 3.2 Editar que o Figma não mostra: valor travado em saída dividida, só crédito em parcela, Editar desligado em reembolso, padrão da folha de escopo ("Só esta" no Figma × "Esta e as próximas" no DESIGN.md) e sem aviso de saldo mínimo (DEV-122)
 
 ## Fase 7 · Desktop e acabamento
@@ -202,3 +203,4 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - 2026-11-24 — Fase 1: renovação das séries sem fim ao abrir o Início; migração `series_generated_count`. Testado no banco local: série de 1 ocorrência vira 35 (até 11/2028) e uma segunda renovação não duplica.
 - 2026-11-24 — Fase 3: Editar (3.2) feito, com `transaction.update`; testado no banco local (só esta, esta e as próximas com data nova, valor travado em dividida, erros). Não conferido no navegador contra o Figma.
 - 2026-11-24 — Levantadas as telas feitas sem design próprio (seção própria acima, issues DEV-117 a DEV-122) para revisão com foco.
+- 2026-11-24 — Fase 3: A receber (3.4) feito (`/receber`, `split.pending`); testado no banco local (soma por pessoa, marcar pago tira da lista). Não conferido no navegador contra o Figma.

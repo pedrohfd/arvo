@@ -44,8 +44,8 @@ export function MarkPaidSheet({
 	split,
 	onClose,
 }: {
-	tx: DetailTransaction;
-	split: Split;
+	tx: Pick<DetailTransaction, "title" | "category" | "date">;
+	split: { id: string; amountCents: number; person: { name: string } };
 	onClose: () => void;
 }) {
 	const [reimburse, setReimburse] = useState(true);
