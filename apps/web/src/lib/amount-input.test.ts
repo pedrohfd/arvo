@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
 	type AmountKey,
+	centsToRaw,
 	displayParts,
 	isAtLimit,
 	pressKey,
@@ -89,5 +90,20 @@ describe("exibição", () => {
 		expect(displayParts("120,")).toEqual({ typed: "R$ 120,", ghost: "00" });
 		expect(displayParts("120,5")).toEqual({ typed: "R$ 120,5", ghost: "0" });
 		expect(displayParts("120,50")).toEqual({ typed: "R$ 120,50", ghost: "" });
+	});
+});
+
+describe("centsToRaw", () => {
+	test("volta ao texto do teclado", () => {
+		expect(centsToRaw(0)).toBe("0");
+		expect(centsToRaw(12000)).toBe("120");
+		expect(centsToRaw(12050)).toBe("120,5");
+		expect(centsToRaw(12005)).toBe("120,05");
+		expect(centsToRaw(5)).toBe("0,05");
+	});
+	test("ida e volta com toCents", () => {
+		for (const cents of [1, 10, 99, 100, 12345, 99999999]) {
+			expect(toCents(centsToRaw(cents))).toBe(cents);
+		}
 	});
 });

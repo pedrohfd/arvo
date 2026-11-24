@@ -15,10 +15,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { Sheet } from "@/components/card/card-sheets";
 import { CategoryFormSheet } from "@/components/category/category-form-sheet";
 import { CategoryIcon } from "@/components/category-icon";
 import {
 	type AmountKey,
+	centsToRaw,
 	displayParts,
 	isAtLimit,
 	pressKey,
@@ -39,6 +41,7 @@ import {
 	visibleCategories,
 } from "@/lib/register";
 import { splitHint } from "@/lib/split-with";
+import type { DeleteScope } from "@/lib/transaction-detail";
 import { trpc } from "@/utils/trpc";
 import { DateSheet } from "./date-sheet";
 import { Chip, Grabber, useEscape } from "./parts";
@@ -51,20 +54,50 @@ export type Registered = {
 	amountCents: number;
 };
 
+/** A transação que a folha edita (3.2): a mesma 2.2, sem repetir nem dividir. */
+export type EditingTransaction = {
+	id: string;
+	flow: Flow;
+	amountCents: number;
+	title: string | null;
+	categoryId: string;
+	date: string;
+	payment: Payment;
+	/** Saída dividida: o valor não muda, porque a parte de cada pessoa sai dele. */
+	lockAmount: boolean;
+	/** Parcela: continua no cartão de crédito. */
+	installment: boolean;
+	/** Série com ocorrências depois desta: perguntar "Só esta" ou "Esta e as próximas". */
+	scopeSheet: {
+		title: string;
+		only: { title: string; desc: string };
+		next: { title: string; desc: string };
+	} | null;
+};
+
 // Folha do Registrar (série 2 do Figma): 2.1 valor com teclado, 2.2 detalhes, 2.3 dividir com e
 // 2.4 data. Ainda não existem: "Outro" em "Por quantos meses" e o parcelamento (D9, sem tela).
 export function RegisterSheet({
 	initialFlow,
+	editing,
 	onClose,
 	onRegistered,
+	onSaved,
 }: {
 	initialFlow: Flow;
+	/** Edita uma transação (3.2) em vez de registrar uma nova. */
+	editing?: EditingTransaction;
 	onClose: () => void;
 	onRegistered: (registered: Registered) => void;
+	onSaved?: () => void;
 }) {
-	const [step, setStep] = useState<"amount" | "details">("amount");
-	const [flow, setFlow] = useState<Flow>(initialFlow);
-	const [raw, setRaw] = useState("");
+	const [step, setStep] = useState<"amount" | "details">(
+		editing ? "details" : "amount",
+	);
+	const [flow, setFlow] = useState<Flow>(editing?.flow ?? initialFlow);
+	const [raw, setRaw] = useState(
+		editing ? centsToRaw(editing.amountCents) : "",
+	);
 	const dialogRef = useRef<HTMLDivElement>(null);
 
 	// Fecha com Esc, segura a rolagem da tela de trás e leva o foco para a folha.
@@ -90,7 +123,7 @@ export function RegisterSheet({
 				ref={dialogRef}
 				role="dialog"
 				aria-modal="true"
-				aria-label={flow === "EXPENSE" ? "Nova saída" : "Nova entrada"}
+				aria-label={dialogLabel(flow, Boolean(editing))}
 				tabIndex={-1}
 				className="relative flex h-[calc(100svh-56px)] w-full max-w-[480px] flex-col rounded-t-[var(--radius-xl)] bg-[var(--color-surface)] shadow-[var(--shadow-strong)] outline-none"
 			>
@@ -99,6 +132,7 @@ export function RegisterSheet({
 					<AmountStep
 						flow={flow}
 						raw={raw}
+						fixedFlow={Boolean(editing)}
 						onFlow={setFlow}
 						onRaw={setRaw}
 						onClose={onClose}
@@ -108,13 +142,20 @@ export function RegisterSheet({
 					<DetailsStep
 						flow={flow}
 						cents={cents}
+						editing={editing}
 						onBack={() => setStep("amount")}
 						onRegistered={onRegistered}
+						onSaved={onSaved}
 					/>
 				)}
 			</div>
 		</div>
 	);
+}
+
+function dialogLabel(flow: Flow, editing: boolean) {
+	if (editing) return flow === "EXPENSE" ? "Editar saída" : "Editar entrada";
+	return flow === "EXPENSE" ? "Nova saída" : "Nova entrada";
 }
 
 // ───────── 2.1 Valor ─────────
@@ -144,6 +185,7 @@ function amountSize(text: string) {
 function AmountStep({
 	flow,
 	raw,
+	fixedFlow,
 	onFlow,
 	onRaw,
 	onClose,
@@ -151,6 +193,8 @@ function AmountStep({
 }: {
 	flow: Flow;
 	raw: string;
+	/** Editando, saída e entrada não se trocam. */
+	fixedFlow: boolean;
 	onFlow: (flow: Flow) => void;
 	onRaw: (raw: string) => void;
 	onClose: () => void;
@@ -185,27 +229,36 @@ function AmountStep({
 				>
 					<XIcon size={22} aria-hidden />
 				</button>
-				<div className="segmented">
-					<button
-						type="button"
-						aria-pressed={flow === "EXPENSE"}
-						className={cn(
-							"segmented__opt",
-							flow === "EXPENSE" && "is-selected",
-						)}
-						onClick={() => onFlow("EXPENSE")}
-					>
-						Saída
-					</button>
-					<button
-						type="button"
-						aria-pressed={flow === "INCOME"}
-						className={cn("segmented__opt", flow === "INCOME" && "is-selected")}
-						onClick={() => onFlow("INCOME")}
-					>
-						Entrada
-					</button>
-				</div>
+				{fixedFlow ? (
+					<h2 className="text-(length:--text-size-headline) font-semibold leading-6">
+						{dialogLabel(flow, true)}
+					</h2>
+				) : (
+					<div className="segmented">
+						<button
+							type="button"
+							aria-pressed={flow === "EXPENSE"}
+							className={cn(
+								"segmented__opt",
+								flow === "EXPENSE" && "is-selected",
+							)}
+							onClick={() => onFlow("EXPENSE")}
+						>
+							Saída
+						</button>
+						<button
+							type="button"
+							aria-pressed={flow === "INCOME"}
+							className={cn(
+								"segmented__opt",
+								flow === "INCOME" && "is-selected",
+							)}
+							onClick={() => onFlow("INCOME")}
+						>
+							Entrada
+						</button>
+					</div>
+				)}
 				<span className="size-11" aria-hidden />
 			</div>
 
@@ -273,13 +326,17 @@ function AmountStep({
 function DetailsStep({
 	flow,
 	cents,
+	editing,
 	onBack,
 	onRegistered,
+	onSaved,
 }: {
 	flow: Flow;
 	cents: number;
+	editing?: EditingTransaction;
 	onBack: () => void;
 	onRegistered: (registered: Registered) => void;
+	onSaved?: () => void;
 }) {
 	const today = todayInSaoPaulo();
 	const categories = useQuery(trpc.category.list.queryOptions());
@@ -291,13 +348,18 @@ function DetailsStep({
 		enabled: flow === "EXPENSE",
 	});
 
-	const [categoryId, setCategoryId] = useState<string | null>(null);
+	const [categoryId, setCategoryId] = useState<string | null>(
+		editing?.categoryId ?? null,
+	);
 	const [categoryError, setCategoryError] = useState(false);
 	const [moreOpen, setMoreOpen] = useState(false);
-	const [title, setTitle] = useState("");
-	const [date, setDate] = useState(today);
+	const [title, setTitle] = useState(editing?.title ?? "");
+	const [date, setDate] = useState(editing?.date ?? today);
 	const [dateOpen, setDateOpen] = useState(false);
-	const [pickedPayment, setPickedPayment] = useState<Payment | null>(null);
+	const [pickedPayment, setPickedPayment] = useState<Payment | null>(
+		editing?.payment ?? null,
+	);
+	const [scopeOpen, setScopeOpen] = useState(false);
 	const [repeat, setRepeat] = useState(false);
 	const [repeatCount, setRepeatCount] = useState<number | null>(null);
 	// Dividir só vale para saída que não se repete (o servidor recusa as duas coisas juntas).
@@ -311,6 +373,14 @@ function DetailsStep({
 		(category) => category.kind === flow,
 	);
 	const cardList = cards.data ?? [];
+	const paymentChoices = paymentOptions(flow, cardList).filter(
+		(option) =>
+			!editing?.installment ||
+			(option.payment.kind === "card" &&
+				cardList.find(
+					(card) => card.id === (option.payment as { cardId: string }).cardId,
+				)?.type === "CREDIT"),
+	);
 	const payment = pickedPayment ?? defaultPayment(flow, cardList);
 	const selectedCard =
 		payment.kind === "card"
@@ -331,7 +401,7 @@ function DetailsStep({
 		isCredit: selectedCard?.type === "CREDIT",
 	});
 	// Gasto agendado não mexe no saldo agora: o aviso só vale para hoje ou datas passadas.
-	const showWarning = warning.warn && date <= today;
+	const showWarning = !editing && warning.warn && date <= today;
 
 	const create = useMutation(
 		trpc.transaction.create.mutationOptions({
@@ -341,9 +411,35 @@ function DetailsStep({
 		}),
 	);
 
+	const update = useMutation(
+		trpc.transaction.update.mutationOptions({
+			onSuccess: () => onSaved?.(),
+			onError: (error) => toast.error(error.message),
+		}),
+	);
+
+	function save(scope: DeleteScope) {
+		if (!editing || !categoryId) return;
+		update.mutate({
+			id: editing.id,
+			scope,
+			amountCents: cents,
+			title: title.trim() || undefined,
+			categoryId,
+			date,
+			paymentMethod: payment.kind === "card" ? "CARD" : payment.kind,
+			cardId: payment.kind === "card" ? payment.cardId : undefined,
+		});
+	}
+
 	function submit() {
 		if (!categoryId) {
 			setCategoryError(true);
+			return;
+		}
+		if (editing) {
+			if (editing.scopeSheet) setScopeOpen(true);
+			else save("ONLY_THIS");
 			return;
 		}
 		create.mutate({
@@ -381,7 +477,7 @@ function DetailsStep({
 					<CaretLeftIcon size={22} aria-hidden />
 				</button>
 				<h2 className="text-(length:--text-size-headline) font-semibold leading-6">
-					{flow === "EXPENSE" ? "Nova saída" : "Nova entrada"}
+					{dialogLabel(flow, Boolean(editing))}
 				</h2>
 			</div>
 
@@ -390,6 +486,7 @@ function DetailsStep({
 					type="button"
 					className="self-start text-left"
 					aria-label={`Valor ${formatMoney(cents)}, tocar para alterar`}
+					disabled={editing?.lockAmount}
 					onClick={onBack}
 				>
 					<span className="font-[family-name:var(--font-display)] text-[32px] leading-[38px] tracking-[-0.02em] [font-variation-settings:'SOFT'_100,'WONK'_0]">
@@ -493,7 +590,7 @@ function DetailsStep({
 				>
 					<div className="flex flex-col gap-3">
 						<div className="choices">
-							{paymentOptions(flow, cardList).map((option) => (
+							{paymentChoices.map((option) => (
 								<Chip
 									key={option.label}
 									selected={samePayment(option.payment, payment)}
@@ -511,64 +608,66 @@ function DetailsStep({
 					</div>
 				</Group>
 
-				<div className="flex flex-col">
-					<div className="switch-row">
-						<div className="switch-row__text">
-							<span className="switch-row__title" id="repeat-title">
-								Repetir todo mês
-							</span>
-							<span className="switch-row__desc">
-								{flow === "EXPENSE"
-									? "Para contas fixas e parcelas"
-									: "Para salário e entradas fixas"}
-							</span>
-						</div>
-						<button
-							type="button"
-							role="switch"
-							aria-checked={repeat}
-							aria-labelledby="repeat-title"
-							className="switch"
-							onClick={() => {
-								setRepeat((value) => !value);
-								if (!repeat) setSplit(false);
-							}}
-						/>
-					</div>
-					{repeat ? (
-						<div className="flex flex-col gap-3 pt-1">
-							<span className="field__label" id="repeat-count">
-								Por quantos meses
-							</span>
-							<div className="choices">
-								<Chip
-									selected={repeatCount === null}
-									onClick={() => setRepeatCount(null)}
-								>
-									Sem fim
-								</Chip>
-								{REPEAT_COUNTS.map((count) => (
-									<Chip
-										key={count}
-										selected={repeatCount === count}
-										onClick={() => setRepeatCount(count)}
-									>
-										{count}
-									</Chip>
-								))}
+				{editing ? null : (
+					<div className="flex flex-col">
+						<div className="switch-row">
+							<div className="switch-row__text">
+								<span className="switch-row__title" id="repeat-title">
+									Repetir todo mês
+								</span>
+								<span className="switch-row__desc">
+									{flow === "EXPENSE"
+										? "Para contas fixas e parcelas"
+										: "Para salário e entradas fixas"}
+								</span>
 							</div>
-							<p className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-5">
-								{repeatSummary({
-									amountCents: cents,
-									date: today,
-									count: repeatCount,
-								})}
-							</p>
+							<button
+								type="button"
+								role="switch"
+								aria-checked={repeat}
+								aria-labelledby="repeat-title"
+								className="switch"
+								onClick={() => {
+									setRepeat((value) => !value);
+									if (!repeat) setSplit(false);
+								}}
+							/>
 						</div>
-					) : null}
-				</div>
+						{repeat ? (
+							<div className="flex flex-col gap-3 pt-1">
+								<span className="field__label" id="repeat-count">
+									Por quantos meses
+								</span>
+								<div className="choices">
+									<Chip
+										selected={repeatCount === null}
+										onClick={() => setRepeatCount(null)}
+									>
+										Sem fim
+									</Chip>
+									{REPEAT_COUNTS.map((count) => (
+										<Chip
+											key={count}
+											selected={repeatCount === count}
+											onClick={() => setRepeatCount(count)}
+										>
+											{count}
+										</Chip>
+									))}
+								</div>
+								<p className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-5">
+									{repeatSummary({
+										amountCents: cents,
+										date: today,
+										count: repeatCount,
+									})}
+								</p>
+							</div>
+						) : null}
+					</div>
+				)}
 
-				{flow === "EXPENSE" ? (
+				{flow === "EXPENSE" && !editing ? (
 					<div className="flex flex-col">
 						<div className="switch-row">
 							<div className="switch-row__text">
@@ -635,20 +734,36 @@ function DetailsStep({
 					type="button"
 					className={cn(
 						"btn-primary btn-primary--block",
-						create.isPending && "is-loading",
+						(create.isPending || update.isPending) && "is-loading",
 					)}
-					disabled={create.isPending}
+					disabled={create.isPending || update.isPending}
 					onClick={submit}
 				>
 					<span>
-						{flow === "EXPENSE" ? "Registrar saída" : "Registrar entrada"}
+						{editing
+							? "Salvar alterações"
+							: flow === "EXPENSE"
+								? "Registrar saída"
+								: "Registrar entrada"}
 					</span>
-					{create.isPending ? (
-						<span className="spinner" role="status" aria-label="Registrando" />
+					{create.isPending || update.isPending ? (
+						<span
+							className="spinner"
+							role="status"
+							aria-label={editing ? "Salvando" : "Registrando"}
+						/>
 					) : null}
 				</button>
 			</div>
 
+			{scopeOpen && editing?.scopeSheet ? (
+				<EditScopeSheet
+					sheet={editing.scopeSheet}
+					pending={update.isPending}
+					onSave={save}
+					onClose={() => setScopeOpen(false)}
+				/>
+			) : null}
 			{dateOpen ? (
 				<DateSheet
 					value={date}
@@ -686,6 +801,65 @@ function DetailsStep({
 				/>
 			) : null}
 		</>
+	);
+}
+
+// 3.2 "salvar recorrente": a pergunta começa em "Esta e as próximas", o caso mais comum; as
+// anteriores nunca mudam.
+function EditScopeSheet({
+	sheet,
+	pending,
+	onSave,
+	onClose,
+}: {
+	sheet: NonNullable<EditingTransaction["scopeSheet"]>;
+	pending: boolean;
+	onSave: (scope: DeleteScope) => void;
+	onClose: () => void;
+}) {
+	const [scope, setScope] = useState<DeleteScope>("THIS_AND_NEXT");
+	return (
+		<Sheet title={sheet.title} onClose={onClose}>
+			<div className="px-5 pt-2 pb-2">
+				{(["ONLY_THIS", "THIS_AND_NEXT"] as const).map((value) => {
+					const option = value === "ONLY_THIS" ? sheet.only : sheet.next;
+					return (
+						<button
+							key={value}
+							type="button"
+							aria-pressed={scope === value}
+							className={cn(
+								"option-card",
+								scope === value &&
+									"is-selected shadow-[inset_0_0_0_1px_var(--color-focus)]",
+							)}
+							onClick={() => setScope(value)}
+						>
+							<span className="option-card__text">
+								<span className="option-card__title">{option.title}</span>
+								<span className="option-card__desc">{option.desc}</span>
+							</span>
+						</button>
+					);
+				})}
+			</div>
+			<div className="px-5 pt-3 pb-6">
+				<button
+					type="button"
+					className={cn(
+						"btn-primary btn-primary--block",
+						pending && "is-loading",
+					)}
+					disabled={pending}
+					onClick={() => onSave(scope)}
+				>
+					<span>Salvar alterações</span>
+					{pending ? (
+						<span className="spinner" role="status" aria-label="Salvando" />
+					) : null}
+				</button>
+			</div>
+		</Sheet>
 	);
 }
 

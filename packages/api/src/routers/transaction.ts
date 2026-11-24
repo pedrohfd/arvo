@@ -8,7 +8,10 @@ import {
 	toDbDate,
 	todayInSaoPaulo,
 } from "../lib/calendar";
+import { planDateShift } from "../lib/plan-edit";
 import { monthRange, planTransaction } from "../lib/plan-transaction";
+import { dueDateForPurchase } from "../rules/invoice";
+import { assertPositiveAmount } from "../rules/money";
 import { splitBill } from "../rules/split";
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida");
@@ -212,6 +215,7 @@ export const transactionRouter = router({
 				time: entryTime(row.createdAt, fromDbDate(row.date)),
 				dueDate: row.dueDate ? fromDbDate(row.dueDate) : null,
 				paymentMethod: row.paymentMethod,
+				cardId: row.cardId,
 				cardName: row.card?.name ?? null,
 				cardType: row.card?.type ?? null,
 				isReimbursement: row.reimbursedSplitId !== null,
@@ -347,6 +351,167 @@ export const transactionRouter = router({
 				return created;
 			});
 			return { ids, duplicate: false };
+		}),
+
+	// 3.2 Editar: valor, categoria, título, data e forma de pagamento. O tipo (saída ou entrada),
+	// repetir e dividir não mudam. Em série, "só esta" muda uma ocorrência; "esta e as próximas",
+	// ela e as seguintes (as anteriores nunca mudam). Com outra data, as seguintes acompanham.
+	update: protectedProcedure
+		.input(
+			z.object({
+				id: z.string(),
+				scope: z.enum(["ONLY_THIS", "THIS_AND_NEXT"]).default("ONLY_THIS"),
+				amountCents: z.number().int(),
+				title: z.string().trim().max(80).optional(),
+				categoryId: z.string(),
+				date,
+				paymentMethod: z.enum(["CARD", "PIX", "CASH", "DEPOSIT"]),
+				cardId: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.session.user.id;
+			const current = await ctx.db.transaction.findFirst({
+				where: { id: input.id, userId },
+				include: {
+					series: { select: { kind: true, intervalMonths: true } },
+					splits: { select: { id: true } },
+				},
+			});
+			if (!current) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Essa transação foi apagada",
+				});
+			}
+			if (current.reimbursedSplitId) {
+				badRequest(new Error("A entrada de reembolso não se edita"));
+			}
+			try {
+				assertPositiveAmount(input.amountCents);
+			} catch (error) {
+				return badRequest(error);
+			}
+			if (
+				current.splits.length > 0 &&
+				input.amountCents !== current.amountCents
+			) {
+				badRequest(
+					new Error("Não dá para mudar o valor de uma saída dividida"),
+				);
+			}
+
+			const category = await ctx.db.category.findFirst({
+				where: { id: input.categoryId, userId, kind: current.kind },
+				select: { id: true },
+			});
+			if (!category) badRequest(new Error("Escolha uma categoria"));
+
+			const card = input.cardId
+				? await ctx.db.card.findFirst({
+						where: { id: input.cardId, userId },
+						select: { type: true, closingDay: true, dueDay: true },
+					})
+				: null;
+			if (input.cardId && !card) badRequest(new Error("Cartão não encontrado"));
+			if (input.paymentMethod === "CARD" && !card) {
+				badRequest(new Error("Escolha o cartão"));
+			}
+			if (input.paymentMethod !== "CARD" && card) {
+				badRequest(new Error("Só compras no cartão têm cartão"));
+			}
+			if (input.paymentMethod === "DEPOSIT" && current.kind === "EXPENSE") {
+				badRequest(new Error("Depósito é só para entradas"));
+			}
+			if (current.kind === "INCOME" && input.paymentMethod === "CARD") {
+				badRequest(new Error("Entrada não é registrada em cartão"));
+			}
+			if (current.series?.kind === "INSTALLMENT" && card?.type !== "CREDIT") {
+				badRequest(new Error("Parcelas ficam no cartão de crédito"));
+			}
+
+			const wholeSeries =
+				input.scope === "THIS_AND_NEXT" &&
+				current.seriesId !== null &&
+				current.seriesIndex !== null;
+			const dateChanged = input.date !== fromDbDate(current.date);
+			const shift =
+				wholeSeries && dateChanged && current.series
+					? planDateShift({
+							editedIndex: current.seriesIndex as number,
+							newDate: input.date,
+							intervalMonths: current.series.intervalMonths,
+						})
+					: null;
+
+			const targets = wholeSeries
+				? await ctx.db.transaction.findMany({
+						where: {
+							userId,
+							seriesId: current.seriesId,
+							seriesIndex: { gte: current.seriesIndex as number },
+						},
+						select: { id: true, seriesIndex: true, date: true },
+					})
+				: [
+						{
+							id: current.id,
+							seriesIndex: current.seriesIndex,
+							date: current.date,
+						},
+					];
+
+			let rows: { id: string; date: string; dueDate: string | null }[];
+			try {
+				rows = targets.map((target) => {
+					const rowDate =
+						target.id === current.id
+							? input.date
+							: shift && target.seriesIndex !== null
+								? shift.dateFor(target.seriesIndex)
+								: fromDbDate(target.date);
+					return {
+						id: target.id,
+						date: rowDate,
+						dueDate:
+							current.kind === "EXPENSE"
+								? dueDateForPurchase(card, rowDate)
+								: null,
+					};
+				});
+			} catch (error) {
+				return badRequest(error);
+			}
+
+			await ctx.db.$transaction(
+				async (tx) => {
+					if (shift && current.seriesId) {
+						await tx.series.update({
+							where: { id: current.seriesId },
+							data: {
+								anchorDay: shift.anchorDay,
+								startDate: toDbDate(shift.startDate),
+							},
+						});
+					}
+					for (const row of rows) {
+						await tx.transaction.update({
+							where: { id: row.id },
+							data: {
+								amountCents: input.amountCents,
+								title: input.title || null,
+								categoryId: input.categoryId,
+								date: toDbDate(row.date),
+								paymentMethod: input.paymentMethod,
+								cardId: input.cardId ?? null,
+								dueDate: row.dueDate ? toDbDate(row.dueDate) : null,
+							},
+						});
+					}
+				},
+				{ timeout: 30_000 },
+			);
+			return { updated: rows.length };
 		}),
 
 	// Em série, "só esta" apaga uma ocorrência; "esta e as próximas", ela e as seguintes.

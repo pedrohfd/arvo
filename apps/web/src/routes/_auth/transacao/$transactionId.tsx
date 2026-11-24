@@ -11,9 +11,17 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 import { type ReactNode, useState } from "react";
+import { toast } from "sonner";
 
 import { CategoryIcon } from "@/components/category-icon";
-import { useRegister } from "@/components/register/register-provider";
+import {
+	refreshMoney,
+	useRegister,
+} from "@/components/register/register-provider";
+import {
+	type EditingTransaction,
+	RegisterSheet,
+} from "@/components/register/register-sheet";
 import {
 	DeleteSheet,
 	MarkPaidSheet,
@@ -22,8 +30,10 @@ import {
 import { formatMoney, formatShortDate, moneyParts } from "@/lib/format";
 import { initials } from "@/lib/split-with";
 import {
+	asksScope,
 	badgeFor,
 	dateLabel,
+	editScopeSheet,
 	paidLabel,
 	paymentLabel,
 	repeatLabel,
@@ -39,9 +49,28 @@ export const Route = createFileRoute("/_auth/transacao/$transactionId")({
 type Tx = inferRouterOutputs<AppRouter>["transaction"]["get"];
 type Split = Tx["splits"][number];
 
+// O que a 3.2 Editar recebe: o registro como está agora.
+function editingFrom(tx: Tx): EditingTransaction {
+	return {
+		id: tx.id,
+		flow: tx.kind,
+		amountCents: tx.amountCents,
+		title: tx.title,
+		categoryId: tx.category.id,
+		date: tx.date,
+		payment:
+			tx.paymentMethod === "CARD" && tx.cardId
+				? { kind: "card", cardId: tx.cardId }
+				: { kind: tx.paymentMethod === "CARD" ? "PIX" : tx.paymentMethod },
+		lockAmount: tx.splits.length > 0,
+		installment: tx.series?.kind === "INSTALLMENT",
+		scopeSheet: asksScope(tx) ? editScopeSheet(tx) : null,
+	};
+}
+
 // Tela 3.1 do Figma (página "Arvo · 3 Transação"): simples, dividida, tudo acertado, entrada,
-// parcela, data futura e apagada em outro aparelho; marcar e desmarcar pago; 3.3 apagar. Ainda não
-// existem: 3.2 editar (o botão fica desligado) e "não salvou" (depende da fila offline).
+// parcela, data futura e apagada em outro aparelho; marcar e desmarcar pago; 3.2 editar; 3.3
+// apagar. Ainda não existe "não salvou" (depende da fila offline).
 function TransacaoDetalhe() {
 	const { transactionId } = Route.useParams();
 	const navigate = useNavigate();
@@ -87,6 +116,7 @@ function TransacaoDetalhe() {
 
 type Sheet =
 	| { type: "delete" }
+	| { type: "edit" }
 	| { type: "mark"; split: Split }
 	| { type: "unmark"; split: Split };
 
@@ -184,8 +214,13 @@ function Ready({
 					<button
 						type="button"
 						className="btn-secondary flex-1"
-						disabled
-						title="Em breve"
+						disabled={tx.isReimbursement}
+						title={
+							tx.isReimbursement
+								? "A entrada de reembolso não se edita"
+								: undefined
+						}
+						onClick={() => setSheet({ type: "edit" })}
 					>
 						<PencilSimpleIcon size={18} aria-hidden />
 						Editar
@@ -201,7 +236,19 @@ function Ready({
 				</div>
 			</div>
 
-			{sheet?.type === "delete" ? (
+			{sheet?.type === "edit" ? (
+				<RegisterSheet
+					initialFlow={tx.kind}
+					editing={editingFrom(tx)}
+					onClose={close}
+					onRegistered={close}
+					onSaved={() => {
+						refreshMoney();
+						toast.success("Alterações salvas");
+						close();
+					}}
+				/>
+			) : sheet?.type === "delete" ? (
 				<DeleteSheet tx={tx} onClose={close} onDeleted={onDeleted} />
 			) : sheet?.type === "mark" ? (
 				<MarkPaidSheet tx={tx} split={sheet.split} onClose={close} />
