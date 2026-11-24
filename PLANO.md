@@ -83,7 +83,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 ## Retomada (próxima sessão)
 
 1. A Fase 1 está completa, salvo os testes dos grupos 10 e 11 do TESTES.md.
-2. Falta na Fase 3: seletor de mês (1.10), busca, gesto de recolher o saldo, fila offline do **+** e "Outro" em "Por quantos meses".
+2. Falta na Fase 3: gesto de recolher o saldo, fila offline do **+** e "Outro" em "Por quantos meses".
 3. Falta na Fase 4: Horizonte (4.2) com a lista "O que vem" e a linha de saldo mínimo, a lista ao tocar numa categoria e o aviso de sem internet.
 4. Fase 7 inteira (desktop e acabamento) e a conferência visual da Fase 0 no navegador.
 5. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 e D9 (Figma), propagar o Campo nas telas do Figma, desenhar `/redefinir-senha`.
@@ -114,10 +114,10 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Fase 3 · Início e Registrar
 
-- [~] 1.1 Início: saldo, entrou/saiu, "A receber", "No crédito, a pagar" e lista por dia feitos (`routes/_auth/inicio.tsx`, com carregando, não carregou e 1.2 vazia); falta conferir no navegador contra o Figma, o gesto de recolher e o seletor de mês
+- [~] 1.1 Início: saldo, entrou/saiu, "A receber", "No crédito, a pagar" e lista por dia feitos (`routes/_auth/inicio.tsx`, com carregando, não carregou e 1.2 vazia); falta conferir no navegador contra o Figma e o gesto de recolher
 - [~] Lista agrupada por dia (`groupByDay`, em `inicio.tsx`) feita; falta o gesto de recolher o saldo ao subir a lista
-- [ ] Seletor de mês (folha 1.10) e saldo "no fim de <mês>" em mês passado
-- [ ] Busca sem acento e sem maiúsculas, só no mês escolhido
+- [x] Seletor de mês (folha 1.10, `components/home/month-sheet.tsx`, `lib/home-month.ts`) e saldo "no fim de <mês>" em mês passado; `summary.home` devolve `firstMonth`; a 1.3 "mês sem movimento" feita
+- [x] Busca sem acento e sem maiúsculas, só no mês escolhido (título, categoria e meta), com a 1.8 "busca sem resultado"
 - [~] Estados: carregando e não carregou feitos; faltam sem internet e erro na linha da transação
 - [x] 2.1 Valor com teclado numérico (vírgula, centavos só depois dela): `components/register/register-sheet.tsx` e `lib/amount-input.ts` (grupo 9 do TESTES.md, 14 testes); teclado do computador também
 - [~] 2.2 Detalhes: categoria (com a folha "Mais"), título, forma de pagamento, repetir (sem fim, 2, 3, 6, 10, 12) e aviso de saldo mínimo feitos; faltam "Outro" em "Por quantos meses" e o parcelamento (D9, sem tela)
@@ -170,6 +170,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Folhas "Editar cartão" e "Editar categoria": reaproveitam "Novo cartão" e "Nova categoria" (DEV-119)
 - [ ] Gesto de deslizar a linha (editar à direita, apagar à esquerda) em cartões, categorias e pessoas (DEV-120)
 - [ ] Detalhe da meta concluída (o cartão não abre nada) e "Apagar meta" na edição, sem folha de confirmação (DEV-121)
+- [ ] Escolhas da Início com mês e busca que o Figma não mostra: sem "No crédito, a pagar" em mês passado, rótulo do mês futuro, busca com resultado, mês atual vazio sem botão (DEV-124)
 - [ ] Estados carregando e não carregou do A receber (3.4), e a ordem das pessoas e das contas (DEV-123)
 - [ ] Escolhas da 3.2 Editar que o Figma não mostra: valor travado em saída dividida, só crédito em parcela, Editar desligado em reembolso, padrão da folha de escopo ("Só esta" no Figma × "Esta e as próximas" no DESIGN.md) e sem aviso de saldo mínimo (DEV-122)
 
@@ -204,3 +205,4 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - 2026-11-24 — Fase 3: Editar (3.2) feito, com `transaction.update`; testado no banco local (só esta, esta e as próximas com data nova, valor travado em dividida, erros). Não conferido no navegador contra o Figma.
 - 2026-11-24 — Levantadas as telas feitas sem design próprio (seção própria acima, issues DEV-117 a DEV-122) para revisão com foco.
 - 2026-11-24 — Fase 3: A receber (3.4) feito (`/receber`, `split.pending`); testado no banco local (soma por pessoa, marcar pago tira da lista). Não conferido no navegador contra o Figma.
+- 2026-11-24 — Fase 3: seletor de mês (1.10), saldo "no fim de <mês>", mês sem movimento (1.3) e busca (1.8) feitos; testado no banco local (`firstMonth`, saldo de mês passado). Não conferido no navegador contra o Figma.

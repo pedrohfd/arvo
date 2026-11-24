@@ -5,21 +5,25 @@ import {
 	ArrowsClockwiseIcon,
 	ArrowUpRightIcon,
 	CaretDownIcon,
+	CaretLeftIcon,
 	CaretRightIcon,
 	CheckCircleIcon,
 	CreditCardIcon,
 	MagnifyingGlassIcon,
 	PlantIcon,
+	ReceiptIcon,
 	TargetIcon,
 	UsersThreeIcon,
 	WarningCircleIcon,
+	XIcon,
 } from "@phosphor-icons/react";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { CategoryIcon } from "@/components/category-icon";
+import { MonthSheet } from "@/components/home/month-sheet";
 import {
 	dayLabel,
 	formatMoney,
@@ -29,6 +33,7 @@ import {
 	monthName,
 	monthShort,
 } from "@/lib/format";
+import { balanceLabel, matchesSearch } from "@/lib/home-month";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/inicio")({
@@ -39,12 +44,21 @@ type Outputs = inferRouterOutputs<AppRouter>;
 type Tx = Outputs["transaction"]["list"][number];
 type GoalMovement = Outputs["goal"]["monthMovements"][number];
 
-// Tela 1.1 do Figma (página "Arvo · 1 Início"). Estados: 1.2 primeira vez, 1.4 carregando e
-// 1.5 não carregou. Ainda não existem: seletor de mês (folha 1.10, e com ele a 1.3 "mês sem
-// movimento"), busca, o gesto de recolher o saldo e o aviso de 1.6 sem internet.
+// Tela 1.1 do Figma (página "Arvo · 1 Início"). Estados: 1.2 primeira vez, 1.3 mês sem movimento,
+// 1.4 carregando, 1.5 não carregou, 1.8 busca sem resultado; folha 1.10 de escolher o mês. Ainda
+// não existem: o gesto de recolher o saldo (1.11), a folha de estados (1.9) e o aviso de 1.6 sem
+// internet.
 function Inicio() {
-	const home = useQuery(trpc.summary.home.queryOptions());
-	const month = home.data?.month;
+	// Sem escolha, vale o mês de hoje (do servidor); escolher outro refaz as três consultas.
+	const [selected, setSelected] = useState<string | null>(null);
+	const [sheetOpen, setSheetOpen] = useState(false);
+	const [searching, setSearching] = useState(false);
+	const [query, setQuery] = useState("");
+	const home = useQuery({
+		...trpc.summary.home.queryOptions({ month: selected ?? undefined }),
+		placeholderData: keepPreviousData,
+	});
+	const month = selected ?? home.data?.month;
 	const list = useQuery({
 		...trpc.transaction.list.queryOptions({ month: month ?? "" }),
 		enabled: Boolean(month),
@@ -58,11 +72,24 @@ function Inicio() {
 	// O mês aparece no seletor mesmo carregando: antes de a resposta chegar, vale o do aparelho.
 	const shownMonth =
 		month ?? new Date().toLocaleDateString("sv-SE").slice(0, 7);
+	const currentMonth = home.data?.today.slice(0, 7) ?? shownMonth;
+	// Trocando de mês, `home` ainda guarda o mês anterior até a resposta nova chegar.
+	const switching = home.isPlaceholderData;
+
+	const bar = (disabled?: boolean) => (
+		<TopBar
+			month={shownMonth}
+			searchDisabled={disabled}
+			monthDisabled={!home.data}
+			onMonth={() => setSheetOpen(true)}
+			onSearch={() => setSearching(true)}
+		/>
+	);
 
 	if (home.isError || list.isError || movements.isError) {
 		return (
 			<Page>
-				<TopBar month={shownMonth} searchDisabled />
+				{bar(true)}
 				<Problem
 					onRetry={() => {
 						home.refetch();
@@ -73,31 +100,94 @@ function Inicio() {
 			</Page>
 		);
 	}
-	if (!home.data || !list.data || !movements.data) {
+	if (!home.data || switching || !list.data || !movements.data) {
 		return (
 			<Page>
-				<TopBar month={shownMonth} searchDisabled />
+				{bar(true)}
 				<Loading />
 			</Page>
 		);
 	}
 
-	const { today, balance, totals, credit, receivable } = home.data;
+	const { today, balance, totals, credit, receivable, firstMonth } = home.data;
 	const transactions = list.data;
 	const days = groupByDay(transactions, movements.data);
 	const isEmpty = days.length === 0;
 	const short = monthShort(home.data.month);
+	const isPast = home.data.month < currentMonth;
+
+	const monthSheet = sheetOpen ? (
+		<MonthSheet
+			selected={home.data.month}
+			current={currentMonth}
+			first={firstMonth}
+			onSelect={(picked) => {
+				setSelected(picked === currentMonth ? null : picked);
+				setSheetOpen(false);
+			}}
+			onClose={() => setSheetOpen(false)}
+		/>
+	) : null;
+
+	// 1.8: busca. Só no mês escolhido, sem acento e sem maiúsculas; o saldo e os cartões saem de
+	// cena para a lista ocupar a tela.
+	if (searching) {
+		const results = groupByDay(
+			transactions.filter((tx) =>
+				matchesSearch(query, tx.title, tx.category.name),
+			),
+			movements.data.filter((movement) =>
+				matchesSearch(query, movement.goalName),
+			),
+		);
+		return (
+			<Page>
+				<SearchBar
+					query={query}
+					onQuery={setQuery}
+					onClose={() => {
+						setSearching(false);
+						setQuery("");
+					}}
+				/>
+				<div className="flex px-5 pt-3 pb-4">
+					<button
+						type="button"
+						className="month-btn"
+						onClick={() => setSheetOpen(true)}
+					>
+						{monthName(home.data.month)}
+						<CaretDownIcon size={14} className="icon" aria-hidden />
+					</button>
+				</div>
+				<section className="sheet" aria-label="Resultados da busca">
+					{results.length === 0 ? (
+						<NoResults
+							query={query.trim()}
+							month={home.data.month}
+							onClear={() => setQuery("")}
+						/>
+					) : (
+						results.map((day) => <Day key={day.date} day={day} today={today} />)
+					)}
+				</section>
+				{monthSheet}
+			</Page>
+		);
+	}
 
 	return (
 		<Page>
-			<TopBar month={home.data.month} searchDisabled={isEmpty} />
+			{bar(isEmpty)}
 
 			<div className="balance-wrap">
 				<div className="balance">
-					<span className="balance__label">Saldo atual</span>
+					<span className="balance__label">
+						{balanceLabel(home.data.month, currentMonth)}
+					</span>
 					<Balance cents={balance.balanceCents} />
 				</div>
-				{credit.totalCents > 0 && credit.nextDueDate ? (
+				{!isPast && credit.totalCents > 0 && credit.nextDueDate ? (
 					<p className="text-(length:--text-size-small) mt-2 flex items-center gap-1 text-[var(--color-text-muted)]">
 						<CreditCardIcon size={14} aria-hidden />
 						<span>
@@ -161,34 +251,20 @@ function Inicio() {
 					)}
 				</div>
 				{isEmpty ? (
-					<FirstTime />
+					firstMonth === null ? (
+						<FirstTime />
+					) : (
+						<EmptyMonth
+							month={home.data.month}
+							currentMonth={currentMonth}
+							onBack={() => setSelected(null)}
+						/>
+					)
 				) : (
-					days.map((day) => (
-						<div key={day.date}>
-							<div className="day-header">
-								<span className="day-header__label">
-									{dayLabel(day.date, today)}
-								</span>
-								<span className="day-header__total">
-									{formatSigned(day.netCents)}
-								</span>
-							</div>
-							<div className="tx-list">
-								{day.items.map((item) =>
-									item.type === "tx" ? (
-										<TxRow key={item.tx.id} tx={item.tx} />
-									) : (
-										<GoalMovementRow
-											key={item.movement.id}
-											movement={item.movement}
-										/>
-									),
-								)}
-							</div>
-						</div>
-					))
+					days.map((day) => <Day key={day.date} day={day} today={today} />)
 				)}
 			</section>
+			{monthSheet}
 		</Page>
 	);
 }
@@ -203,17 +279,29 @@ function Page({ children }: { children: ReactNode }) {
 	);
 }
 
-// Mês e busca. O seletor (folha 1.10) e a busca ainda não existem.
+// Mês (abre a folha 1.10) e busca.
 function TopBar({
 	month,
 	searchDisabled,
+	monthDisabled,
+	onMonth,
+	onSearch,
 }: {
 	month: string;
 	searchDisabled?: boolean;
+	monthDisabled?: boolean;
+	onMonth: () => void;
+	onSearch: () => void;
 }) {
 	return (
 		<div className="flex h-12 items-center justify-between pt-1 pr-3 pl-5">
-			<button type="button" className="month-btn">
+			<button
+				type="button"
+				className="month-btn"
+				aria-haspopup="dialog"
+				disabled={monthDisabled}
+				onClick={onMonth}
+			>
 				{monthName(month)}
 				<CaretDownIcon size={14} className="icon" aria-hidden />
 			</button>
@@ -222,8 +310,157 @@ function TopBar({
 				className="icon-btn"
 				aria-label="Buscar"
 				disabled={searchDisabled}
+				onClick={onSearch}
 			>
 				<MagnifyingGlassIcon size={22} aria-hidden />
+			</button>
+		</div>
+	);
+}
+
+// Campo de busca no lugar da barra do topo; Esc ou a seta voltam.
+function SearchBar({
+	query,
+	onQuery,
+	onClose,
+}: {
+	query: string;
+	onQuery: (query: string) => void;
+	onClose: () => void;
+}) {
+	const input = useRef<HTMLInputElement>(null);
+	useEffect(() => {
+		input.current?.focus();
+	}, []);
+	return (
+		<div className="search-bar h-12">
+			<button
+				type="button"
+				className="icon-btn"
+				aria-label="Fechar a busca"
+				onClick={onClose}
+			>
+				<CaretLeftIcon size={22} aria-hidden />
+			</button>
+			<label className="search-field">
+				<MagnifyingGlassIcon size={20} className="icon" aria-hidden />
+				<input
+					ref={input}
+					type="search"
+					value={query}
+					placeholder="Buscar neste mês"
+					aria-label="Buscar neste mês"
+					onChange={(event) => onQuery(event.target.value)}
+					onKeyDown={(event) => {
+						if (event.key === "Escape") onClose();
+					}}
+				/>
+				{query ? (
+					<button
+						type="button"
+						className="icon-btn"
+						aria-label="Limpar a busca"
+						onClick={() => {
+							onQuery("");
+							input.current?.focus();
+						}}
+					>
+						<XIcon size={18} aria-hidden />
+					</button>
+				) : null}
+			</label>
+		</div>
+	);
+}
+
+// Um dia da lista: cabeçalho com o total do dia e as linhas.
+function Day({
+	day,
+	today,
+}: {
+	day: ReturnType<typeof groupByDay>[number];
+	today: string;
+}) {
+	return (
+		<div>
+			<div className="day-header">
+				<span className="day-header__label">{dayLabel(day.date, today)}</span>
+				<span className="day-header__total">{formatSigned(day.netCents)}</span>
+			</div>
+			<div className="tx-list">
+				{day.items.map((item) =>
+					item.type === "tx" ? (
+						<TxRow key={item.tx.id} tx={item.tx} />
+					) : (
+						<GoalMovementRow key={item.movement.id} movement={item.movement} />
+					),
+				)}
+			</div>
+		</div>
+	);
+}
+
+// 1.3: mês sem nenhuma entrada ou saída. Em outro mês oferece voltar para o atual; no atual, a
+// ação é o +.
+function EmptyMonth({
+	month,
+	currentMonth,
+	onBack,
+}: {
+	month: string;
+	currentMonth: string;
+	onBack: () => void;
+}) {
+	const name = monthName(month).toLowerCase();
+	return (
+		<div className="empty">
+			<span className="empty__icon">
+				<ReceiptIcon size={28} aria-hidden />
+			</span>
+			<h3 className="empty__title">Nada em {name}</h3>
+			<p className="empty__text max-w-[340px] [text-wrap:wrap]">
+				Nenhuma entrada ou saída neste mês. Esqueceu de registrar algo? Toque no
+				+ e escolha a data.
+			</p>
+			{month !== currentMonth ? (
+				<button
+					type="button"
+					className="btn-secondary empty__action"
+					onClick={onBack}
+				>
+					Voltar para {monthName(currentMonth).toLowerCase()}
+				</button>
+			) : null}
+		</div>
+	);
+}
+
+// 1.8: busca sem resultado.
+function NoResults({
+	query,
+	month,
+	onClear,
+}: {
+	query: string;
+	month: string;
+	onClear: () => void;
+}) {
+	return (
+		<div className="empty">
+			<span className="empty__icon">
+				<MagnifyingGlassIcon size={28} aria-hidden />
+			</span>
+			<h3 className="empty__title">Nada com “{query}”</h3>
+			<p className="empty__text max-w-[340px] [text-wrap:wrap]">
+				Nenhuma transação de {monthName(month).toLowerCase()} tem esse nome.
+				Tente outra palavra ou outro mês.
+			</p>
+			<button
+				type="button"
+				className="btn-secondary empty__action"
+				onClick={onClear}
+			>
+				Limpar busca
 			</button>
 		</div>
 	);

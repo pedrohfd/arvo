@@ -1,7 +1,11 @@
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
-import { referenceForMonth, todayInSaoPaulo } from "../lib/calendar";
+import {
+	fromDbDate,
+	referenceForMonth,
+	todayInSaoPaulo,
+} from "../lib/calendar";
 import { rule } from "../lib/errors";
 import { loadFinanceData } from "../lib/finance-data";
 import { renewOpenSeries } from "../lib/renew-series";
@@ -37,9 +41,17 @@ export const summaryRouter = router({
 				where: { paidAt: null, transaction: { userId } },
 				select: { personId: true, amountCents: true, paidAt: true },
 			});
+			// O seletor de mês (1.10) começa no mês da primeira transação.
+			const first = await ctx.db.transaction.aggregate({
+				where: { userId },
+				_min: { date: true },
+			});
 			return {
 				today,
 				month: selected,
+				firstMonth: first._min.date
+					? monthKey(fromDbDate(first._min.date))
+					: null,
 				balance: computeBalance({ transactions, goalMovements }, reference),
 				totals: rule(() => monthTotals(transactions, goalMovements, selected)),
 				credit: creditToPaySummary(transactions, reference),
