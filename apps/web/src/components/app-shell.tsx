@@ -51,11 +51,11 @@ export function AppShell({
 	);
 }
 
-// Telas de detalhe (ex.: uma meta) trazem a própria barra de ações no lugar da barra inferior.
+// Telas de detalhe (uma meta, uma transação) trazem a própria barra de ações no lugar da barra inferior.
 function BottomBar() {
 	const { open } = useRegister();
 	const pathname = useLocation({ select: (location) => location.pathname });
-	if (/^\/metas\/[^/]+/.test(pathname)) return null;
+	if (/^\/(metas|transacao)\/[^/]+/.test(pathname)) return null;
 	const [first, second, third, fourth] = tabs;
 	return (
 		<nav
