@@ -105,3 +105,21 @@ export function invoiceTotals(
 		.sort(([a], [b]) => compareDates(a, b))
 		.map(([dueDate, totalCents]) => ({ dueDate, totalCents }));
 }
+
+// Fatura aberta de um cartão: a que vence primeiro entre as compras já feitas e ainda não
+// vencidas (a mesma conta do "No crédito, a pagar"). Nula quando não há nenhuma.
+export function openInvoice(
+	purchases: readonly {
+		amountCents: number;
+		date: CalendarDate;
+		dueDate: CalendarDate;
+	}[],
+	today: CalendarDate,
+) {
+	const open = purchases.filter(
+		(purchase) =>
+			compareDates(purchase.date, today) <= 0 &&
+			compareDates(purchase.dueDate, today) > 0,
+	);
+	return invoiceTotals(open)[0] ?? null;
+}

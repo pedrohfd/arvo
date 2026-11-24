@@ -6,6 +6,7 @@ import {
 	installmentDueDates,
 	invoiceDueDate,
 	invoiceTotals,
+	openInvoice,
 } from "./invoice";
 
 // Cartão de exemplo do DESIGN.md: fecha dia 20, vence dia 27.
@@ -126,5 +127,33 @@ describe("fatura do cartão de crédito", () => {
 		expect(() =>
 			installmentDueDates("2026-11-18", 2, { type: "DEBIT" }),
 		).toThrow();
+	});
+});
+
+describe("fatura aberta", () => {
+	const purchases = [
+		{ amountCents: 100_00, date: "2026-11-05", dueDate: "2026-11-27" },
+		{ amountCents: 50_00, date: "2026-11-21", dueDate: "2026-12-27" },
+		{ amountCents: 30_00, date: "2026-10-10", dueDate: "2026-10-27" },
+		{ amountCents: 70_00, date: "2026-11-30", dueDate: "2026-12-27" },
+	];
+
+	test("é a que vence primeiro, só com compras já feitas e ainda não vencidas", () => {
+		expect(openInvoice(purchases, "2026-11-24")).toEqual({
+			dueDate: "2026-11-27",
+			totalCents: 100_00,
+		});
+	});
+
+	test("depois do vencimento passa para a próxima, sem as compras de data futura", () => {
+		expect(openInvoice(purchases, "2026-11-28")).toEqual({
+			dueDate: "2026-12-27",
+			totalCents: 50_00,
+		});
+	});
+
+	test("é nula quando nada está em aberto", () => {
+		expect(openInvoice(purchases, "2026-12-27")).toBeNull();
+		expect(openInvoice([], "2026-11-24")).toBeNull();
 	});
 });
