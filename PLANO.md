@@ -151,13 +151,13 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Fase 6 · Perfil
 
-- [ ] 6.1 Perfil
+- [x] 6.1 Perfil (todas as linhas abrem a sua tela; "Exportar dados" saiu, v2)
 - [ ] 6.2 Cartões (crédito: fechamento, vencimento, fatura atual, melhor dia de compra)
 - [ ] 6.3 Categorias (criar, renomear, ícone, apagar com destino das transações)
 - [x] 6.4 Pessoas (`routes/_auth/perfil/pessoas.tsx`: lista com quanto cada uma deve, nova, renomear e apagar)
 - ~~6.5 Lembretes~~ (v2, ver P4)
-- [ ] 6.6 Aparência
-- [ ] 6.7 Conta: editar perfil, sair, apagar conta (exportar CSV fica para a v2, ver P4)
+- [x] 6.6 Aparência (`routes/_auth/perfil/aparencia.tsx`: automática, clara ou escura, por aparelho)
+- [x] 6.7 Conta: editar o nome (`perfil/conta.tsx`; trocar e-mail depende do P5), sair (folha de confirmação) e apagar conta (`deleteUser` do Better-Auth, pede a senha; a cascata é do banco). Exportar CSV fica para a v2 (P4)
 - [x] 6.8 Saldo mínimo (`routes/_auth/perfil/saldo-minimo.tsx`; vazio desliga o aviso)
 
 ## Fase 7 · Desktop e acabamento
@@ -182,3 +182,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-23 — Fase 1: schema de finanças e migração. Decisões: parcelamento (crédito) e repetir (com periodicidade) são conceitos separados; apagar cartão mantém o histórico. O banco local foi migrado com um teste de 22 casos (restrições, cascatas, apagar conta).
 - 2026-11-23 — Fase 1: regras de dinheiro puras (saldo, divisão, fatura, saldo mínimo, recorrência e parcelamento, reembolso, metas, Resumo e Horizonte) com 130 testes, verificados por mutação. Falta ligar nos routers tRPC.
 - 2026-11-24 — Fase 6: Pessoas (6.4) e Saldo mínimo (6.8) feitas; `person.list` devolve `splitCount`.
+- 2026-11-24 — Fase 6 concluída: Aparência (6.6) e Conta (6.7: editar nome, sair, apagar conta com senha).

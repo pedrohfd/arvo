@@ -2,7 +2,6 @@ import {
 	CaretRightIcon,
 	CoinsIcon,
 	CreditCardIcon,
-	DownloadSimpleIcon,
 	MoonIcon,
 	SignOutIcon,
 	TagIcon,
@@ -11,19 +10,22 @@ import {
 } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
+import { SignOutSheet } from "@/components/account/account-sheets";
+import { useTheme } from "@/components/theme-provider";
 import { formatMoney } from "@/lib/format";
+import { themeLabel } from "@/lib/theme";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/perfil/")({
 	component: Perfil,
 });
 
-// Tela 6.1 do Figma (página "Arvo · 6 Perfil"). As linhas ainda não abrem nada: cada destino é
-// uma folha própria (6.2 cartões, 6.3 categorias, 6.4 pessoas, 6.6 aparência, 6.7 conta, 6.8 saldo
-// mínimo) e entra com a sua tela. Ficam de fora o "Lembretes" (v2) e o aviso de sem internet, que
-// depende da fila offline.
+// Tela 6.1 do Figma (página "Arvo · 6 Perfil"): cada linha abre a sua tela (6.2 cartões, 6.3
+// categorias, 6.4 pessoas, 6.6 aparência, 6.7 conta, 6.8 saldo mínimo); "Sair" abre a folha de
+// confirmação. Ficam de fora "Lembretes" e "Exportar dados" (v2, P4) e o aviso de sem internet,
+// que depende da fila offline.
 function Perfil() {
 	const { session } = Route.useRouteContext();
 	const user = session.data?.user;
@@ -35,6 +37,8 @@ function Perfil() {
 	const settings = useQuery(trpc.settings.get.queryOptions());
 
 	const minimum = settings.data?.minimumBalanceCents;
+	const { theme } = useTheme();
+	const [signingOut, setSigningOut] = useState(false);
 
 	return (
 		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
@@ -88,7 +92,8 @@ function Perfil() {
 					<Row
 						icon={<MoonIcon size={24} aria-hidden />}
 						title="Aparência"
-						value="Automática"
+						to="/perfil/aparencia"
+						value={themeLabel(theme)}
 					/>
 				</Group>
 
@@ -96,18 +101,20 @@ function Perfil() {
 					<Row
 						icon={<UserCircleIcon size={24} aria-hidden />}
 						title="Editar perfil"
-					/>
-					<Row
-						icon={<DownloadSimpleIcon size={24} aria-hidden />}
-						title="Exportar dados"
+						to="/perfil/conta"
 					/>
 					<Row
 						icon={<SignOutIcon size={24} aria-hidden />}
 						title="Sair"
 						danger
+						onClick={() => setSigningOut(true)}
 					/>
 				</Group>
 			</div>
+
+			{signingOut ? (
+				<SignOutSheet onClose={() => setSigningOut(false)} />
+			) : null}
 		</div>
 	);
 }
@@ -127,6 +134,7 @@ function Row({
 	value,
 	to,
 	danger = false,
+	onClick,
 }: {
 	icon: ReactNode;
 	title: string;
@@ -137,9 +145,13 @@ function Row({
 		| "/perfil/cartoes"
 		| "/perfil/categorias"
 		| "/perfil/pessoas"
-		| "/perfil/saldo-minimo";
+		| "/perfil/saldo-minimo"
+		| "/perfil/aparencia"
+		| "/perfil/conta";
 	/** "Sair": sem seta, em vermelho. */
 	danger?: boolean;
+	/** Linha que abre uma folha em vez de uma tela. */
+	onClick?: () => void;
 }) {
 	const className = danger ? "setting-row setting-row--danger" : "setting-row";
 	const content = (
@@ -166,7 +178,7 @@ function Row({
 		);
 	}
 	return (
-		<button type="button" className={className}>
+		<button type="button" className={className} onClick={onClick}>
 			{content}
 		</button>
 	);
