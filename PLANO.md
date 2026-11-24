@@ -154,11 +154,11 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [ ] 6.1 Perfil
 - [ ] 6.2 Cartões (crédito: fechamento, vencimento, fatura atual, melhor dia de compra)
 - [ ] 6.3 Categorias (criar, renomear, ícone, apagar com destino das transações)
-- [ ] 6.4 Pessoas
+- [x] 6.4 Pessoas (`routes/_auth/perfil/pessoas.tsx`: lista com quanto cada uma deve, nova, renomear e apagar)
 - ~~6.5 Lembretes~~ (v2, ver P4)
 - [ ] 6.6 Aparência
 - [ ] 6.7 Conta: editar perfil, sair, apagar conta (exportar CSV fica para a v2, ver P4)
-- [ ] 6.8 Saldo mínimo
+- [x] 6.8 Saldo mínimo (`routes/_auth/perfil/saldo-minimo.tsx`; vazio desliga o aviso)
 
 ## Fase 7 · Desktop e acabamento
 
@@ -181,3 +181,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-23 — Fase 2: onboarding (7.2) feito. Descoberto que as fontes Inter e Fraunces não eram empacotadas (dev e build): corrigido em PR separado.
 - 2026-11-23 — Fase 1: schema de finanças e migração. Decisões: parcelamento (crédito) e repetir (com periodicidade) são conceitos separados; apagar cartão mantém o histórico. O banco local foi migrado com um teste de 22 casos (restrições, cascatas, apagar conta).
 - 2026-11-23 — Fase 1: regras de dinheiro puras (saldo, divisão, fatura, saldo mínimo, recorrência e parcelamento, reembolso, metas, Resumo e Horizonte) com 130 testes, verificados por mutação. Falta ligar nos routers tRPC.
+- 2026-11-24 — Fase 6: Pessoas (6.4) e Saldo mínimo (6.8) feitas; `person.list` devolve `splitCount`.

@@ -25,7 +25,7 @@ export const personRouter = router({
 	// Com quanto cada uma ainda deve (partes não pagas).
 	list: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const [people, pending] = await Promise.all([
+		const [people, pending, all] = await Promise.all([
 			ctx.db.person.findMany({
 				where: { userId },
 				orderBy: { name: "asc" },
@@ -36,13 +36,21 @@ export const personRouter = router({
 				where: { paidAt: null, person: { userId } },
 				_sum: { amountCents: true },
 			}),
+			ctx.db.transactionSplit.groupBy({
+				by: ["personId"],
+				where: { person: { userId } },
+				_count: { _all: true },
+			}),
 		]);
 		const owed = new Map(
 			pending.map((row) => [row.personId, row._sum.amountCents ?? 0]),
 		);
+		const splits = new Map(all.map((row) => [row.personId, row._count._all]));
 		return people.map((person) => ({
 			...person,
 			owedCents: owed.get(person.id) ?? 0,
+			// Quem aparece em alguma divisão não se apaga.
+			splitCount: splits.get(person.id) ?? 0,
 		}));
 	}),
 

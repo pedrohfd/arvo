@@ -67,11 +67,13 @@ function Perfil() {
 					<Row
 						icon={<UsersThreeIcon size={24} aria-hidden />}
 						title="Pessoas"
+						to="/perfil/pessoas"
 						value={people.data ? String(people.data.length) : undefined}
 					/>
 					<Row
 						icon={<CoinsIcon size={24} aria-hidden />}
 						title="Saldo mínimo"
+						to="/perfil/saldo-minimo"
 						value={
 							minimum === undefined
 								? undefined
@@ -131,7 +133,11 @@ function Row({
 	/** Valor à direita; some enquanto carrega. */
 	value?: string;
 	/** Tela que a linha abre; sem ela a linha ainda não faz nada. */
-	to?: "/perfil/cartoes" | "/perfil/categorias";
+	to?:
+		| "/perfil/cartoes"
+		| "/perfil/categorias"
+		| "/perfil/pessoas"
+		| "/perfil/saldo-minimo";
 	/** "Sair": sem seta, em vermelho. */
 	danger?: boolean;
 }) {
