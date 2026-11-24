@@ -8,7 +8,6 @@ import {
 	CaretLeftIcon,
 	DotsThreeIcon,
 	PlusIcon,
-	UserPlusIcon,
 	WarningCircleIcon,
 	XIcon,
 } from "@phosphor-icons/react";
@@ -25,7 +24,6 @@ import {
 	pressKey,
 	toCents,
 } from "@/lib/amount-input";
-import { authClient } from "@/lib/auth-client";
 import { formatMoney, moneyParts } from "@/lib/format";
 import {
 	creditHint,
@@ -40,11 +38,11 @@ import {
 	samePayment,
 	visibleCategories,
 } from "@/lib/register";
-import { initials, splitHint } from "@/lib/split-with";
+import { splitHint } from "@/lib/split-with";
 import { trpc } from "@/utils/trpc";
 import { DateSheet } from "./date-sheet";
 import { Chip, Grabber, useEscape } from "./parts";
-import { SplitSheet } from "./split-sheet";
+import { PersonChip, SplitSheet, YouChip } from "./split-sheet";
 
 export type Registered = {
 	/** Transações criadas (várias quando repete ou parcela). */
@@ -292,7 +290,6 @@ function DetailsStep({
 		...trpc.person.list.queryOptions(),
 		enabled: flow === "EXPENSE",
 	});
-	const session = authClient.useSession();
 
 	const [categoryId, setCategoryId] = useState<string | null>(null);
 	const [categoryError, setCategoryError] = useState(false);
@@ -579,7 +576,7 @@ function DetailsStep({
 									Dividir a conta
 								</span>
 								<span className="switch-row__desc">
-									Partes iguais, contando você
+									Em partes iguais, contando você
 								</span>
 							</div>
 							<button
@@ -602,40 +599,26 @@ function DetailsStep({
 						{splitting ? (
 							<div className="flex flex-col gap-3 pt-1">
 								<div className="flex flex-wrap gap-2">
-									<span className="person-chip person-chip--you">
-										<span className="person-chip__avatar" aria-hidden>
-											{initials(session.data?.user.name ?? "") || "V"}
-										</span>
-										<span className="person-chip__name">Você</span>
-									</span>
+									<YouChip />
 									{splitPeople.map((person) => (
-										<span key={person.id} className="person-chip">
-											<span className="person-chip__avatar" aria-hidden>
-												{initials(person.name)}
-											</span>
-											<span className="person-chip__name">{person.name}</span>
-											<button
-												type="button"
-												className="icon-btn"
-												aria-label={`Tirar ${person.name} da divisão`}
-												onClick={() =>
-													setSplitIds((ids) =>
-														ids.filter((id) => id !== person.id),
-													)
-												}
-											>
-												<XIcon size={16} aria-hidden />
-											</button>
-										</span>
+										<PersonChip
+											key={person.id}
+											name={person.name}
+											onRemove={() =>
+												setSplitIds((ids) =>
+													ids.filter((id) => id !== person.id),
+												)
+											}
+										/>
 									))}
 									<button
 										type="button"
-										className="choice choice--icon"
+										className="choice choice--icon bg-[var(--color-surface)] shadow-[inset_0_0_0_1px_var(--color-border)]"
 										aria-haspopup="dialog"
 										onClick={() => setSplitOpen(true)}
 									>
-										<UserPlusIcon size={18} className="icon" aria-hidden />
-										Pessoa
+										<PlusIcon size={18} className="icon" aria-hidden />
+										Adicionar
 									</button>
 								</div>
 								<p className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-5">

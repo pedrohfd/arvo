@@ -3,19 +3,19 @@ import { describe, expect, test } from "bun:test";
 import { findPersonByName, initials, splitHint } from "./split-with";
 
 describe("dica da divisão", () => {
-	test("só você convida a escolher alguém", () => {
-		expect(splitHint(8550, 0)).toBe(
-			"Só você por enquanto. Escolha com quem dividiu.",
-		);
+	test("só você convida a adicionar alguém", () => {
+		expect(splitHint(8550, 0)).toBe("Adicione quem dividiu com você.");
 	});
 
-	test("partes iguais quando a conta fecha", () => {
-		expect(splitHint(10000, 1)).toBe("R$ 50,00 para cada, contando você.");
+	test("partes exatas dizem quanto volta para você", () => {
+		expect(splitHint(8550, 2)).toBe(
+			"R$ 28,50 para cada. Você recebe R$ 57,00 de volta.",
+		);
 	});
 
 	test("a sobra de centavos fica com você", () => {
 		expect(splitHint(8550, 3)).toBe(
-			"R$ 21,37 para cada · você fica com R$ 21,39.",
+			"R$ 21,37 para cada. Você fica com R$ 21,39 (os centavos que sobram).",
 		);
 	});
 });

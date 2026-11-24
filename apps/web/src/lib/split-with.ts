@@ -5,10 +5,13 @@ import { formatMoney } from "./format";
 // "Dividir a conta" no Registrar (2.2 e folha 2.3): partes iguais contando você; os centavos que
 // sobram ficam com você. O servidor refaz a conta (`transaction.create`).
 
-/** "R$ 21,37 para cada · você fica com R$ 21,39"; com só você, o convite para escolher alguém. */
+/**
+ * Texto sob "Na divisão" (Figma 2.2 dividida e 2.3). Partes exatas: "R$ 28,50 para cada. Você recebe
+ * R$ 57,00 de volta." Com sobra de centavos: "R$ 21,37 para cada. Você fica com R$ 21,39 (os
+ * centavos que sobram)." Só você: o convite para adicionar alguém.
+ */
 export function splitHint(amountCents: number, peopleCount: number) {
-	if (peopleCount === 0)
-		return "Só você por enquanto. Escolha com quem dividiu.";
+	if (peopleCount === 0) return "Adicione quem dividiu com você.";
 	if (amountCents <= 0) return null;
 	const { othersCents, yourShareCents } = splitBill(
 		amountCents,
@@ -16,9 +19,10 @@ export function splitHint(amountCents: number, peopleCount: number) {
 	);
 	const each = othersCents[0] ?? 0;
 	if (each === yourShareCents) {
-		return `${formatMoney(each)} para cada, contando você.`;
+		const back = each * peopleCount;
+		return `${formatMoney(each)} para cada. Você recebe ${formatMoney(back)} de volta.`;
 	}
-	return `${formatMoney(each)} para cada · você fica com ${formatMoney(yourShareCents)}.`;
+	return `${formatMoney(each)} para cada. Você fica com ${formatMoney(yourShareCents)} (os centavos que sobram).`;
 }
 
 /** Iniciais do avatar: "Ana" → "A", "Ana Souza" → "AS". */
