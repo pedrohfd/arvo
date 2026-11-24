@@ -82,22 +82,23 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Retomada (próxima sessão)
 
-1. Fase 2 (Começar): conferir a casca no navegador agora que `/login`, `/cadastro` e `/recuperar-senha` existem.
-3. Fase 1 (modelo de dados e API) pode ir em paralelo; as regras de dinheiro seguem TESTES.md.
-4. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 (apagar a prévia no Figma), propagar o Campo nas telas do Figma.
-5. Nada foi enviado ao remoto: `git push` da `dev` e PR para a `master` quando quiser (o CI roda no PR).
+1. Falta na Fase 1: `transaction.update` (3.2, Editar).
+2. Falta na Fase 3: 3.2 Editar, 3.4 A receber por pessoa, seletor de mês (1.10), busca, gesto de recolher o saldo, fila offline do **+** e "Outro" em "Por quantos meses".
+3. Falta na Fase 4: Horizonte (4.2) com a lista "O que vem" e a linha de saldo mínimo, a lista ao tocar numa categoria e o aviso de sem internet.
+4. Fase 7 inteira (desktop e acabamento) e a conferência visual da Fase 0 no navegador.
+5. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 e D9 (Figma), propagar o Campo nas telas do Figma, desenhar `/redefinir-senha`.
 
 ## Fase 1 · Modelo de dados e API
 
 - [x] Schema Prisma (`packages/db/prisma/schema/finance.prisma` + migração `finance_model`): `Category`, `Card`, `Person`, `Series`, `Transaction`, `TransactionSplit`, `Goal`, `GoalMovement`, `UserSettings`; tudo ligado ao usuário com `onDelete: Cascade` (P6). Categoria e pessoa em uso não se apagam (`NoAction`, conferido só no fim da transação para a cascata da conta passar); apagar cartão mantém as compras. Restrições `CHECK` no SQL da migração. As relações com `User` são injetadas em `auth.prisma` por `scripts/patch-auth-schema.ts` (roda dentro do `auth:generate`)
 - [x] Dinheiro em centavos inteiros (`amountCents`, até 999.999.999 por `CHECK`)
-- [~] Recorrência e parcelamento (`Series`) — regra pura pronta em `recurrence.ts`; falta gravar no banco e a renovação ao abrir o app: gerar as ocorrências ao criar, com limite à frente para "sem fim" e renovação depois; "repetir" com periodicidade (`intervalMonths`: 1, 3, 12...) e parcelamento no crédito (N parcelas do valor digitado)
-- [~] Regra do saldo: entrou − saiu − guardado + crédito a pagar (nunca armazenado). Regra e testes prontos (`packages/api/src/rules/balance.ts`); falta ligar nos routers
-- [~] Regra da divisão: partes iguais contando você; os centavos que sobram ficam com você (`split.ts`, pronta; falta ligar)
-- [~] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento (`invoice.ts`, pronta; falta ligar)
-- [~] Data futura entra no saldo só quando a data chega (em `balance.ts`, pronta; falta ligar)
-- [~] Marcar pago cria entrada de reembolso (desligável); apagar a saída apaga os reembolsos gerados (`settlement.ts`, pronta; no banco, a cascata de `reimbursedSplitId` já apaga; falta ligar)
-- [~] Routers tRPC prontos: `category`, `transaction` (listar, criar, apagar), `summary` (Início, Resumo do mês, Horizonte), `card` (listar, criar, editar, apagar), `goal` (criar, editar, guardar, resgatar, concluir, apagar), `person`, `split` (A receber, marcar/desmarcar pago com reembolso) e `settings` (saldo mínimo); `transaction.get` e `transaction.restore` (desfazer o apagar) feitos; falta editar transação
+- [x] Recorrência e parcelamento (`Series`) — regra pura pronta em `recurrence.ts`; as ocorrências são geradas ao criar (`lib/plan-transaction.ts`, usado por `transaction.create`, com `repeat` e `installments`); as séries "sem fim" são renovadas ao abrir o Início (`lib/renew-series.ts`, chamado por `summary.home`; 24 meses à frente, P2; o contador `Series.generatedCount` impede de recriar o que foi apagado, e apagar "esta e as próximas" encerra a série, com o "Desfazer" reabrindo); "repetir" com periodicidade (`intervalMonths`: 1, 3, 12...) e parcelamento no crédito (N parcelas do valor digitado)
+- [x] Regra do saldo: entrou − saiu − guardado + crédito a pagar (nunca armazenado). `rules/balance.ts` ligada em `summary` e `goal`
+- [x] Regra da divisão: partes iguais contando você; os centavos que sobram ficam com você (`rules/split.ts`, ligada em `transaction.create`)
+- [x] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento (`rules/invoice.ts`, ligada em `card` e `summary`)
+- [x] Data futura entra no saldo só quando a data chega (`balance.ts` com a data de referência de `lib/calendar.ts`)
+- [x] Marcar pago cria entrada de reembolso (desligável); apagar a saída apaga os reembolsos gerados (`settlement.ts`, ligada em `split`; no banco, a cascata de `reimbursedSplitId` apaga)
+- [~] Routers tRPC prontos (`goal` também tem `monthMovements`): `category`, `transaction` (listar, criar, apagar), `summary` (Início, Resumo do mês, Horizonte), `card` (listar, criar, editar, apagar), `goal` (criar, editar, guardar, resgatar, concluir, apagar), `person`, `split` (A receber, marcar/desmarcar pago com reembolso) e `settings` (saldo mínimo); `transaction.get` e `transaction.restore` (desfazer o apagar) feitos; falta editar transação
 - [x] Categorias padrão criadas no cadastro (`packages/db/src/default-categories.ts`, hook `databaseHooks.user.create.after` no Better-Auth)
 - [~] Testes das regras de dinheiro, conforme [TESTES.md](TESTES.md): grupos 1 a 8 escritos (130 testes, verificados por mutação); faltam os grupos 9 a 11, do app web (teclado de valor, busca, fila offline)
 
@@ -109,15 +110,15 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [x] 7.3 Entrar (erro, entrando, sem internet, sessão expirada): conferida contra o Figma (página "7 · Começar"). Sessão expirada = `/login?sessao=expirada`, disparado quando o tRPC responde `UNAUTHORIZED` (`utils/trpc.ts`). O link "Esqueci a senha" leva à 7.5
 - [x] 7.4 Criar conta (senha curta, e-mail existente, criando): rota `/cadastro` (`apps/web/src/routes/cadastro.tsx`), com nome, e-mail e senha de 8+ caracteres; o campo compartilhado com o login está em `components/auth-field.tsx`. Conferida contra o Figma
 - [x] 7.5 Recuperar senha (normal, não encontrado, enviado): rota `/recuperar-senha`, conferida contra o Figma. O "não achamos" vem do tRPC `emailExists` (a criação de conta já revela se o e-mail existe). Em dev o link sai no log do server (`[recuperar senha]`); a rota `/redefinir-senha` (nova senha) não existe no Figma e foi montada com as peças da 7.4: falta desenhá-la. Pendente do P5: Resend de verdade (hoje, em produção, o envio falha de propósito)
-- [ ] 1.2 Início vazia ("Já tem dinheiro na conta? Registre como uma entrada.")
+- [x] 1.2 Início vazia ("Seu mês começa aqui", em `inicio.tsx`)
 
 ## Fase 3 · Início e Registrar
 
 - [~] 1.1 Início: saldo, entrou/saiu, "A receber", "No crédito, a pagar" e lista por dia feitos (`routes/_auth/inicio.tsx`, com carregando, não carregou e 1.2 vazia); falta conferir no navegador contra o Figma, o gesto de recolher, o seletor de mês e a tela 3.4 atrás do "A receber"
-- [ ] Lista agrupada por dia (Hoje, Ontem, "14 de nov."), com o gesto de recolher o saldo ao subir a lista
+- [~] Lista agrupada por dia (`groupByDay`, em `inicio.tsx`) feita; falta o gesto de recolher o saldo ao subir a lista
 - [ ] Seletor de mês (folha 1.10) e saldo "no fim de <mês>" em mês passado
 - [ ] Busca sem acento e sem maiúsculas, só no mês escolhido
-- [ ] Estados: carregando, não carregou, sem internet, erro na linha da transação
+- [~] Estados: carregando e não carregou feitos; faltam sem internet e erro na linha da transação
 - [x] 2.1 Valor com teclado numérico (vírgula, centavos só depois dela): `components/register/register-sheet.tsx` e `lib/amount-input.ts` (grupo 9 do TESTES.md, 14 testes); teclado do computador também
 - [~] 2.2 Detalhes: categoria (com a folha "Mais"), título, forma de pagamento, repetir (sem fim, 2, 3, 6, 10, 12) e aviso de saldo mínimo feitos; faltam "Outro" em "Por quantos meses" e o parcelamento (D9, sem tela)
 - [x] 2.3 Dividir com: interruptor "Dividir a conta" na 2.2 (só saída que não se repete) e folha `components/register/split-sheet.tsx` (escolher pessoas, nome novo cria a pessoa, nome repetido avisa); dica da parte de cada um em `lib/split-with.ts` (com testes)
@@ -125,35 +126,35 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [x] Aviso de saldo mínimo ao registrar (âmbar, não bloqueia; feito na 2.2)
 - [ ] **+** funciona offline: fila em IndexedDB, enviada quando a rede volta
 - [~] 3.1 Detalhe da transação: rota `/transacao/$transactionId` (simples, dividida, tudo acertado, entrada, parcela/repete, data futura, apagada em outro aparelho, carregando, erro), marcar/desmarcar pago e apagar; textos em `lib/transaction-detail.ts` (com testes). Falta o "Editar" (3.2; o botão está desligado) e "não salvou" (depende da fila offline)
-- [ ] 3.2 Editar; "Só esta" / "Esta e as próximas" em recorrentes
+- [ ] 3.2 Editar (falta `transaction.update`; o botão está desligado); "Só esta" / "Esta e as próximas" em recorrentes
 - [x] 3.3 Apagar: folha de confirmação, "Só esta" / "Esta e as próximas" em série, e aviso "Saída apagada · Desfazer" (10 s) na Início. O `transaction.delete` devolve um retrato do que saiu (com os reembolsos) e o `transaction.restore` recria com os mesmos ids. Obs. para a renovação do "sem fim" (P2): "esta e as próximas" não encerra a série, então a renovação não pode recriar o que foi apagado
 - [ ] 3.4 A receber, por pessoa
 - [ ] Contagem do saldo ao registrar (respeitando "reduzir movimento")
 
 ## Fase 4 · Resumo e Horizonte
 
-- [ ] 4.1 Resumo: "Sobrou em <mês>", Entrou, Saiu, Guardou, No crédito
-- [ ] "Para onde foi": 5 categorias + "Outras", lista ao tocar numa categoria
-- [ ] Mês futuro: "Deve sobrar", selo "Previsão"
+- [x] 4.1 Resumo (`routes/_auth/resumo.tsx`): "Sobrou em <mês>", Entrou, Saiu, Guardou, No crédito
+- [~] "Para onde foi": 5 categorias + "Outras" feito; falta a lista ao tocar numa categoria
+- [x] Mês futuro: "Deve sobrar", selo "Previsão"
 - [ ] 4.2 Horizonte de saldos (hoje + 5 meses, só o agendado) e lista "O que vem" (provisório)
 - [ ] Linha de saldo mínimo no gráfico
-- [ ] Estados: carregando, não carregou, sem internet, sem movimento
+- [~] Estados: carregando, não carregou e sem movimento feitos; falta sem internet
 
 ## Fase 5 · Metas
 
-- [ ] 5.1 Lista com anel de progresso e "Guardado nas metas"
-- [ ] 5.2 Detalhe com histórico, Guardar e Resgatar
-- [ ] 5.3 Nova/editar meta (dois tipos: "Para gastar" e "Para manter"; data limite com dica calma)
-- [ ] 5.4 Guardar e 5.5 Resgatar (só o que está disponível)
-- [ ] 5.6 Concluir meta (devolve o valor ao saldo)
-- [ ] Meta atingida (selo e círculo amarelos)
-- [ ] 5.7 Guardar/resgatar aparecem na Início como "Guardado em <meta>"
+- [x] 5.1 Lista com anel de progresso e "Guardado nas metas"
+- [x] 5.2 Detalhe com histórico, Guardar e Resgatar
+- [x] 5.3 Nova/editar meta (dois tipos: "Para gastar" e "Para manter"; data limite com dica calma)
+- [x] 5.4 Guardar e 5.5 Resgatar (só o que está disponível)
+- [x] 5.6 Concluir meta (devolve o valor ao saldo)
+- [x] Meta atingida (selo e círculo amarelos)
+- [x] 5.7 Guardar/resgatar aparecem na Início como "Guardado em <meta>"
 
 ## Fase 6 · Perfil
 
 - [x] 6.1 Perfil (todas as linhas abrem a sua tela; "Exportar dados" saiu, v2)
-- [ ] 6.2 Cartões (crédito: fechamento, vencimento, fatura atual, melhor dia de compra)
-- [ ] 6.3 Categorias (criar, renomear, ícone, apagar com destino das transações)
+- [x] 6.2 Cartões (crédito: fechamento, vencimento, fatura atual, melhor dia de compra)
+- [x] 6.3 Categorias (criar, renomear, ícone, apagar com destino das transações)
 - [x] 6.4 Pessoas (`routes/_auth/perfil/pessoas.tsx`: lista com quanto cada uma deve, nova, renomear e apagar)
 - ~~6.5 Lembretes~~ (v2, ver P4)
 - [x] 6.6 Aparência (`routes/_auth/perfil/aparencia.tsx`: automática, clara ou escura, por aparelho)
@@ -185,3 +186,6 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-24 — Fase 6 concluída: Aparência (6.6) e Conta (6.7: editar nome, sair, apagar conta com senha).
 - 2026-11-24 — Fase 3: Dividir com (2.3) no Registrar.
 - 2026-11-24 — Fase 3: detalhe da transação (3.1, sem o Editar) e apagar com desfazer (3.3).
+- 2026-11-24 — Fase 3: Registrar com divisão (2.3), detalhe da transação (3.1, sem o Editar) e apagar com desfazer (3.3) mergeados (#36, #37).
+- 2026-11-24 — Fase 5 (Metas, #27 a #30) e Fase 6 (Cartões e Categorias, #32 e #33) concluídas; Fase 4: Resumo (4.1, mês futuro) feito, falta o Horizonte. Regras de saldo, divisão, fatura, data futura e reembolso ligadas nos routers; séries geradas ao criar. PLANO.md e Linear reconciliados com o código.
+- 2026-11-24 — Fase 1: renovação das séries sem fim ao abrir o Início; migração `series_generated_count`. Testado no banco local: série de 1 ocorrência vira 35 (até 11/2028) e uma segunda renovação não duplica.

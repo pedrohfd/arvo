@@ -110,6 +110,9 @@ model Series {
   startDate      DateTime   @db.Date
   // Número de ocorrências; nulo = sem fim (só em RECURRING).
   count          Int?
+  // Quantas ocorrências já foram geradas; a renovação de uma série sem fim continua daqui, então
+  // apagar a última ocorrência não faz ela voltar.
+  generatedCount Int        @default(0)
   createdAt      DateTime   @default(now())
 
   transactions Transaction[]

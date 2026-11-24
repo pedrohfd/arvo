@@ -4,6 +4,7 @@ import { protectedProcedure, router } from "../index";
 import { referenceForMonth, todayInSaoPaulo } from "../lib/calendar";
 import { rule } from "../lib/errors";
 import { loadFinanceData } from "../lib/finance-data";
+import { renewOpenSeries } from "../lib/renew-series";
 import { computeBalance, creditToPaySummary } from "../rules/balance";
 import { addMonths, lastDayOfMonth, monthKey } from "../rules/dates";
 import { receivable } from "../rules/settlement";
@@ -27,6 +28,7 @@ export const summaryRouter = router({
 			const today = todayInSaoPaulo();
 			const selected = input.month ?? monthKey(today);
 			const reference = rule(() => referenceForMonth(selected, today));
+			await renewOpenSeries(ctx.db, userId, today);
 			const { transactions, goalMovements } = await loadFinanceData(
 				ctx.db,
 				userId,

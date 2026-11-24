@@ -61,7 +61,11 @@ const snapshotRow = z.object({
 		)
 		.max(20),
 });
-const snapshotInput = z.object({ rows: z.array(snapshotRow).min(1).max(400) });
+const snapshotInput = z.object({
+	rows: z.array(snapshotRow).min(1).max(400),
+	// Séries sem fim que o "apagar" encerrou; o "Desfazer" as reabre.
+	reopenSeriesIds: z.array(z.string()).max(20).default([]),
+});
 export type DeletedSnapshot = z.infer<typeof snapshotInput>;
 
 function badRequest(error: unknown): never {
@@ -312,6 +316,7 @@ export const transactionRouter = router({
 							data: {
 								...plan.series,
 								startDate: toDbDate(plan.series.startDate),
+								generatedCount: plan.rows.length,
 								userId,
 							},
 						})
@@ -358,7 +363,12 @@ export const transactionRouter = router({
 			const userId = ctx.session.user.id;
 			const transaction = await ctx.db.transaction.findFirst({
 				where: { id: input.id, userId },
-				select: { id: true, seriesId: true, seriesIndex: true },
+				select: {
+					id: true,
+					seriesId: true,
+					seriesIndex: true,
+					series: { select: { count: true } },
+				},
 			});
 			if (!transaction) throw new TRPCError({ code: "NOT_FOUND" });
 
@@ -411,11 +421,27 @@ export const transactionRouter = router({
 						paidAt: split.paidAt ? fromDbDate(split.paidAt) : null,
 					})),
 				});
+				// "Esta e as próximas" numa série sem fim a encerra na ocorrência anterior; senão a
+				// renovação recriaria o que a pessoa acabou de apagar. Sem ocorrência anterior, a
+				// série fica sem linhas e a renovação a ignora.
+				const closesSeries =
+					input.scope === "THIS_AND_NEXT" &&
+					transaction.seriesId !== null &&
+					transaction.seriesIndex !== null &&
+					transaction.series?.count === null &&
+					transaction.seriesIndex > 1;
+				if (closesSeries) {
+					await tx.series.update({
+						where: { id: transaction.seriesId as string },
+						data: { count: (transaction.seriesIndex as number) - 1 },
+					});
+				}
 				const snapshot: DeletedSnapshot = {
 					rows: [
 						...rows.map((row) => toRow(row, row.splits)),
 						...reimbursements.map((row) => toRow(row)),
 					],
+					reopenSeriesIds: closesSeries ? [transaction.seriesId as string] : [],
 				};
 				return { deleted: count, snapshot };
 			});
@@ -499,6 +525,12 @@ export const transactionRouter = router({
 			];
 			try {
 				await ctx.db.$transaction(async (tx) => {
+					if (input.reopenSeriesIds.length > 0) {
+						await tx.series.updateMany({
+							where: { userId, id: { in: input.reopenSeriesIds } },
+							data: { count: null },
+						});
+					}
 					for (const row of ordered) {
 						await tx.transaction.create({
 							data: {
