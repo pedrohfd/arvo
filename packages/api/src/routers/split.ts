@@ -6,6 +6,7 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../index";
 import { fromDbDate, toDbDate, todayInSaoPaulo } from "../lib/calendar";
 import { rule } from "../lib/errors";
+import { groupPendingSplits } from "../lib/pending-splits";
 import {
 	markSplitPaid,
 	receivable,
@@ -35,6 +36,39 @@ export const splitRouter = router({
 			select: { personId: true, amountCents: true },
 		});
 		return receivable(pending.map((split) => ({ ...split, paidAt: null })));
+	}),
+
+	// Tela 3.4: as partes não pagas, por pessoa, com a conta de onde vieram.
+	pending: protectedProcedure.query(async ({ ctx }) => {
+		const rows = await ctx.db.transactionSplit.findMany({
+			where: { paidAt: null, transaction: { userId: ctx.session.user.id } },
+			select: {
+				id: true,
+				amountCents: true,
+				person: { select: { id: true, name: true } },
+				transaction: {
+					select: {
+						id: true,
+						title: true,
+						date: true,
+						category: { select: { name: true, icon: true } },
+					},
+				},
+			},
+		});
+		return groupPendingSplits(
+			rows.map((row) => ({
+				splitId: row.id,
+				transactionId: row.transaction.id,
+				personId: row.person.id,
+				personName: row.person.name,
+				amountCents: row.amountCents,
+				title: row.transaction.title,
+				categoryName: row.transaction.category.name,
+				categoryIcon: row.transaction.category.icon,
+				date: fromDbDate(row.transaction.date),
+			})),
+		);
 	}),
 
 	// Dois toques: pessoa → confirmação. Guarda a data e, por padrão, cria a entrada de Reembolso

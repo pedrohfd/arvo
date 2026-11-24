@@ -55,7 +55,8 @@ export function AppShell({
 function BottomBar() {
 	const { open } = useRegister();
 	const pathname = useLocation({ select: (location) => location.pathname });
-	if (/^\/(metas|transacao)\/[^/]+/.test(pathname)) return null;
+	if (/^\/(metas|transacao)\/[^/]+/.test(pathname) || pathname === "/receber")
+		return null;
 	const [first, second, third, fourth] = tabs;
 	return (
 		<nav
