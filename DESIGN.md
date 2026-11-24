@@ -2,6 +2,8 @@
 
 > Se este arquivo e o código discordarem, o código vale até a pessoa decidir. Registre o conflito em Perguntas em aberto.
 
+Figma (fonte de verdade): https://www.figma.com/design/ECoW1XP6VMS6hSKQb26YpY/Arvo (file key `ECoW1XP6VMS6hSKQb26YpY`). Uma página por área, nomeadas "Arvo · 1 Início", "Arvo · 5 Metas" etc.; para ler uma tela, achar o frame pelo número (ex.: "5.3") com `get_metadata` na página.
+
 ## Produto
 Gerenciador de finanças pessoais, a princípio para um casal (Pedro e a noiva). **Cada pessoa tem a sua própria conta**; não há dados compartilhados entre elas. Usado principalmente no **celular**, e também no **computador**.
 **Registrar gasto começa pelo valor**, digitado num teclado numérico grande; os outros dados vêm depois.
