@@ -8,7 +8,9 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
+import { useState } from "react";
 
+import { GoalFormSheet } from "@/components/goal/goal-form-sheet";
 import { GoalRing } from "@/components/goal-ring";
 import { formatMoney, formatShortDate, moneyParts } from "@/lib/format";
 import { trpc } from "@/utils/trpc";
@@ -20,9 +22,10 @@ export const Route = createFileRoute("/_auth/metas/")({
 type Goal = inferRouterOutputs<AppRouter>["goal"]["list"][number];
 
 // Tela 5.1 do Figma (página "Arvo · 5 Metas"): lista, vazio, meta atingida, carregando e não
-// carregou. Ainda não existem: detalhe (5.2), nova/editar meta (5.3), guardar e resgatar (5.4,
-// 5.5), concluir (5.6), o gesto de recolher o resumo e o aviso de sem internet.
+// carregou, com a "Nova meta" (5.3). Ainda não existem: concluir (5.6), o gesto de recolher o
+// resumo e o aviso de sem internet.
 function Metas() {
+	const [creating, setCreating] = useState(false);
 	const goals = useQuery(trpc.goal.list.queryOptions());
 	// "Disponível no saldo" é o saldo atual da Início (o que está guardado já saiu dele).
 	const home = useQuery(trpc.summary.home.queryOptions());
@@ -48,22 +51,25 @@ function Metas() {
 				<Ready
 					goals={goals.data.filter((goal) => !goal.completedAt)}
 					availableCents={home.data.balance.balanceCents}
+					onNew={() => setCreating(true)}
 				/>
 			)}
+			{creating ? <GoalFormSheet onClose={() => setCreating(false)} /> : null}
 		</div>
 	);
 }
 
-function Header({ showNew = false }: { showNew?: boolean }) {
+function Header({ onNew }: { onNew?: () => void }) {
 	return (
 		<div className="flex h-11 items-center justify-between pt-1 pr-3 pl-5">
 			<h1 className="display text-(length:--text-size-display) leading-[var(--text-leading-display)]">
 				Metas
 			</h1>
-			{showNew ? (
+			{onNew ? (
 				<button
 					type="button"
 					className="month-btn !h-10 !px-4 !gap-2 font-semibold text-[var(--color-text)]"
+					onClick={onNew}
 				>
 					<PlusIcon size={18} aria-hidden />
 					Nova meta
@@ -76,9 +82,11 @@ function Header({ showNew = false }: { showNew?: boolean }) {
 function Ready({
 	goals,
 	availableCents,
+	onNew,
 }: {
 	goals: Goal[];
 	availableCents: number;
+	onNew: () => void;
 }) {
 	if (goals.length === 0) {
 		return (
@@ -94,7 +102,11 @@ function Ready({
 							Uma meta separa dinheiro do seu saldo para uma viagem, uma compra
 							ou uma reserva.
 						</p>
-						<button type="button" className="btn-secondary empty__action">
+						<button
+							type="button"
+							className="btn-secondary empty__action"
+							onClick={onNew}
+						>
 							Criar meta
 						</button>
 					</div>
@@ -108,7 +120,7 @@ function Ready({
 
 	return (
 		<>
-			<Header showNew />
+			<Header onNew={onNew} />
 			<section className="flex flex-col gap-0.5 px-5 pt-4 pb-5">
 				<span className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-[var(--text-leading-small)]">
 					Guardado nas metas

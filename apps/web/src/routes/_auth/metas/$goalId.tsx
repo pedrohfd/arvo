@@ -9,10 +9,13 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
+import { GoalAmountSheet } from "@/components/goal/goal-amount-sheet";
+import { GoalFormSheet } from "@/components/goal/goal-form-sheet";
 import { GoalRing } from "@/components/goal-ring";
 import { formatMoney, formatShortDate } from "@/lib/format";
+import type { GoalAmountMode } from "@/lib/goal-amount";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/metas/$goalId")({
@@ -22,11 +25,14 @@ export const Route = createFileRoute("/_auth/metas/$goalId")({
 type Goal = inferRouterOutputs<AppRouter>["goal"]["get"];
 type Movement = Goal["movements"][number];
 
-// Tela 5.2 do Figma (página "Arvo · 5 Metas"): detalhe com histórico. Ainda não existem: editar
-// (5.3), Guardar e Resgatar (5.4, 5.5; os botões estão no lugar mas sem ação), concluir (5.6).
+// Tela 5.2 do Figma (página "Arvo · 5 Metas"): detalhe com histórico, editar (5.3), Guardar (5.4)
+// e Resgatar (5.5). Ainda não existe: concluir (5.6).
 function MetaDetalhe() {
+	const [editing, setEditing] = useState(false);
 	const { goalId } = Route.useParams();
 	const goal = useQuery(trpc.goal.get.queryOptions({ id: goalId }));
+	// O saldo atual é o teto de "Guardar" (o mesmo da Início).
+	const home = useQuery(trpc.summary.home.queryOptions());
 
 	return (
 		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px]">
@@ -39,6 +45,7 @@ function MetaDetalhe() {
 					className="icon-btn"
 					aria-label="Editar meta"
 					disabled={!goal.data}
+					onClick={() => setEditing(true)}
 				>
 					<PencilSimpleIcon size={22} aria-hidden />
 				</button>
@@ -49,13 +56,27 @@ function MetaDetalhe() {
 			) : !goal.data ? (
 				<Loading />
 			) : (
-				<Ready goal={goal.data} />
+				<Ready
+					goal={goal.data}
+					availableCents={home.data?.balance.balanceCents ?? null}
+				/>
 			)}
+			{editing && goal.data ? (
+				<GoalFormSheet goal={goal.data} onClose={() => setEditing(false)} />
+			) : null}
 		</div>
 	);
 }
 
-function Ready({ goal }: { goal: Goal }) {
+function Ready({
+	goal,
+	availableCents,
+}: {
+	goal: Goal;
+	/** Saldo atual; nulo enquanto carrega (sem ele não dá para guardar). */
+	availableCents: number | null;
+}) {
+	const [sheet, setSheet] = useState<GoalAmountMode | null>(null);
 	const percent = Math.min(
 		100,
 		Math.floor((goal.savedCents * 100) / goal.targetCents),
@@ -109,15 +130,34 @@ function Ready({ goal }: { goal: Goal }) {
 
 			<div className="footer-float">
 				<div className="flex w-full max-w-[640px] items-start gap-3 px-2">
-					<button type="button" className="btn-secondary flex-1">
+					<button
+						type="button"
+						className="btn-secondary flex-1"
+						disabled={goal.savedCents <= 0}
+						onClick={() => setSheet("withdraw")}
+					>
 						<ArrowUpRightIcon size={18} aria-hidden />
 						Resgatar
 					</button>
-					<button type="button" className="btn-primary flex-1">
+					<button
+						type="button"
+						className="btn-primary flex-1"
+						disabled={availableCents === null}
+						onClick={() => setSheet("deposit")}
+					>
 						Guardar
 					</button>
 				</div>
 			</div>
+
+			{sheet && availableCents !== null ? (
+				<GoalAmountSheet
+					mode={sheet}
+					goal={goal}
+					availableCents={availableCents}
+					onClose={() => setSheet(null)}
+				/>
+			) : null}
 		</>
 	);
 }
