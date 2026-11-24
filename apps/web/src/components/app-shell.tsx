@@ -5,7 +5,7 @@ import {
 	TargetIcon,
 	UserIcon,
 } from "@phosphor-icons/react";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/logo";
 import {
@@ -51,8 +51,11 @@ export function AppShell({
 	);
 }
 
+// Telas de detalhe (ex.: uma meta) trazem a própria barra de ações no lugar da barra inferior.
 function BottomBar() {
 	const { open } = useRegister();
+	const pathname = useLocation({ select: (location) => location.pathname });
+	if (/^\/metas\/[^/]+/.test(pathname)) return null;
 	const [first, second, third, fourth] = tabs;
 	return (
 		<nav

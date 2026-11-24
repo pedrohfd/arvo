@@ -6,14 +6,14 @@ import {
 	WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 
 import { GoalRing } from "@/components/goal-ring";
 import { formatMoney, formatShortDate, moneyParts } from "@/lib/format";
 import { trpc } from "@/utils/trpc";
 
-export const Route = createFileRoute("/_auth/metas")({
+export const Route = createFileRoute("/_auth/metas/")({
 	component: Metas,
 });
 
@@ -157,7 +157,11 @@ function GoalCard({ goal }: { goal: Goal }) {
 	);
 	const tag = tagFor(goal);
 	return (
-		<button type="button" className="goal-card">
+		<Link
+			to="/metas/$goalId"
+			params={{ goalId: goal.id }}
+			className="goal-card"
+		>
 			<GoalRing percent={percent} done={goal.reached} />
 			<span className="goal-card__text">
 				<span className="goal-card__name">{goal.name}</span>
@@ -174,7 +178,7 @@ function GoalCard({ goal }: { goal: Goal }) {
 				) : null}
 			</span>
 			<CaretRightIcon size={18} className="goal-card__chevron" aria-hidden />
-		</button>
+		</Link>
 	);
 }
 
