@@ -23,13 +23,25 @@ const duplicate = () =>
 	});
 
 export const categoryRouter = router({
-	list: protectedProcedure.query(({ ctx }) =>
-		ctx.db.category.findMany({
+	// Categorias com quantas transações usam cada uma (a tela de Categorias mostra isso).
+	list: protectedProcedure.query(async ({ ctx }) => {
+		const categories = await ctx.db.category.findMany({
 			where: { userId: ctx.session.user.id },
 			orderBy: [{ kind: "asc" }, { createdAt: "asc" }],
-			select: { id: true, name: true, icon: true, kind: true, systemKey: true },
-		}),
-	),
+			select: {
+				id: true,
+				name: true,
+				icon: true,
+				kind: true,
+				systemKey: true,
+				_count: { select: { transactions: true } },
+			},
+		});
+		return categories.map(({ _count, ...category }) => ({
+			...category,
+			transactionCount: _count.transactions,
+		}));
+	}),
 
 	create: protectedProcedure
 		.input(z.object({ name, icon, kind: flow }))

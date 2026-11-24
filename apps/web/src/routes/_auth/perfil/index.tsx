@@ -61,6 +61,7 @@ function Perfil() {
 					<Row
 						icon={<TagIcon size={24} aria-hidden />}
 						title="Categorias"
+						to="/perfil/categorias"
 						value={categories.data ? String(categories.data.length) : undefined}
 					/>
 					<Row
@@ -130,7 +131,7 @@ function Row({
 	/** Valor à direita; some enquanto carrega. */
 	value?: string;
 	/** Tela que a linha abre; sem ela a linha ainda não faz nada. */
-	to?: "/perfil/cartoes";
+	to?: "/perfil/cartoes" | "/perfil/categorias";
 	/** "Sair": sem seta, em vermelho. */
 	danger?: boolean;
 }) {

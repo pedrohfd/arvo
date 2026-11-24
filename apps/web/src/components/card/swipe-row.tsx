@@ -7,31 +7,35 @@ import {
 	useState,
 } from "react";
 
-// Quanto o cartão precisa andar para valer como gesto, e até onde ele acompanha o dedo.
+// Quanto a linha precisa andar para valer como gesto, e até onde ela acompanha o dedo.
 const TRIGGER = 80;
 const MAX = 120;
 // Movimento mínimo para decidir que é um deslize (e não um toque ou a rolagem da página).
 const SLOP = 8;
 
-// Linha que se desliza: para a direita abre o "Editar", para a esquerda o "Apagar". Ao soltar, o
-// cartão volta ao lugar e a ação só dispara se passou do limite. Quem não desliza (teclado, leitor
-// de tela) usa as setas ← e →.
+// Linha que se desliza: para a direita abre o "Editar", para a esquerda o "Apagar". Ao soltar, a
+// linha volta ao lugar e a ação só dispara se passou do limite. Quem não desliza (teclado, leitor
+// de tela) usa as setas ← e →. Sem `onSwipeLeft` a linha não apaga (some o gesto da esquerda).
+// `variant`: "card" para o cartão da lista; "row" para uma linha dentro de um grupo.
 export function SwipeRow({
 	children,
 	hint,
+	variant = "card",
 	onSwipeRight,
 	onSwipeLeft,
 }: {
 	children: ReactNode;
 	/** Frase para leitor de tela: o que cada gesto faz. */
 	hint: string;
+	variant?: "card" | "row";
 	onSwipeRight: () => void;
-	onSwipeLeft: () => void;
+	onSwipeLeft?: () => void;
 }) {
 	const [offset, setOffset] = useState(0);
 	const [dragging, setDragging] = useState(false);
 	const start = useRef<{ x: number; y: number } | null>(null);
 	const moved = useRef(false);
+	const canDelete = onSwipeLeft !== undefined;
 
 	function onPointerDown(event: PointerEvent<HTMLDivElement>) {
 		start.current = { x: event.clientX, y: event.clientY };
@@ -49,7 +53,7 @@ export function SwipeRow({
 			setDragging(true);
 			event.currentTarget.setPointerCapture(event.pointerId);
 		}
-		setOffset(Math.max(-MAX, Math.min(MAX, dx)));
+		setOffset(Math.max(canDelete ? -MAX : 0, Math.min(MAX, dx)));
 	}
 
 	function finish(event: PointerEvent<HTMLDivElement>) {
@@ -61,21 +65,29 @@ export function SwipeRow({
 		setOffset(0);
 		if (event.type === "pointercancel") return;
 		if (final >= TRIGGER) onSwipeRight();
-		else if (final <= -TRIGGER) onSwipeLeft();
+		else if (final <= -TRIGGER) onSwipeLeft?.();
 	}
 
 	function onKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
 		if (event.key === "ArrowRight") {
 			event.preventDefault();
 			onSwipeRight();
-		} else if (event.key === "ArrowLeft") {
+		} else if (event.key === "ArrowLeft" && onSwipeLeft) {
 			event.preventDefault();
 			onSwipeLeft();
 		}
 	}
 
+	const card = variant === "card";
+
 	return (
-		<div className="relative overflow-hidden rounded-[var(--radius-lg)]">
+		<div
+			className={
+				card
+					? "relative overflow-hidden rounded-[var(--radius-lg)]"
+					: "relative overflow-hidden rounded-[var(--radius-md)]"
+			}
+		>
 			<div
 				className="absolute inset-0 flex items-center justify-between px-5"
 				style={{
@@ -104,7 +116,7 @@ export function SwipeRow({
 				</span>
 			</div>
 			<div
-				className="relative touch-pan-y"
+				className="relative touch-pan-y bg-[var(--color-surface)]"
 				style={{
 					transform: `translateX(${offset}px)`,
 					transition: dragging
@@ -118,9 +130,9 @@ export function SwipeRow({
 			>
 				<button
 					type="button"
-					className="wallet-card"
+					className={card ? "wallet-card" : "setting-row"}
 					style={{ cursor: dragging ? "grabbing" : "grab" }}
-					aria-keyshortcuts="ArrowRight ArrowLeft"
+					aria-keyshortcuts={canDelete ? "ArrowRight ArrowLeft" : "ArrowRight"}
 					onKeyDown={onKeyDown}
 				>
 					{children}
