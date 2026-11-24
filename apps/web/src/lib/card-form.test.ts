@@ -47,8 +47,10 @@ describe("formulário de cartão", () => {
 	});
 
 	test("dica do melhor dia: dia seguinte ao fechamento, ou dia 1 se fecha no 31", () => {
-		expect(closingHint(20)).toContain("dia 21");
-		expect(closingHint(31)).toContain("dia 1 ");
+		expect(closingHint(20)).toBe(
+			"Compras a partir do dia 21 entram na fatura do mês seguinte. Melhor dia de compra: 21.",
+		);
+		expect(closingHint(31)).toContain("Melhor dia de compra: 1.");
 		expect(closingHint(null)).toBeNull();
 	});
 });

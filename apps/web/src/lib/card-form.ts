@@ -35,5 +35,5 @@ export function validateCardForm(input: {
 export function closingHint(closingDay: number | null) {
 	if (closingDay === null) return null;
 	const next = closingDay >= 31 ? 1 : closingDay + 1;
-	return `Compras a partir do dia ${next} entram na fatura do mês seguinte.`;
+	return `Compras a partir do dia ${next} entram na fatura do mês seguinte. Melhor dia de compra: ${next}.`;
 }

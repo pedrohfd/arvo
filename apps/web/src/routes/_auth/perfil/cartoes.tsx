@@ -14,6 +14,8 @@ import {
 	CardFormSheet,
 	type EditableCard,
 } from "@/components/card/card-form-sheet";
+import { CardDeleteSheet } from "@/components/card/card-sheets";
+import { SwipeRow } from "@/components/card/swipe-row";
 import { formatMoney, formatShortDate } from "@/lib/format";
 import { trpc } from "@/utils/trpc";
 
@@ -24,14 +26,18 @@ export const Route = createFileRoute("/_auth/perfil/cartoes")({
 type Card = inferRouterOutputs<AppRouter>["card"]["list"][number];
 
 // Tela 6.2 do Figma (página "Arvo · 6 Perfil"): lista com a fatura aberta e o melhor dia de
-// compra, "Novo cartão" e "Apagar cartão" (que o Figma só mostra sobre a lista; aqui ele fica na
-// folha de editar, que o Figma não desenhou).
+// compra, "Novo cartão" e "Apagar cartão". Deslizar o cartão para a direita abre o editar; para a
+// esquerda, apagar (com confirmação).
 function Cartoes() {
 	const cards = useQuery(trpc.card.list.queryOptions());
-	// Sem cartão é a folha de "Novo cartão"; com cartão, a de editar.
-	const [sheet, setSheet] = useState<{ card?: EditableCard } | null>(null);
+	// Folha aberta: o formulário (novo, ou editar se vier o cartão) ou a confirmação de apagar.
+	const [sheet, setSheet] = useState<
+		| { kind: "form"; card?: EditableCard }
+		| { kind: "delete"; card: EditableCard }
+		| null
+	>(null);
 
-	const onNew = () => setSheet({});
+	const onNew = () => setSheet({ kind: "form" });
 
 	return (
 		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
@@ -70,15 +76,23 @@ function Cartoes() {
 							<CardItem
 								key={card.id}
 								card={card}
-								onOpen={() => setSheet({ card })}
+								onEdit={() => setSheet({ kind: "form", card })}
+								onDelete={() => setSheet({ kind: "delete", card })}
 							/>
 						))}
 					</section>
 				</>
 			)}
 
-			{sheet ? (
+			{sheet?.kind === "form" ? (
 				<CardFormSheet card={sheet.card} onClose={() => setSheet(null)} />
+			) : null}
+			{sheet?.kind === "delete" ? (
+				<CardDeleteSheet
+					card={sheet.card}
+					onDeleted={() => setSheet(null)}
+					onClose={() => setSheet(null)}
+				/>
 			) : null}
 		</div>
 	);
@@ -105,10 +119,22 @@ function Title({ onNew }: { onNew?: () => void }) {
 }
 
 // Cartão: nome, final e tipo; no crédito, a fatura aberta e os dias de fechamento e de compra.
-function CardItem({ card, onOpen }: { card: Card; onOpen: () => void }) {
+function CardItem({
+	card,
+	onEdit,
+	onDelete,
+}: {
+	card: Card;
+	onEdit: () => void;
+	onDelete: () => void;
+}) {
 	const credit = card.type === "CREDIT";
 	return (
-		<button type="button" className="wallet-card" onClick={onOpen}>
+		<SwipeRow
+			hint={`Seta para a direita edita o ${card.name}; seta para a esquerda apaga.`}
+			onSwipeRight={onEdit}
+			onSwipeLeft={onDelete}
+		>
 			<span className="wallet-card__top">
 				<span className="setting-row__icon">
 					<CreditCardIcon size={24} aria-hidden />
@@ -137,7 +163,7 @@ function CardItem({ card, onOpen }: { card: Card; onOpen: () => void }) {
 					</span>
 				</>
 			) : null}
-		</button>
+		</SwipeRow>
 	);
 }
 

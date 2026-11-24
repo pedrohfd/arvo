@@ -9,7 +9,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { CardDeleteSheet, DaySheet } from "@/components/card/card-sheets";
+import { DaySheet } from "@/components/card/card-sheets";
 import { Grabber } from "@/components/register/parts";
 import {
 	type CardFormErrors,
@@ -44,7 +44,7 @@ const TYPES: { type: CardType; title: string; description: string }[] = [
 ];
 
 // Folhas 6.2 do Figma: "Novo cartão" (crédito com os dias da fatura, ou débito). O Figma não tem
-// "Editar cartão": tocar num cartão abre esta mesma folha com os dados e o "Apagar cartão" no fim.
+// "Editar cartão": deslizar o cartão para a direita abre esta mesma folha com os dados.
 export function CardFormSheet({
 	card,
 	onClose,
@@ -64,7 +64,6 @@ export function CardFormSheet({
 	);
 	const [dueDay, setDueDay] = useState<number | null>(card?.dueDay ?? null);
 	const [dayPicker, setDayPicker] = useState<"closing" | "due" | null>(null);
-	const [deleting, setDeleting] = useState(false);
 	// Os erros só aparecem depois de tocar no botão e saem sozinhos conforme o campo é corrigido.
 	const [submitted, setSubmitted] = useState(false);
 
@@ -251,16 +250,6 @@ export function CardFormSheet({
 							</div>
 						</>
 					) : null}
-
-					{editing ? (
-						<button
-							type="button"
-							className="btn-secondary btn-secondary--danger btn-secondary--block"
-							onClick={() => setDeleting(true)}
-						>
-							Apagar cartão
-						</button>
-					) : null}
 				</div>
 
 				<div className="shrink-0 px-5 pt-3 pb-6">
@@ -294,14 +283,6 @@ export function CardFormSheet({
 							setDayPicker(null);
 						}}
 						onClose={() => setDayPicker(null)}
-					/>
-				) : null}
-
-				{deleting && card ? (
-					<CardDeleteSheet
-						card={card}
-						onDeleted={onClose}
-						onClose={() => setDeleting(false)}
 					/>
 				) : null}
 			</div>
