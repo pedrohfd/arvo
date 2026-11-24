@@ -35,7 +35,7 @@ function MetaDetalhe() {
 	const home = useQuery(trpc.summary.home.queryOptions());
 
 	return (
-		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px]">
+		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
 			<div className="flex h-12 items-center justify-between px-2 pt-1">
 				<Link to="/metas" className="icon-btn" aria-label="Voltar">
 					<CaretLeftIcon size={22} aria-hidden />
