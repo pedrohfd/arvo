@@ -1,6 +1,8 @@
+import { todayInSaoPaulo } from "@arvo/api/lib/calendar";
 import type { AppRouter } from "@arvo/api/routers/index";
 import {
 	CaretRightIcon,
+	CheckIcon,
 	PlusIcon,
 	TargetIcon,
 	WarningCircleIcon,
@@ -12,7 +14,12 @@ import { useState } from "react";
 
 import { GoalFormSheet } from "@/components/goal/goal-form-sheet";
 import { GoalRing } from "@/components/goal-ring";
-import { formatMoney, formatShortDate, moneyParts } from "@/lib/format";
+import {
+	dayLabel,
+	formatMoney,
+	formatShortDate,
+	moneyParts,
+} from "@/lib/format";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/metas/")({
@@ -22,8 +29,8 @@ export const Route = createFileRoute("/_auth/metas/")({
 type Goal = inferRouterOutputs<AppRouter>["goal"]["list"][number];
 
 // Tela 5.1 do Figma (página "Arvo · 5 Metas"): lista, vazio, meta atingida, carregando e não
-// carregou, com a "Nova meta" (5.3). Ainda não existem: concluir (5.6), o gesto de recolher o
-// resumo e o aviso de sem internet.
+// carregou, com a "Nova meta" (5.3) e as "Concluídas" (5.6). Ainda não existem: o gesto de recolher
+// o resumo e o aviso de sem internet.
 function Metas() {
 	const [creating, setCreating] = useState(false);
 	const goals = useQuery(trpc.goal.list.queryOptions());
@@ -49,7 +56,7 @@ function Metas() {
 				</>
 			) : (
 				<Ready
-					goals={goals.data.filter((goal) => !goal.completedAt)}
+					goals={goals.data}
 					availableCents={home.data.balance.balanceCents}
 					onNew={() => setCreating(true)}
 				/>
@@ -80,7 +87,7 @@ function Header({ onNew }: { onNew?: () => void }) {
 }
 
 function Ready({
-	goals,
+	goals: allGoals,
 	availableCents,
 	onNew,
 }: {
@@ -88,7 +95,10 @@ function Ready({
 	availableCents: number;
 	onNew: () => void;
 }) {
-	if (goals.length === 0) {
+	const goals = allGoals.filter((goal) => !goal.completedAt);
+	const completed = allGoals.filter((goal) => goal.completedAt);
+
+	if (allGoals.length === 0) {
 		return (
 			<>
 				<Header />
@@ -145,6 +155,16 @@ function Ready({
 				{goals.map((goal) => (
 					<GoalCard key={goal.id} goal={goal} />
 				))}
+				{completed.length > 0 ? (
+					<>
+						<h2 className="text-(length:--text-size-label) px-1 pt-3 font-semibold text-[var(--color-text-muted)] uppercase leading-[var(--text-leading-label)] tracking-[var(--text-tracking-label)]">
+							Concluídas · {completed.length}
+						</h2>
+						{completed.map((goal) => (
+							<CompletedCard key={goal.id} goal={goal} />
+						))}
+					</>
+				) : null}
 			</section>
 		</>
 	);
@@ -191,6 +211,30 @@ function GoalCard({ goal }: { goal: Goal }) {
 			</span>
 			<CaretRightIcon size={18} className="goal-card__chevron" aria-hidden />
 		</Link>
+	);
+}
+
+// Meta concluída: o valor já voltou ao saldo (o guardado dela é 0), então "Juntou" mostra o alvo.
+// Sem toque: o detalhe de uma meta concluída não tem desenho no Figma.
+function CompletedCard({ goal }: { goal: Goal }) {
+	const when = goal.completedAt
+		? dayLabel(goal.completedAt, todayInSaoPaulo()).toLowerCase()
+		: "";
+	return (
+		<div className="goal-card">
+			<span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[var(--color-fill-1)]">
+				<CheckIcon size={26} aria-hidden />
+			</span>
+			<span className="goal-card__text">
+				<span className="goal-card__name">{goal.name}</span>
+				<span className="goal-card__amount">
+					Juntou {formatMoney(goal.targetCents)}
+				</span>
+				<span className="goal-card__tag">
+					Concluída {when} · voltou ao saldo
+				</span>
+			</span>
+		</div>
 	);
 }
 

@@ -12,6 +12,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 import { type ReactNode, useState } from "react";
 
 import { GoalAmountSheet } from "@/components/goal/goal-amount-sheet";
+import { GoalCompleteSheet } from "@/components/goal/goal-complete-sheet";
 import { GoalFormSheet } from "@/components/goal/goal-form-sheet";
 import { GoalRing } from "@/components/goal-ring";
 import { formatMoney, formatShortDate } from "@/lib/format";
@@ -26,7 +27,7 @@ type Goal = inferRouterOutputs<AppRouter>["goal"]["get"];
 type Movement = Goal["movements"][number];
 
 // Tela 5.2 do Figma (página "Arvo · 5 Metas"): detalhe com histórico, editar (5.3), Guardar (5.4)
-// e Resgatar (5.5). Ainda não existe: concluir (5.6).
+// Resgatar (5.5) e Concluir meta (5.6).
 function MetaDetalhe() {
 	const [editing, setEditing] = useState(false);
 	const { goalId } = Route.useParams();
@@ -77,11 +78,14 @@ function Ready({
 	availableCents: number | null;
 }) {
 	const [sheet, setSheet] = useState<GoalAmountMode | null>(null);
+	const [completing, setCompleting] = useState(false);
 	const percent = Math.min(
 		100,
 		Math.floor((goal.savedCents * 100) / goal.targetCents),
 	);
 	const missingCents = Math.max(0, goal.targetCents - goal.savedCents);
+	// "Para gastar" atingida: o rodapé troca Guardar por Concluir meta (5.6).
+	const canComplete = goal.reached && goal.kind === "SPEND";
 
 	return (
 		<>
@@ -96,6 +100,9 @@ function Ready({
 					{goal.reached ? "" : ` · faltam ${formatMoney(missingCents)}`}
 				</p>
 				<div className="flex gap-2">
+					{goal.reached ? (
+						<span className="badge badge--accent">Meta atingida</span>
+					) : null}
 					<span className="badge">
 						{goal.kind === "KEEP" ? "Vou manter" : "Vou gastar"}
 					</span>
@@ -103,7 +110,11 @@ function Ready({
 						<span className="badge">Até {formatShortDate(goal.deadline)}</span>
 					) : null}
 				</div>
-				{goal.hint ? (
+				{canComplete ? (
+					<p className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-[var(--text-leading-small)]">
+						Chegou lá! Conclua para o valor voltar ao saldo.
+					</p>
+				) : goal.hint ? (
 					<p className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-[var(--text-leading-small)]">
 						{formatMoney(goal.hint.monthlyCents)} por mês para chegar lá.
 					</p>
@@ -128,27 +139,44 @@ function Ready({
 				)}
 			</section>
 
-			<div className="footer-float">
-				<div className="flex w-full max-w-[640px] items-start gap-3 px-2">
-					<button
-						type="button"
-						className="btn-secondary flex-1"
-						disabled={goal.savedCents <= 0}
-						onClick={() => setSheet("withdraw")}
-					>
-						<ArrowUpRightIcon size={18} aria-hidden />
-						Resgatar
-					</button>
-					<button
-						type="button"
-						className="btn-primary flex-1"
-						disabled={availableCents === null}
-						onClick={() => setSheet("deposit")}
-					>
-						Guardar
-					</button>
+			{/* Meta concluída não recebe mais movimentos: sem rodapé de ações. */}
+			{goal.completedAt ? null : (
+				<div className="footer-float">
+					<div className="flex w-full max-w-[640px] items-start gap-3 px-2">
+						<button
+							type="button"
+							className="btn-secondary flex-1"
+							disabled={goal.savedCents <= 0}
+							onClick={() => setSheet("withdraw")}
+						>
+							<ArrowUpRightIcon size={18} aria-hidden />
+							Resgatar
+						</button>
+						{canComplete ? (
+							<button
+								type="button"
+								className="btn-primary flex-1"
+								onClick={() => setCompleting(true)}
+							>
+								Concluir meta
+							</button>
+						) : (
+							<button
+								type="button"
+								className="btn-primary flex-1"
+								disabled={availableCents === null}
+								onClick={() => setSheet("deposit")}
+							>
+								Guardar
+							</button>
+						)}
+					</div>
 				</div>
-			</div>
+			)}
+
+			{completing ? (
+				<GoalCompleteSheet goal={goal} onClose={() => setCompleting(false)} />
+			) : null}
 
 			{sheet && availableCents !== null ? (
 				<GoalAmountSheet
