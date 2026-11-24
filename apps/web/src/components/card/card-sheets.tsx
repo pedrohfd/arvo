@@ -11,10 +11,13 @@ import { queryClient, trpc } from "@/utils/trpc";
 // Folha curta de baixo para cima: o título entre o X e um espaço do mesmo tamanho.
 export function Sheet({
 	title,
+	titleAlign = "center",
 	onClose,
 	children,
 }: {
 	title: string;
+	/** "start": o título logo depois do X, como na 2.3 "Dividir com". */
+	titleAlign?: "center" | "start";
 	onClose: () => void;
 	children: ReactNode;
 }) {
@@ -51,10 +54,17 @@ export function Sheet({
 					>
 						<XIcon size={22} aria-hidden />
 					</button>
-					<h2 className="text-(length:--text-size-headline) min-w-0 flex-1 truncate text-center font-semibold leading-[var(--text-leading-headline)]">
+					<h2
+						className={cn(
+							"text-(length:--text-size-headline) min-w-0 flex-1 truncate font-semibold leading-[var(--text-leading-headline)]",
+							titleAlign === "center" && "text-center",
+						)}
+					>
 						{title}
 					</h2>
-					<span className="size-11" aria-hidden />
+					{titleAlign === "center" ? (
+						<span className="size-11" aria-hidden />
+					) : null}
 				</div>
 				{children}
 			</div>
