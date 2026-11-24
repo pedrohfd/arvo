@@ -9,7 +9,7 @@ import { formatMoney, formatShortDate } from "@/lib/format";
 import { queryClient, trpc } from "@/utils/trpc";
 
 // Folha curta de baixo para cima: o título entre o X e um espaço do mesmo tamanho.
-function Sheet({
+export function Sheet({
 	title,
 	onClose,
 	children,
