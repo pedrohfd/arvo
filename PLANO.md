@@ -161,6 +161,17 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [x] 6.7 Conta: editar o nome (`perfil/conta.tsx`; trocar e-mail depende do P5), sair (folha de confirmação) e apagar conta (`deleteUser` do Better-Auth, pede a senha; a cascata é do banco). Exportar CSV fica para a v2 (P4)
 - [x] 6.8 Saldo mínimo (`routes/_auth/perfil/saldo-minimo.tsx`; vazio desliga o aviso)
 
+## Telas feitas sem design próprio (para revisar)
+
+Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar, desenhar no Figma ou aprovar como está, e marcar `[x]`. Levantadas em 2026-11-24 comparando os quadros de cada página do Figma com as rotas e folhas do código.
+
+- [ ] `/redefinir-senha`: página inteira, montada com as peças da 7.4 (DEV-117; o desenho em si é a DEV-72)
+- [ ] Folha "Nova pessoa": reaproveita "Renomear pessoa", que é o único quadro de pessoa (DEV-118)
+- [ ] Folhas "Editar cartão" e "Editar categoria": reaproveitam "Novo cartão" e "Nova categoria" (DEV-119)
+- [ ] Gesto de deslizar a linha (editar à direita, apagar à esquerda) em cartões, categorias e pessoas (DEV-120)
+- [ ] Detalhe da meta concluída (o cartão não abre nada) e "Apagar meta" na edição, sem folha de confirmação (DEV-121)
+- [ ] Escolhas da 3.2 Editar que o Figma não mostra: valor travado em saída dividida, só crédito em parcela, Editar desligado em reembolso, padrão da folha de escopo ("Só esta" no Figma × "Esta e as próximas" no DESIGN.md) e sem aviso de saldo mínimo (DEV-122)
+
 ## Fase 7 · Desktop e acabamento
 
 - [ ] Início, Registrar (diálogo de 560), Metas, Resumo e Perfil no layout desktop
@@ -190,3 +201,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-24 — Fase 5 (Metas, #27 a #30) e Fase 6 (Cartões e Categorias, #32 e #33) concluídas; Fase 4: Resumo (4.1, mês futuro) feito, falta o Horizonte. Regras de saldo, divisão, fatura, data futura e reembolso ligadas nos routers; séries geradas ao criar. PLANO.md e Linear reconciliados com o código.
 - 2026-11-24 — Fase 1: renovação das séries sem fim ao abrir o Início; migração `series_generated_count`. Testado no banco local: série de 1 ocorrência vira 35 (até 11/2028) e uma segunda renovação não duplica.
 - 2026-11-24 — Fase 3: Editar (3.2) feito, com `transaction.update`; testado no banco local (só esta, esta e as próximas com data nova, valor travado em dividida, erros). Não conferido no navegador contra o Figma.
+- 2026-11-24 — Levantadas as telas feitas sem design próprio (seção própria acima, issues DEV-117 a DEV-122) para revisão com foco.
