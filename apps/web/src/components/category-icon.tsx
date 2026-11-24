@@ -54,6 +54,24 @@ const ICONS: Record<string, Icon> = {
 	"chart-line-up": ChartLineUpIcon,
 };
 
+// Os 12 ícones da grade da "Nova categoria" (Figma 6.3), na ordem de lá; o primeiro é o padrão.
+export const CATEGORY_ICON_CHOICES: { name: string; label: string }[] = [
+	{ name: "gift", label: "Presente" },
+	{ name: "graduation-cap", label: "Estudo" },
+	{ name: "paw-print", label: "Pet" },
+	{ name: "airplane-tilt", label: "Viagem" },
+	{ name: "bicycle", label: "Bicicleta" },
+	{ name: "camera", label: "Foto" },
+	{ name: "heartbeat", label: "Saúde" },
+	{ name: "laptop", label: "Tecnologia" },
+	{ name: "receipt", label: "Contas" },
+	{ name: "piggy-bank", label: "Reserva" },
+	{ name: "coins", label: "Dinheiro" },
+	{ name: "chart-line-up", label: "Investimento" },
+];
+
+export const DEFAULT_CATEGORY_ICON = "gift";
+
 export function CategoryIcon({
 	name,
 	size = 22,

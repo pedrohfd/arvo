@@ -7,6 +7,7 @@ import {
 	CaretDownIcon,
 	CaretLeftIcon,
 	DotsThreeIcon,
+	PlusIcon,
 	WarningCircleIcon,
 	XIcon,
 } from "@phosphor-icons/react";
@@ -14,6 +15,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { CategoryFormSheet } from "@/components/category/category-form-sheet";
 import { CategoryIcon } from "@/components/category-icon";
 import {
 	type AmountKey,
@@ -579,6 +581,8 @@ function DetailsStep({
 			{moreOpen ? (
 				<CategorySheet
 					categories={flowCategories}
+					flow={flow}
+					allCategories={categories.data ?? []}
 					selectedId={categoryId}
 					onSelect={(id) => {
 						setCategoryId(id);
@@ -600,19 +604,28 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
 	);
 }
 
-// "Todas as categorias" (tela 6.3 no registro): a folha do "Mais". "Nova categoria" fica para a
-// tela de categorias do Perfil.
+// "Todas as categorias" (tela 6.3 no registro): a folha do "Mais", com "Nova categoria" no fim. A
+// categoria criada já fica escolhida.
 function CategorySheet({
 	categories,
+	flow,
+	allCategories,
 	selectedId,
 	onSelect,
 	onClose,
 }: {
 	categories: { id: string; name: string; icon: string }[];
+	flow: Flow;
+	allCategories: readonly {
+		id: string;
+		name: string;
+		kind: "EXPENSE" | "INCOME";
+	}[];
 	selectedId: string | null;
 	onSelect: (id: string) => void;
 	onClose: () => void;
 }) {
+	const [creating, setCreating] = useState(false);
 	useEscape(onClose);
 	return (
 		<div className="fixed inset-0 z-[60] flex items-end justify-center bg-[var(--color-overlay)]">
@@ -648,6 +661,14 @@ function CategorySheet({
 							{category.name}
 						</Chip>
 					))}
+					<button
+						type="button"
+						className="choice choice--icon"
+						onClick={() => setCreating(true)}
+					>
+						<PlusIcon size={18} className="icon" aria-hidden />
+						Nova categoria
+					</button>
 				</div>
 				<div className="px-5 pt-6 pb-6">
 					<button
@@ -659,6 +680,17 @@ function CategorySheet({
 					</button>
 				</div>
 			</div>
+			{creating ? (
+				<CategoryFormSheet
+					initialKind={flow}
+					existing={allCategories}
+					onSaved={(saved) => {
+						onSelect(saved.id);
+						onClose();
+					}}
+					onClose={() => setCreating(false)}
+				/>
+			) : null}
 		</div>
 	);
 }
