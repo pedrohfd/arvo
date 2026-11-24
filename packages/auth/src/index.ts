@@ -30,6 +30,10 @@ export function createAuth(
 				console.log(`[recuperar senha] ${user.email}: ${url}`);
 			},
 		},
+		user: {
+			// P6: apagar conta apaga tudo na hora; o banco cuida da cascata. A senha é pedida de novo.
+			deleteUser: { enabled: true },
+		},
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: env.BETTER_AUTH_URL,
 		advanced: {
