@@ -10,13 +10,13 @@ import {
 	UsersThreeIcon,
 } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { formatMoney } from "@/lib/format";
 import { trpc } from "@/utils/trpc";
 
-export const Route = createFileRoute("/_auth/perfil")({
+export const Route = createFileRoute("/_auth/perfil/")({
 	component: Perfil,
 });
 
@@ -55,6 +55,7 @@ function Perfil() {
 					<Row
 						icon={<CreditCardIcon size={24} aria-hidden />}
 						title="Meus cartões"
+						to="/perfil/cartoes"
 						value={cards.data ? String(cards.data.length) : undefined}
 					/>
 					<Row
@@ -121,20 +122,21 @@ function Row({
 	icon,
 	title,
 	value,
+	to,
 	danger = false,
 }: {
 	icon: ReactNode;
 	title: string;
 	/** Valor à direita; some enquanto carrega. */
 	value?: string;
+	/** Tela que a linha abre; sem ela a linha ainda não faz nada. */
+	to?: "/perfil/cartoes";
 	/** "Sair": sem seta, em vermelho. */
 	danger?: boolean;
 }) {
-	return (
-		<button
-			type="button"
-			className={danger ? "setting-row setting-row--danger" : "setting-row"}
-		>
+	const className = danger ? "setting-row setting-row--danger" : "setting-row";
+	const content = (
+		<>
 			<span className="setting-row__icon">{icon}</span>
 			<span className="setting-row__text">
 				<span className="setting-row__title">{title}</span>
@@ -147,6 +149,18 @@ function Row({
 					aria-hidden
 				/>
 			)}
+		</>
+	);
+	if (to) {
+		return (
+			<Link to={to} className={className}>
+				{content}
+			</Link>
+		);
+	}
+	return (
+		<button type="button" className={className}>
+			{content}
 		</button>
 	);
 }
