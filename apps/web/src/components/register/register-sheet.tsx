@@ -8,6 +8,7 @@ import {
 	CaretLeftIcon,
 	DotsThreeIcon,
 	PlusIcon,
+	UserPlusIcon,
 	WarningCircleIcon,
 	XIcon,
 } from "@phosphor-icons/react";
@@ -24,6 +25,7 @@ import {
 	pressKey,
 	toCents,
 } from "@/lib/amount-input";
+import { authClient } from "@/lib/auth-client";
 import { formatMoney, moneyParts } from "@/lib/format";
 import {
 	creditHint,
@@ -38,9 +40,11 @@ import {
 	samePayment,
 	visibleCategories,
 } from "@/lib/register";
+import { initials, splitHint } from "@/lib/split-with";
 import { trpc } from "@/utils/trpc";
 import { DateSheet } from "./date-sheet";
 import { Chip, Grabber, useEscape } from "./parts";
+import { SplitSheet } from "./split-sheet";
 
 export type Registered = {
 	/** Transações criadas (várias quando repete ou parcela). */
@@ -49,9 +53,8 @@ export type Registered = {
 	amountCents: number;
 };
 
-// Folha do Registrar (série 2 do Figma): 2.1 valor com teclado e 2.2 detalhes. Ainda não
-// existem: o seletor de data (2.4), "Dividir a conta" (2.3), "Outro" em "Por quantos meses" e o
-// parcelamento (D9, sem tela no Figma).
+// Folha do Registrar (série 2 do Figma): 2.1 valor com teclado, 2.2 detalhes, 2.3 dividir com e
+// 2.4 data. Ainda não existem: "Outro" em "Por quantos meses" e o parcelamento (D9, sem tela).
 export function RegisterSheet({
 	initialFlow,
 	onClose,
@@ -285,6 +288,11 @@ function DetailsStep({
 	const cards = useQuery(trpc.card.list.queryOptions());
 	const home = useQuery(trpc.summary.home.queryOptions());
 	const settings = useQuery(trpc.settings.get.queryOptions());
+	const people = useQuery({
+		...trpc.person.list.queryOptions(),
+		enabled: flow === "EXPENSE",
+	});
+	const session = authClient.useSession();
 
 	const [categoryId, setCategoryId] = useState<string | null>(null);
 	const [categoryError, setCategoryError] = useState(false);
@@ -295,6 +303,10 @@ function DetailsStep({
 	const [pickedPayment, setPickedPayment] = useState<Payment | null>(null);
 	const [repeat, setRepeat] = useState(false);
 	const [repeatCount, setRepeatCount] = useState<number | null>(null);
+	// Dividir só vale para saída que não se repete (o servidor recusa as duas coisas juntas).
+	const [split, setSplit] = useState(false);
+	const [splitIds, setSplitIds] = useState<string[]>([]);
+	const [splitOpen, setSplitOpen] = useState(false);
 	// Gerado uma vez por abertura: reenviar o mesmo registro não duplica.
 	const clientId = useRef(crypto.randomUUID());
 
@@ -308,6 +320,11 @@ function DetailsStep({
 			? cardList.find((card) => card.id === payment.cardId)
 			: undefined;
 	const { shown, hasMore } = visibleCategories(flowCategories, categoryId);
+	const peopleList = people.data ?? [];
+	const splitPeople = splitIds
+		.map((id) => peopleList.find((person) => person.id === id))
+		.filter((person) => person !== undefined);
+	const splitting = flow === "EXPENSE" && split && !repeat;
 
 	const warning = minimumBalanceWarning({
 		balanceCents: home.data?.balance.balanceCents ?? 0,
@@ -342,6 +359,10 @@ function DetailsStep({
 			paymentMethod: payment.kind === "card" ? "CARD" : payment.kind,
 			cardId: payment.kind === "card" ? payment.cardId : undefined,
 			repeat: repeat ? { intervalMonths: 1, count: repeatCount } : undefined,
+			splitWithPersonIds:
+				splitting && splitPeople.length > 0
+					? splitPeople.map((person) => person.id)
+					: undefined,
 		});
 	}
 
@@ -511,7 +532,10 @@ function DetailsStep({
 							aria-checked={repeat}
 							aria-labelledby="repeat-title"
 							className="switch"
-							onClick={() => setRepeat((value) => !value)}
+							onClick={() => {
+								setRepeat((value) => !value);
+								if (!repeat) setSplit(false);
+							}}
 						/>
 					</div>
 					{repeat ? (
@@ -546,6 +570,81 @@ function DetailsStep({
 						</div>
 					) : null}
 				</div>
+
+				{flow === "EXPENSE" ? (
+					<div className="flex flex-col">
+						<div className="switch-row">
+							<div className="switch-row__text">
+								<span className="switch-row__title" id="split-title">
+									Dividir a conta
+								</span>
+								<span className="switch-row__desc">
+									Partes iguais, contando você
+								</span>
+							</div>
+							<button
+								type="button"
+								role="switch"
+								aria-checked={splitting}
+								aria-labelledby="split-title"
+								className="switch"
+								onClick={() => {
+									if (splitting) {
+										setSplit(false);
+										return;
+									}
+									setSplit(true);
+									setRepeat(false);
+									if (splitPeople.length === 0) setSplitOpen(true);
+								}}
+							/>
+						</div>
+						{splitting ? (
+							<div className="flex flex-col gap-3 pt-1">
+								<div className="flex flex-wrap gap-2">
+									<span className="person-chip person-chip--you">
+										<span className="person-chip__avatar" aria-hidden>
+											{initials(session.data?.user.name ?? "") || "V"}
+										</span>
+										<span className="person-chip__name">Você</span>
+									</span>
+									{splitPeople.map((person) => (
+										<span key={person.id} className="person-chip">
+											<span className="person-chip__avatar" aria-hidden>
+												{initials(person.name)}
+											</span>
+											<span className="person-chip__name">{person.name}</span>
+											<button
+												type="button"
+												className="icon-btn"
+												aria-label={`Tirar ${person.name} da divisão`}
+												onClick={() =>
+													setSplitIds((ids) =>
+														ids.filter((id) => id !== person.id),
+													)
+												}
+											>
+												<XIcon size={16} aria-hidden />
+											</button>
+										</span>
+									))}
+									<button
+										type="button"
+										className="choice choice--icon"
+										aria-haspopup="dialog"
+										onClick={() => setSplitOpen(true)}
+									>
+										<UserPlusIcon size={18} className="icon" aria-hidden />
+										Pessoa
+									</button>
+								</div>
+								<p className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-5">
+									{splitHint(cents, splitPeople.length)}
+								</p>
+							</div>
+						) : null}
+					</div>
+				) : null}
 			</div>
 
 			<div className="shrink-0 px-5 pt-3 pb-6">
@@ -576,6 +675,18 @@ function DetailsStep({
 						setDateOpen(false);
 					}}
 					onClose={() => setDateOpen(false)}
+				/>
+			) : null}
+			{splitOpen ? (
+				<SplitSheet
+					people={peopleList}
+					selectedIds={splitIds}
+					amountCents={cents}
+					onDone={(ids) => {
+						setSplitIds(ids);
+						setSplitOpen(false);
+					}}
+					onClose={() => setSplitOpen(false)}
 				/>
 			) : null}
 			{moreOpen ? (

@@ -119,8 +119,8 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [ ] Busca sem acento e sem maiúsculas, só no mês escolhido
 - [ ] Estados: carregando, não carregou, sem internet, erro na linha da transação
 - [x] 2.1 Valor com teclado numérico (vírgula, centavos só depois dela): `components/register/register-sheet.tsx` e `lib/amount-input.ts` (grupo 9 do TESTES.md, 14 testes); teclado do computador também
-- [~] 2.2 Detalhes: categoria (com a folha "Mais"), título, forma de pagamento, repetir (sem fim, 2, 3, 6, 10, 12) e aviso de saldo mínimo feitos; faltam "Dividir a conta" (2.3), "Outro" em "Por quantos meses" e o parcelamento (D9, sem tela)
-- [ ] 2.3 Dividir com (pessoas só como nomes)
+- [~] 2.2 Detalhes: categoria (com a folha "Mais"), título, forma de pagamento, repetir (sem fim, 2, 3, 6, 10, 12) e aviso de saldo mínimo feitos; faltam "Outro" em "Por quantos meses" e o parcelamento (D9, sem tela)
+- [x] 2.3 Dividir com: interruptor "Dividir a conta" na 2.2 (só saída que não se repete) e folha `components/register/split-sheet.tsx` (escolher pessoas, nome novo cria a pessoa, nome repetido avisa); dica da parte de cada um em `lib/split-with.ts` (com testes)
 - [x] 2.4 Seletor de data: `components/register/date-sheet.tsx` e `lib/date-picker.ts` (atalhos Ontem/Hoje/Amanhã, calendário do mês, até 24 meses à frente; aviso "Ainda não entra no saldo" na data futura)
 - [ ] Aviso de saldo mínimo ao registrar (âmbar, não bloqueia)
 - [ ] **+** funciona offline: fila em IndexedDB, enviada quando a rede volta
@@ -183,3 +183,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-23 — Fase 1: regras de dinheiro puras (saldo, divisão, fatura, saldo mínimo, recorrência e parcelamento, reembolso, metas, Resumo e Horizonte) com 130 testes, verificados por mutação. Falta ligar nos routers tRPC.
 - 2026-11-24 — Fase 6: Pessoas (6.4) e Saldo mínimo (6.8) feitas; `person.list` devolve `splitCount`.
 - 2026-11-24 — Fase 6 concluída: Aparência (6.6) e Conta (6.7: editar nome, sair, apagar conta com senha).
+- 2026-11-24 — Fase 3: Dividir com (2.3) no Registrar.
