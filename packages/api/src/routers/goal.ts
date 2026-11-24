@@ -43,6 +43,30 @@ function assertOpen(goal: { completedAt: Date | null }) {
 	}
 }
 
+type GoalRow = Awaited<ReturnType<typeof findGoal>>;
+
+function toGoalView(goal: GoalRow, today: string) {
+	const saved = savedCents(goal.movements);
+	const deadline = goal.deadline ? fromDbDate(goal.deadline) : null;
+	return {
+		id: goal.id,
+		name: goal.name,
+		icon: goal.icon,
+		kind: goal.kind,
+		targetCents: goal.targetCents,
+		deadline,
+		completedAt: goal.completedAt ? fromDbDate(goal.completedAt) : null,
+		savedCents: saved,
+		reached: isGoalReached(saved, goal.targetCents),
+		hint: monthlyHint({
+			targetCents: goal.targetCents,
+			savedCents: saved,
+			deadline,
+			reference: today,
+		}),
+	};
+}
+
 export const goalRouter = router({
 	list: protectedProcedure.query(async ({ ctx }) => {
 		const today = todayInSaoPaulo();
@@ -51,28 +75,27 @@ export const goalRouter = router({
 			orderBy: { createdAt: "asc" },
 			include: { movements: { select: { type: true, amountCents: true } } },
 		});
-		return goals.map((goal) => {
-			const saved = savedCents(goal.movements);
-			const deadline = goal.deadline ? fromDbDate(goal.deadline) : null;
-			return {
-				id: goal.id,
-				name: goal.name,
-				icon: goal.icon,
-				kind: goal.kind,
-				targetCents: goal.targetCents,
-				deadline,
-				completedAt: goal.completedAt ? fromDbDate(goal.completedAt) : null,
-				savedCents: saved,
-				reached: isGoalReached(saved, goal.targetCents),
-				hint: monthlyHint({
-					targetCents: goal.targetCents,
-					savedCents: saved,
-					deadline,
-					reference: today,
-				}),
-			};
-		});
+		return goals.map((goal) => toGoalView(goal, today));
 	}),
+
+	// Detalhe: a meta com o histórico de movimentos, do mais novo para o mais antigo.
+	get: protectedProcedure
+		.input(z.object({ id: z.string() }))
+		.query(async ({ ctx, input }) => {
+			const goal = await findGoal(ctx.db, ctx.session.user.id, input.id);
+			const movements = await ctx.db.goalMovement.findMany({
+				where: { goalId: goal.id },
+				orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+				select: { id: true, type: true, amountCents: true, date: true },
+			});
+			return {
+				...toGoalView(goal, todayInSaoPaulo()),
+				movements: movements.map((movement) => ({
+					...movement,
+					date: fromDbDate(movement.date),
+				})),
+			};
+		}),
 
 	create: protectedProcedure
 		.input(z.object({ ...goalFields, kind: z.enum(["SPEND", "KEEP"]) }))

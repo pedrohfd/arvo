@@ -15,21 +15,31 @@ import { Chip, Grabber, useEscape } from "./parts";
 const WEEKDAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 // Tela 2.4 do Figma: atalhos Ontem/Hoje/Amanhã e o calendário do mês. A escolha só vale ao tocar
-// em "Pronto"; fechar no X descarta.
+// em "Pronto"; fechar no X descarta. Na "Data limite" da meta (5.3) não há atalhos, dias antes de
+// `minDate` ficam desligados e "Sem data" limpa a escolha (`onClear` vale se o "Pronto" vier sem
+// data).
 export function DateSheet({
 	value,
 	today,
+	title = "Data",
+	shortcuts = true,
+	minDate,
 	onSelect,
+	onClear,
 	onClose,
 }: {
-	value: string;
+	value: string | null;
 	today: string;
+	title?: string;
+	shortcuts?: boolean;
+	minDate?: string;
 	onSelect: (date: string) => void;
+	onClear?: () => void;
 	onClose: () => void;
 }) {
 	const [draft, setDraft] = useState(value);
 	// O mês mostrado acompanha a data escolhida, mas as setas podem passear por outros meses.
-	const [month, setMonth] = useState(value.slice(0, 7));
+	const [month, setMonth] = useState((value ?? today).slice(0, 7));
 	useEscape(onClose);
 
 	const { yesterday, tomorrow } = shortcutDates(today);
@@ -47,7 +57,7 @@ export function DateSheet({
 			<div
 				role="dialog"
 				aria-modal="true"
-				aria-label="Data"
+				aria-label={title}
 				className="flex h-[601px] max-h-[calc(100svh-56px)] w-full max-w-[480px] flex-col rounded-t-[var(--radius-xl)] bg-[var(--color-surface)] shadow-[var(--shadow-strong)]"
 			>
 				<Grabber />
@@ -61,25 +71,30 @@ export function DateSheet({
 						<XIcon size={22} aria-hidden />
 					</button>
 					<h2 className="text-(length:--text-size-headline) font-semibold leading-6">
-						Data
+						{title}
 					</h2>
 				</div>
 
 				<div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-4">
-					<div className="choices">
-						<Chip
-							selected={draft === yesterday}
-							onClick={() => pick(yesterday)}
-						>
-							Ontem
-						</Chip>
-						<Chip selected={draft === today} onClick={() => pick(today)}>
-							Hoje
-						</Chip>
-						<Chip selected={draft === tomorrow} onClick={() => pick(tomorrow)}>
-							Amanhã
-						</Chip>
-					</div>
+					{shortcuts ? (
+						<div className="choices">
+							<Chip
+								selected={draft === yesterday}
+								onClick={() => pick(yesterday)}
+							>
+								Ontem
+							</Chip>
+							<Chip selected={draft === today} onClick={() => pick(today)}>
+								Hoje
+							</Chip>
+							<Chip
+								selected={draft === tomorrow}
+								onClick={() => pick(tomorrow)}
+							>
+								Amanhã
+							</Chip>
+						</div>
+					) : null}
 
 					<div className="flex flex-col gap-3">
 						<div className="flex h-11 items-center justify-between">
@@ -121,7 +136,9 @@ export function DateSheet({
 									{week.map((cell) => {
 										const selected = cell.date === draft;
 										const isToday = cell.date === today;
-										const pickable = isPickable(cell.date, today);
+										const beforeMin =
+											minDate !== undefined && cell.date < minDate;
+										const pickable = isPickable(cell.date, today) && !beforeMin;
 										const day = Number(cell.date.slice(8, 10));
 										return (
 											<button
@@ -145,7 +162,8 @@ export function DateSheet({
 																	"font-semibold shadow-[inset_0_0_0_1px_var(--color-focus)]",
 															],
 													!pickable &&
-														"cursor-default text-[var(--color-text-disabled)] line-through hover:bg-transparent",
+														"cursor-default text-[var(--color-text-disabled)] hover:bg-transparent",
+													!pickable && !beforeMin && "line-through",
 												)}
 											>
 												{day}
@@ -158,11 +176,25 @@ export function DateSheet({
 					</div>
 				</div>
 
+				{onClear ? (
+					<div className="flex shrink-0 justify-center pb-2">
+						<button
+							type="button"
+							className="text-(length:--text-size-small) h-11 rounded-full px-4 font-semibold text-[var(--color-primary-soft-text)] leading-5 hover:bg-[var(--color-tint-hover)] disabled:opacity-[var(--text-opacity-disabled)] disabled:hover:bg-transparent"
+							disabled={draft === null}
+							onClick={() => setDraft(null)}
+						>
+							Sem data
+						</button>
+					</div>
+				) : null}
+
 				<div className="shrink-0 px-5 pt-3 pb-6">
 					<button
 						type="button"
 						className="btn-primary btn-primary--block"
-						onClick={() => onSelect(draft)}
+						disabled={draft === null && !onClear}
+						onClick={() => (draft ? onSelect(draft) : onClear?.())}
 					>
 						Pronto
 					</button>
