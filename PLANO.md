@@ -82,7 +82,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Retomada (próxima sessão)
 
-1. Falta na Fase 1: renovação das séries "sem fim" ao abrir o app (P2) e `transaction.update` (3.2, Editar).
+1. Falta na Fase 1: `transaction.update` (3.2, Editar).
 2. Falta na Fase 3: 3.2 Editar, 3.4 A receber por pessoa, seletor de mês (1.10), busca, gesto de recolher o saldo, fila offline do **+** e "Outro" em "Por quantos meses".
 3. Falta na Fase 4: Horizonte (4.2) com a lista "O que vem" e a linha de saldo mínimo, a lista ao tocar numa categoria e o aviso de sem internet.
 4. Fase 7 inteira (desktop e acabamento) e a conferência visual da Fase 0 no navegador.
@@ -92,7 +92,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 - [x] Schema Prisma (`packages/db/prisma/schema/finance.prisma` + migração `finance_model`): `Category`, `Card`, `Person`, `Series`, `Transaction`, `TransactionSplit`, `Goal`, `GoalMovement`, `UserSettings`; tudo ligado ao usuário com `onDelete: Cascade` (P6). Categoria e pessoa em uso não se apagam (`NoAction`, conferido só no fim da transação para a cascata da conta passar); apagar cartão mantém as compras. Restrições `CHECK` no SQL da migração. As relações com `User` são injetadas em `auth.prisma` por `scripts/patch-auth-schema.ts` (roda dentro do `auth:generate`)
 - [x] Dinheiro em centavos inteiros (`amountCents`, até 999.999.999 por `CHECK`)
-- [~] Recorrência e parcelamento (`Series`) — regra pura pronta em `recurrence.ts`; as ocorrências são geradas ao criar (`lib/plan-transaction.ts`, usado por `transaction.create`, com `repeat` e `installments`); falta a renovação das séries "sem fim" ao abrir o app (24 meses à frente, P2); "repetir" com periodicidade (`intervalMonths`: 1, 3, 12...) e parcelamento no crédito (N parcelas do valor digitado)
+- [x] Recorrência e parcelamento (`Series`) — regra pura pronta em `recurrence.ts`; as ocorrências são geradas ao criar (`lib/plan-transaction.ts`, usado por `transaction.create`, com `repeat` e `installments`); as séries "sem fim" são renovadas ao abrir o Início (`lib/renew-series.ts`, chamado por `summary.home`; 24 meses à frente, P2; o contador `Series.generatedCount` impede de recriar o que foi apagado, e apagar "esta e as próximas" encerra a série, com o "Desfazer" reabrindo); "repetir" com periodicidade (`intervalMonths`: 1, 3, 12...) e parcelamento no crédito (N parcelas do valor digitado)
 - [x] Regra do saldo: entrou − saiu − guardado + crédito a pagar (nunca armazenado). `rules/balance.ts` ligada em `summary` e `goal`
 - [x] Regra da divisão: partes iguais contando você; os centavos que sobram ficam com você (`rules/split.ts`, ligada em `transaction.create`)
 - [x] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento (`rules/invoice.ts`, ligada em `card` e `summary`)
@@ -188,3 +188,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-24 — Fase 3: detalhe da transação (3.1, sem o Editar) e apagar com desfazer (3.3).
 - 2026-11-24 — Fase 3: Registrar com divisão (2.3), detalhe da transação (3.1, sem o Editar) e apagar com desfazer (3.3) mergeados (#36, #37).
 - 2026-11-24 — Fase 5 (Metas, #27 a #30) e Fase 6 (Cartões e Categorias, #32 e #33) concluídas; Fase 4: Resumo (4.1, mês futuro) feito, falta o Horizonte. Regras de saldo, divisão, fatura, data futura e reembolso ligadas nos routers; séries geradas ao criar. PLANO.md e Linear reconciliados com o código.
+- 2026-11-24 — Fase 1: renovação das séries sem fim ao abrir o Início; migração `series_generated_count`. Testado no banco local: série de 1 ocorrência vira 35 (até 11/2028) e uma segunda renovação não duplica.
