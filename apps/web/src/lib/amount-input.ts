@@ -23,6 +23,14 @@ export function toCents(value: string): number {
 	return Number(integer || "0") * 100 + Number(decimals.padEnd(2, "0") || "0");
 }
 
+/** Texto do teclado para um valor já guardado (12050 → "120,5"), usado ao editar. */
+export function centsToRaw(cents: number): string {
+	const integer = Math.floor(cents / 100);
+	const decimals = String(cents % 100).padStart(2, "0");
+	if (decimals === "00") return String(integer);
+	return `${integer},${decimals.replace(/0$/, "")}`;
+}
+
 /** Chegou ao máximo de R$ 9.999.999,99: o teclado desliga os dígitos e a vírgula. */
 export function isAtLimit(value: string) {
 	return toCents(value) >= MAX_AMOUNT_CENTS;

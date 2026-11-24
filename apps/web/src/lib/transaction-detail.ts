@@ -236,6 +236,40 @@ export function scopeSheet(tx: DetailTransaction) {
 	};
 }
 
+/** Título, opções e botão da folha 3.2 "salvar recorrente" (Figma: editar recorrente). */
+export function editScopeSheet(tx: DetailTransaction) {
+	const series = tx.series as DetailSeries;
+	const installment = series.kind === "INSTALLMENT" && series.count !== null;
+	const first = series.index === 1;
+	const when = formatShortDate(tx.date);
+
+	if (installment && series.count) {
+		return {
+			title: "Salvar em quais parcelas?",
+			only: {
+				title: "Só esta",
+				desc: `Parcela ${series.index} de ${series.count}, de ${when}`,
+			},
+			next: {
+				title: first ? "Todas as parcelas" : "Esta e as próximas",
+				desc: first
+					? `Parcelas 1 a ${series.count}`
+					: `Parcelas ${series.index} a ${series.count} · as anteriores não mudam`,
+			},
+		};
+	}
+	return {
+		title: "Salvar em quais repetições?",
+		only: { title: "Só esta", desc: `A de ${when}` },
+		next: {
+			title: first ? "Todas" : "Esta e as próximas",
+			desc: first
+				? "A repetição inteira"
+				: `De ${when} em diante · as anteriores não mudam`,
+		},
+	};
+}
+
 /** Aviso depois de apagar: "Saída apagada · R$ 85,50" ou "3 saídas apagadas". */
 export function deletedToast(kind: Kind, deleted: number, amountCents: number) {
 	if (deleted <= 1) {

@@ -82,8 +82,8 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Retomada (próxima sessão)
 
-1. Falta na Fase 1: `transaction.update` (3.2, Editar).
-2. Falta na Fase 3: 3.2 Editar, 3.4 A receber por pessoa, seletor de mês (1.10), busca, gesto de recolher o saldo, fila offline do **+** e "Outro" em "Por quantos meses".
+1. A Fase 1 está completa, salvo os testes dos grupos 10 e 11 do TESTES.md.
+2. Falta na Fase 3: 3.4 A receber por pessoa, seletor de mês (1.10), busca, gesto de recolher o saldo, fila offline do **+** e "Outro" em "Por quantos meses".
 3. Falta na Fase 4: Horizonte (4.2) com a lista "O que vem" e a linha de saldo mínimo, a lista ao tocar numa categoria e o aviso de sem internet.
 4. Fase 7 inteira (desktop e acabamento) e a conferência visual da Fase 0 no navegador.
 5. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 e D9 (Figma), propagar o Campo nas telas do Figma, desenhar `/redefinir-senha`.
@@ -98,7 +98,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [x] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento (`rules/invoice.ts`, ligada em `card` e `summary`)
 - [x] Data futura entra no saldo só quando a data chega (`balance.ts` com a data de referência de `lib/calendar.ts`)
 - [x] Marcar pago cria entrada de reembolso (desligável); apagar a saída apaga os reembolsos gerados (`settlement.ts`, ligada em `split`; no banco, a cascata de `reimbursedSplitId` apaga)
-- [~] Routers tRPC prontos (`goal` também tem `monthMovements`): `category`, `transaction` (listar, criar, apagar), `summary` (Início, Resumo do mês, Horizonte), `card` (listar, criar, editar, apagar), `goal` (criar, editar, guardar, resgatar, concluir, apagar), `person`, `split` (A receber, marcar/desmarcar pago com reembolso) e `settings` (saldo mínimo); `transaction.get` e `transaction.restore` (desfazer o apagar) feitos; falta editar transação
+- [x] Routers tRPC prontos (`goal` também tem `monthMovements`): `category`, `transaction` (listar, criar, apagar), `summary` (Início, Resumo do mês, Horizonte), `card` (listar, criar, editar, apagar), `goal` (criar, editar, guardar, resgatar, concluir, apagar), `person`, `split` (A receber, marcar/desmarcar pago com reembolso) e `settings` (saldo mínimo); `transaction.get`, `transaction.restore` (desfazer o apagar) e `transaction.update` (editar, com "Só esta" / "Esta e as próximas") feitos
 - [x] Categorias padrão criadas no cadastro (`packages/db/src/default-categories.ts`, hook `databaseHooks.user.create.after` no Better-Auth)
 - [~] Testes das regras de dinheiro, conforme [TESTES.md](TESTES.md): grupos 1 a 8 escritos (130 testes, verificados por mutação); faltam os grupos 9 a 11, do app web (teclado de valor, busca, fila offline)
 
@@ -125,8 +125,8 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [x] 2.4 Seletor de data: `components/register/date-sheet.tsx` e `lib/date-picker.ts` (atalhos Ontem/Hoje/Amanhã, calendário do mês, até 24 meses à frente; aviso "Ainda não entra no saldo" na data futura)
 - [x] Aviso de saldo mínimo ao registrar (âmbar, não bloqueia; feito na 2.2)
 - [ ] **+** funciona offline: fila em IndexedDB, enviada quando a rede volta
-- [~] 3.1 Detalhe da transação: rota `/transacao/$transactionId` (simples, dividida, tudo acertado, entrada, parcela/repete, data futura, apagada em outro aparelho, carregando, erro), marcar/desmarcar pago e apagar; textos em `lib/transaction-detail.ts` (com testes). Falta o "Editar" (3.2; o botão está desligado) e "não salvou" (depende da fila offline)
-- [ ] 3.2 Editar (falta `transaction.update`; o botão está desligado); "Só esta" / "Esta e as próximas" em recorrentes
+- [~] 3.1 Detalhe da transação: rota `/transacao/$transactionId` (simples, dividida, tudo acertado, entrada, parcela/repete, data futura, apagada em outro aparelho, carregando, erro), marcar/desmarcar pago e apagar; textos em `lib/transaction-detail.ts` (com testes). Falta "não salvou" (depende da fila offline)
+- [x] 3.2 Editar: o mesmo `RegisterSheet` em modo edição (`editing`), sem repetir nem dividir; valor travado em saída dividida, parcela só em cartão de crédito, reembolso não se edita; em série, folha "Salvar em quais parcelas/repetições?" (começa em "Esta e as próximas"); com outra data, as seguintes acompanham (`lib/plan-edit.ts`, com testes), e o início e o dia da série são refeitos para a renovação continuar do mesmo ponto; "Só esta" / "Esta e as próximas" em recorrentes
 - [x] 3.3 Apagar: folha de confirmação, "Só esta" / "Esta e as próximas" em série, e aviso "Saída apagada · Desfazer" (10 s) na Início. O `transaction.delete` devolve um retrato do que saiu (com os reembolsos) e o `transaction.restore` recria com os mesmos ids. Obs. para a renovação do "sem fim" (P2): "esta e as próximas" não encerra a série, então a renovação não pode recriar o que foi apagado
 - [ ] 3.4 A receber, por pessoa
 - [ ] Contagem do saldo ao registrar (respeitando "reduzir movimento")
@@ -189,3 +189,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-24 — Fase 3: Registrar com divisão (2.3), detalhe da transação (3.1, sem o Editar) e apagar com desfazer (3.3) mergeados (#36, #37).
 - 2026-11-24 — Fase 5 (Metas, #27 a #30) e Fase 6 (Cartões e Categorias, #32 e #33) concluídas; Fase 4: Resumo (4.1, mês futuro) feito, falta o Horizonte. Regras de saldo, divisão, fatura, data futura e reembolso ligadas nos routers; séries geradas ao criar. PLANO.md e Linear reconciliados com o código.
 - 2026-11-24 — Fase 1: renovação das séries sem fim ao abrir o Início; migração `series_generated_count`. Testado no banco local: série de 1 ocorrência vira 35 (até 11/2028) e uma segunda renovação não duplica.
+- 2026-11-24 — Fase 3: Editar (3.2) feito, com `transaction.update`; testado no banco local (só esta, esta e as próximas com data nova, valor travado em dividida, erros). Não conferido no navegador contra o Figma.
