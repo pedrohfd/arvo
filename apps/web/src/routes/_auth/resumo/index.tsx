@@ -12,7 +12,7 @@ import {
 	WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
@@ -20,15 +20,15 @@ import { CategoryIcon } from "@/components/category-icon";
 import { formatMoney, moneyParts, monthName } from "@/lib/format";
 import { trpc } from "@/utils/trpc";
 
-export const Route = createFileRoute("/_auth/resumo")({
+export const Route = createFileRoute("/_auth/resumo/")({
 	component: Resumo,
 });
 
 type MonthSummary = inferRouterOutputs<AppRouter>["summary"]["month"];
 
 // Tela 4.1 do Figma (página "Arvo · 4 Resumo"): normal, faltou, mês futuro, sem movimento,
-// carregando e não carregou. Ainda não existem: o Horizonte (4.2, o botão do topo), a lista que
-// abre ao tocar numa categoria, o celular pequeno recolhido e o aviso de sem internet.
+// carregando e não carregou. Ainda não existem: a lista que abre ao tocar numa categoria, o
+// celular pequeno recolhido e o aviso de sem internet. O botão do topo abre o Horizonte (4.2).
 function Resumo() {
 	// O mês do aparelho vale até haver um "hoje" do servidor só para isso; o Início faz igual.
 	const currentMonth = new Date().toLocaleDateString("sv-SE").slice(0, 7);
@@ -41,14 +41,14 @@ function Resumo() {
 				<h1 className="display text-(length:--text-size-display) leading-[var(--text-leading-display)]">
 					Resumo
 				</h1>
-				<button
-					type="button"
+				<Link
+					to="/resumo/horizonte"
 					className="month-btn !h-10 !px-4 !gap-2 font-semibold text-[var(--color-text)]"
 				>
 					<ChartLineUpIcon size={18} aria-hidden />
 					Horizonte
 					<CaretRightIcon size={14} className="icon" aria-hidden />
-				</button>
+				</Link>
 			</div>
 
 			<MonthRow selected={month} current={currentMonth} onSelect={setMonth} />

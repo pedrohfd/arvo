@@ -118,18 +118,101 @@ export const summaryRouter = router({
 			};
 		}),
 
-	// Horizonte: saldo previsto no fim de cada mês, só com o que está agendado.
+	// Horizonte (4.2): o saldo de hoje, o saldo previsto no fim de cada mês (só com o que está
+	// agendado) e "O que vem", a lista do agendado até o fim do último mês.
 	horizon: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const [{ transactions, goalMovements }, settings] = await Promise.all([
-			loadFinanceData(ctx.db, userId),
+		const today = todayInSaoPaulo();
+		const [rows, movements, settings, categories, cards] = await Promise.all([
+			ctx.db.transaction.findMany({
+				where: { userId },
+				select: {
+					id: true,
+					kind: true,
+					amountCents: true,
+					date: true,
+					dueDate: true,
+					categoryId: true,
+					cardId: true,
+					title: true,
+					paymentMethod: true,
+				},
+			}),
+			ctx.db.goalMovement.findMany({
+				where: { goal: { userId } },
+				select: { type: true, amountCents: true, date: true },
+			}),
 			ctx.db.userSettings.findUnique({ where: { userId } }),
+			ctx.db.category.findMany({
+				where: { userId },
+				select: { id: true, name: true, icon: true },
+			}),
+			ctx.db.card.findMany({
+				where: { userId },
+				select: { id: true, name: true },
+			}),
 		]);
-		return forecastHorizon({
-			transactions,
-			goalMovements,
-			reference: todayInSaoPaulo(),
-			minimumCents: settings?.minimumBalanceCents ?? 0,
-		});
+		const transactions = rows.map((row) => ({
+			id: row.id,
+			title: row.title,
+			paymentMethod: row.paymentMethod,
+			kind: row.kind,
+			amountCents: row.amountCents,
+			date: fromDbDate(row.date),
+			dueDate: row.dueDate ? fromDbDate(row.dueDate) : null,
+			categoryId: row.categoryId,
+			cardId: row.cardId,
+		}));
+		const goalMovements = movements.map((movement) => ({
+			type: movement.type,
+			amountCents: movement.amountCents,
+			date: fromDbDate(movement.date),
+		}));
+		const minimumCents = settings?.minimumBalanceCents ?? 0;
+		const monthsAhead = 5;
+		const points = rule(() =>
+			forecastHorizon({
+				transactions,
+				goalMovements,
+				reference: today,
+				minimumCents,
+				monthsAhead,
+			}),
+		);
+		const categoryById = new Map(categories.map((row) => [row.id, row]));
+		const cardById = new Map(cards.map((row) => [row.id, row]));
+		const last = points.at(-1);
+		const upcoming = rule(() =>
+			upcomingItems(transactions, today, last?.endDate),
+		).map((item) =>
+			item.type === "INVOICE"
+				? {
+						type: "INVOICE" as const,
+						date: item.date,
+						amountCents: item.amountCents,
+						cardName: (item.cardId && cardById.get(item.cardId)?.name) || null,
+					}
+				: {
+						type: "TRANSACTION" as const,
+						date: item.date,
+						amountCents: item.transaction.amountCents,
+						kind: item.transaction.kind,
+						title: item.transaction.title,
+						paymentMethod: item.transaction.paymentMethod,
+						cardName:
+							(item.transaction.cardId &&
+								cardById.get(item.transaction.cardId)?.name) ||
+							null,
+						category: categoryById.get(item.transaction.categoryId) ?? null,
+					},
+		);
+		return {
+			today,
+			balanceCents: computeBalance({ transactions, goalMovements }, today)
+				.balanceCents,
+			minimumCents,
+			points,
+			upcoming,
+		};
 	}),
 });
