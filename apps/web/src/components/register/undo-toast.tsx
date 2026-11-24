@@ -1,23 +1,22 @@
 import { CheckCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
-import { formatMoney } from "@/lib/format";
-import type { Registered } from "./register-sheet";
-
-const SECONDS = 6;
-
-// Aviso temporário da 1.7 "acabou de registrar": confirma o registro e oferece "Desfazer" por 6
-// segundos, com a contagem ao lado.
+// Aviso temporário com "Desfazer" e a contagem ao lado: 1.7 "acabou de registrar" (6 s) e 3.3
+// "apagou" (10 s).
 export function UndoToast({
-	registered,
+	title,
+	detail,
+	seconds,
 	onUndo,
 	onExpire,
 }: {
-	registered: Registered;
+	title: string;
+	detail: string | null;
+	seconds: number;
 	onUndo: () => void;
 	onExpire: () => void;
 }) {
-	const [left, setLeft] = useState(SECONDS);
+	const [left, setLeft] = useState(seconds);
 
 	useEffect(() => {
 		if (left <= 0) {
@@ -33,10 +32,8 @@ export function UndoToast({
 			<div className="toast" role="status">
 				<CheckCircleIcon size={20} aria-hidden />
 				<span className="toast__text">
-					<b>
-						{registered.flow === "EXPENSE" ? "Saída" : "Entrada"} registrada
-					</b>{" "}
-					· {formatMoney(registered.amountCents)}
+					<b>{title}</b>
+					{detail ? ` · ${detail}` : null}
 				</span>
 				<button type="button" className="toast__action" onClick={onUndo}>
 					Desfazer <span className="toast__count">{left}</span>

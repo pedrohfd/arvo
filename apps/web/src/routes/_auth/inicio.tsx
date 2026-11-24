@@ -15,7 +15,7 @@ import {
 	WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { ReactNode } from "react";
 
@@ -367,7 +367,11 @@ function TxRow({ tx }: { tx: Tx }) {
 		.filter((split) => !split.paidAt)
 		.reduce((sum, split) => sum + split.amountCents, 0);
 	return (
-		<div className={cn("tx-row", income && "tx-row--income")}>
+		<Link
+			to="/transacao/$transactionId"
+			params={{ transactionId: tx.id }}
+			className={cn("tx-row", income && "tx-row--income")}
+		>
 			<span className="tx-row__icon">
 				<CategoryIcon name={tx.category.icon} />
 			</span>
@@ -391,7 +395,7 @@ function TxRow({ tx }: { tx: Tx }) {
 					<span className="tx-row__sub">falta {formatMoney(owedCents)}</span>
 				) : null}
 			</div>
-		</div>
+		</Link>
 	);
 }
 

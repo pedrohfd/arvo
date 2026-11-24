@@ -84,6 +84,11 @@ export function dayLabel(date: string, today: string) {
 	if (diff === 0) return "Hoje";
 	if (diff === -1) return "Ontem";
 	if (diff === 1) return "Amanhã";
+	return weekdayLabel(date, today);
+}
+
+/** Sempre com o dia da semana: "Seg., 16 de nov." (com o ano se não for o de hoje). */
+export function weekdayLabel(date: string, today: string) {
 	const [year, month, day] = date.split("-").map(Number) as [
 		number,
 		number,
@@ -93,6 +98,22 @@ export function dayLabel(date: string, today: string) {
 		WEEKDAYS_SHORT[new Date(Date.UTC(year, month - 1, day)).getUTCDay()];
 	const label = `${weekday}, ${day} de ${MONTHS_SHORT[month - 1]}`;
 	return year === Number(today.slice(0, 4)) ? label : `${label} ${year}`;
+}
+
+/** "17 de dez." (com o ano se não for o de hoje). */
+export function dayMonthLabel(date: string, today: string) {
+	const [year, month, day] = date.split("-").map(Number) as [
+		number,
+		number,
+		number,
+	];
+	const label = `${day} de ${MONTHS_SHORT[month - 1]}`;
+	return year === Number(today.slice(0, 4)) ? label : `${label} ${year}`;
+}
+
+/** "jun. de 2027" */
+export function monthYearLabel(date: string) {
+	return `${MONTHS_SHORT[Number(date.slice(5, 7)) - 1]} de ${date.slice(0, 4)}`;
 }
 
 // Dias desde 1970 só para comparar datas de calendário (UTC evita fuso e horário de verão).

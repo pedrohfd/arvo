@@ -97,7 +97,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [~] Regra da fatura: até o dia de fechamento vence neste mês, depois no mês seguinte; o saldo só diminui no vencimento (`invoice.ts`, pronta; falta ligar)
 - [~] Data futura entra no saldo só quando a data chega (em `balance.ts`, pronta; falta ligar)
 - [~] Marcar pago cria entrada de reembolso (desligável); apagar a saída apaga os reembolsos gerados (`settlement.ts`, pronta; no banco, a cascata de `reimbursedSplitId` já apaga; falta ligar)
-- [~] Routers tRPC prontos: `category`, `transaction` (listar, criar, apagar), `summary` (Início, Resumo do mês, Horizonte), `card` (listar, criar, editar, apagar), `goal` (criar, editar, guardar, resgatar, concluir, apagar), `person`, `split` (A receber, marcar/desmarcar pago com reembolso) e `settings` (saldo mínimo); falta o perfil (editar dados, exportar CSV, apagar conta) e editar transação
+- [~] Routers tRPC prontos: `category`, `transaction` (listar, criar, apagar), `summary` (Início, Resumo do mês, Horizonte), `card` (listar, criar, editar, apagar), `goal` (criar, editar, guardar, resgatar, concluir, apagar), `person`, `split` (A receber, marcar/desmarcar pago com reembolso) e `settings` (saldo mínimo); `transaction.get` e `transaction.restore` (desfazer o apagar) feitos; falta editar transação
 - [x] Categorias padrão criadas no cadastro (`packages/db/src/default-categories.ts`, hook `databaseHooks.user.create.after` no Better-Auth)
 - [~] Testes das regras de dinheiro, conforme [TESTES.md](TESTES.md): grupos 1 a 8 escritos (130 testes, verificados por mutação); faltam os grupos 9 a 11, do app web (teclado de valor, busca, fila offline)
 
@@ -122,11 +122,11 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [~] 2.2 Detalhes: categoria (com a folha "Mais"), título, forma de pagamento, repetir (sem fim, 2, 3, 6, 10, 12) e aviso de saldo mínimo feitos; faltam "Outro" em "Por quantos meses" e o parcelamento (D9, sem tela)
 - [x] 2.3 Dividir com: interruptor "Dividir a conta" na 2.2 (só saída que não se repete) e folha `components/register/split-sheet.tsx` (escolher pessoas, nome novo cria a pessoa, nome repetido avisa); dica da parte de cada um em `lib/split-with.ts` (com testes)
 - [x] 2.4 Seletor de data: `components/register/date-sheet.tsx` e `lib/date-picker.ts` (atalhos Ontem/Hoje/Amanhã, calendário do mês, até 24 meses à frente; aviso "Ainda não entra no saldo" na data futura)
-- [ ] Aviso de saldo mínimo ao registrar (âmbar, não bloqueia)
+- [x] Aviso de saldo mínimo ao registrar (âmbar, não bloqueia; feito na 2.2)
 - [ ] **+** funciona offline: fila em IndexedDB, enviada quando a rede volta
-- [ ] 3.1 Detalhe da transação (editar, apagar, marcar/desmarcar pago)
+- [~] 3.1 Detalhe da transação: rota `/transacao/$transactionId` (simples, dividida, tudo acertado, entrada, parcela/repete, data futura, apagada em outro aparelho, carregando, erro), marcar/desmarcar pago e apagar; textos em `lib/transaction-detail.ts` (com testes). Falta o "Editar" (3.2; o botão está desligado) e "não salvou" (depende da fila offline)
 - [ ] 3.2 Editar; "Só esta" / "Esta e as próximas" em recorrentes
-- [ ] 3.3 Apagar (folha de confirmação)
+- [x] 3.3 Apagar: folha de confirmação, "Só esta" / "Esta e as próximas" em série, e aviso "Saída apagada · Desfazer" (10 s) na Início. O `transaction.delete` devolve um retrato do que saiu (com os reembolsos) e o `transaction.restore` recria com os mesmos ids. Obs. para a renovação do "sem fim" (P2): "esta e as próximas" não encerra a série, então a renovação não pode recriar o que foi apagado
 - [ ] 3.4 A receber, por pessoa
 - [ ] Contagem do saldo ao registrar (respeitando "reduzir movimento")
 
@@ -184,3 +184,4 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - 2026-11-24 — Fase 6: Pessoas (6.4) e Saldo mínimo (6.8) feitas; `person.list` devolve `splitCount`.
 - 2026-11-24 — Fase 6 concluída: Aparência (6.6) e Conta (6.7: editar nome, sair, apagar conta com senha).
 - 2026-11-24 — Fase 3: Dividir com (2.3) no Registrar.
+- 2026-11-24 — Fase 3: detalhe da transação (3.1, sem o Editar) e apagar com desfazer (3.3).
