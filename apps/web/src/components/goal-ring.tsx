@@ -1,3 +1,4 @@
+import { CheckIcon } from "@phosphor-icons/react";
 import type { CSSProperties } from "react";
 
 // Circunferência do anel: raio 42 no viewBox de 100 (2π · 42).
@@ -7,11 +8,25 @@ const CIRCUMFERENCE = 263.9;
 export function GoalRing({
 	percent,
 	size = 56,
+	done = false,
 }: {
 	percent: number;
 	size?: number;
+	/** Meta atingida: disco pólen com check no lugar do anel. */
+	done?: boolean;
 }) {
 	const filled = (Math.min(Math.max(percent, 0), 100) * CIRCUMFERENCE) / 100;
+
+	if (done) {
+		return (
+			<span
+				className="goal-ring goal-ring--done"
+				style={{ "--ring": `${size}px` } as CSSProperties}
+			>
+				<CheckIcon className="icon" aria-hidden />
+			</span>
+		);
+	}
 
 	return (
 		<span
