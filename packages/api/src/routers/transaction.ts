@@ -86,6 +86,8 @@ export const transactionRouter = router({
 				cardType: row.card?.type ?? null,
 				// Hora do registro, só quando foi feito no próprio dia da transação.
 				time: entryTime(row.createdAt, fromDbDate(row.date)),
+				// Para ordenar junto com os movimentos das metas na Início.
+				createdAt: row.createdAt.toISOString(),
 				seriesId: row.seriesId,
 				seriesIndex: row.seriesIndex,
 				seriesKind: row.series?.kind ?? null,
