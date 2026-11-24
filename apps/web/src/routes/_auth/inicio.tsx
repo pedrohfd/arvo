@@ -10,6 +10,7 @@ import {
 	CreditCardIcon,
 	MagnifyingGlassIcon,
 	PlantIcon,
+	TargetIcon,
 	UsersThreeIcon,
 	WarningCircleIcon,
 } from "@phosphor-icons/react";
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/_auth/inicio")({
 
 type Outputs = inferRouterOutputs<AppRouter>;
 type Tx = Outputs["transaction"]["list"][number];
+type GoalMovement = Outputs["goal"]["monthMovements"][number];
 
 // Tela 1.1 do Figma (página "Arvo · 1 Início"). Estados: 1.2 primeira vez, 1.4 carregando e
 // 1.5 não carregou. Ainda não existem: seletor de mês (folha 1.10, e com ele a 1.3 "mês sem
@@ -47,12 +49,17 @@ function Inicio() {
 		...trpc.transaction.list.queryOptions({ month: month ?? "" }),
 		enabled: Boolean(month),
 	});
+	// Guardar e resgatar também aparecem na lista (5.7), mas não entram em entrou/saiu.
+	const movements = useQuery({
+		...trpc.goal.monthMovements.queryOptions({ month: month ?? "" }),
+		enabled: Boolean(month),
+	});
 
 	// O mês aparece no seletor mesmo carregando: antes de a resposta chegar, vale o do aparelho.
 	const shownMonth =
 		month ?? new Date().toLocaleDateString("sv-SE").slice(0, 7);
 
-	if (home.isError || list.isError) {
+	if (home.isError || list.isError || movements.isError) {
 		return (
 			<Page>
 				<TopBar month={shownMonth} searchDisabled />
@@ -60,12 +67,13 @@ function Inicio() {
 					onRetry={() => {
 						home.refetch();
 						list.refetch();
+						movements.refetch();
 					}}
 				/>
 			</Page>
 		);
 	}
-	if (!home.data || !list.data) {
+	if (!home.data || !list.data || !movements.data) {
 		return (
 			<Page>
 				<TopBar month={shownMonth} searchDisabled />
@@ -76,7 +84,8 @@ function Inicio() {
 
 	const { today, balance, totals, credit, receivable } = home.data;
 	const transactions = list.data;
-	const isEmpty = transactions.length === 0;
+	const days = groupByDay(transactions, movements.data);
+	const isEmpty = days.length === 0;
 	const short = monthShort(home.data.month);
 
 	return (
@@ -144,14 +153,14 @@ function Inicio() {
 					<h2 className="sheet__title">Transações</h2>
 					{isEmpty ? null : (
 						<span className="sheet__count">
-							{transactions.length} em {short}
+							{transactions.length + movements.data.length} em {short}
 						</span>
 					)}
 				</div>
 				{isEmpty ? (
 					<FirstTime />
 				) : (
-					groupByDay(transactions).map((day) => (
+					days.map((day) => (
 						<div key={day.date}>
 							<div className="day-header">
 								<span className="day-header__label">
@@ -162,9 +171,16 @@ function Inicio() {
 								</span>
 							</div>
 							<div className="tx-list">
-								{day.items.map((tx) => (
-									<TxRow key={tx.id} tx={tx} />
-								))}
+								{day.items.map((item) =>
+									item.type === "tx" ? (
+										<TxRow key={item.tx.id} tx={item.tx} />
+									) : (
+										<GoalMovementRow
+											key={item.movement.id}
+											movement={item.movement}
+										/>
+									),
+								)}
 							</div>
 						</div>
 					))
@@ -255,16 +271,45 @@ function StatCard({
 	);
 }
 
-function groupByDay(transactions: Tx[]) {
-	const days: { date: string; netCents: number; items: Tx[] }[] = [];
-	for (const tx of transactions) {
+type DayItem =
+	| { type: "tx"; tx: Tx }
+	| { type: "goal"; movement: GoalMovement };
+
+// Agrupa por dia, do mais novo para o mais antigo. O total do dia só soma o que entrou e saiu:
+// guardar e resgatar não contam (5.7).
+function groupByDay(transactions: Tx[], movements: GoalMovement[]) {
+	const entries: (DayItem & { date: string; createdAt: string })[] = [
+		...transactions.map((tx) => ({
+			type: "tx" as const,
+			tx,
+			date: tx.date,
+			createdAt: tx.createdAt,
+		})),
+		...movements.map((movement) => ({
+			type: "goal" as const,
+			movement,
+			date: movement.date,
+			createdAt: movement.createdAt,
+		})),
+	].sort(
+		(a, b) =>
+			b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt),
+	);
+
+	const days: { date: string; netCents: number; items: DayItem[] }[] = [];
+	for (const entry of entries) {
 		let day = days.at(-1);
-		if (!day || day.date !== tx.date) {
-			day = { date: tx.date, netCents: 0, items: [] };
+		if (!day || day.date !== entry.date) {
+			day = { date: entry.date, netCents: 0, items: [] };
 			days.push(day);
 		}
-		day.items.push(tx);
-		day.netCents += tx.kind === "INCOME" ? tx.amountCents : -tx.amountCents;
+		day.items.push(entry);
+		if (entry.type === "tx") {
+			day.netCents +=
+				entry.tx.kind === "INCOME"
+					? entry.tx.amountCents
+					: -entry.tx.amountCents;
+		}
 	}
 	return days;
 }
@@ -345,6 +390,35 @@ function TxRow({ tx }: { tx: Tx }) {
 				{owedCents > 0 ? (
 					<span className="tx-row__sub">falta {formatMoney(owedCents)}</span>
 				) : null}
+			</div>
+		</div>
+	);
+}
+
+// 5.7: o nome da linha é o da meta; embaixo diz "Guardado" ou "Resgatado". Valor na cor do texto
+// (não é saída nem entrada): o sinal mostra o efeito no saldo.
+function GoalMovementRow({ movement }: { movement: GoalMovement }) {
+	const deposit = movement.type === "DEPOSIT";
+	const label = deposit
+		? "Guardado"
+		: movement.type === "WITHDRAW"
+			? "Resgatado"
+			: "Meta concluída";
+	return (
+		<div className="tx-row">
+			<span className="tx-row__icon">
+				<TargetIcon size={22} weight="fill" aria-hidden />
+			</span>
+			<div className="tx-row__text">
+				<span className="tx-row__title">{movement.goalName}</span>
+				<span className="tx-row__meta">
+					<span>{movement.time ? `${label} · ${movement.time}` : label}</span>
+				</span>
+			</div>
+			<div className="tx-row__amount">
+				<span className="tx-row__value">
+					{formatSigned(deposit ? -movement.amountCents : movement.amountCents)}
+				</span>
 			</div>
 		</div>
 	);

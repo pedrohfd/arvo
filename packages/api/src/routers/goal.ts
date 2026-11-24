@@ -3,9 +3,15 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../index";
-import { fromDbDate, toDbDate, todayInSaoPaulo } from "../lib/calendar";
+import {
+	entryTime,
+	fromDbDate,
+	toDbDate,
+	todayInSaoPaulo,
+} from "../lib/calendar";
 import { rule } from "../lib/errors";
 import { loadFinanceData } from "../lib/finance-data";
+import { monthRange } from "../lib/plan-transaction";
 import { computeBalance } from "../rules/balance";
 import {
 	assertCanDeposit,
@@ -95,6 +101,43 @@ export const goalRouter = router({
 					date: fromDbDate(movement.date),
 				})),
 			};
+		}),
+
+	// Movimentos das metas no mês "AAAA-MM", para a lista da Início (5.7): o nome da linha é o da
+	// meta. Não entram no total do dia: guardar e resgatar só mexem no saldo.
+	monthMovements: protectedProcedure
+		.input(z.object({ month: z.string().regex(/^\d{4}-\d{2}$/) }))
+		.query(async ({ ctx, input }) => {
+			let range: ReturnType<typeof monthRange>;
+			try {
+				range = monthRange(input.month);
+			} catch (error) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: error instanceof Error ? error.message : "Mês inválido",
+				});
+			}
+			const rows = await ctx.db.goalMovement.findMany({
+				where: {
+					goal: { userId: ctx.session.user.id },
+					date: { gte: toDbDate(range.from), lt: toDbDate(range.to) },
+				},
+				orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+				include: { goal: { select: { name: true } } },
+			});
+			return rows.map((row) => {
+				const date = fromDbDate(row.date);
+				return {
+					id: row.id,
+					type: row.type,
+					amountCents: row.amountCents,
+					goalName: row.goal.name,
+					date,
+					createdAt: row.createdAt.toISOString(),
+					// Hora do registro, só quando foi feito no próprio dia.
+					time: entryTime(row.createdAt, date),
+				};
+			});
 		}),
 
 	create: protectedProcedure
