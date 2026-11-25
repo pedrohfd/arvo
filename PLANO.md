@@ -175,6 +175,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Escolhas da contagem do saldo e da linha "acabou de registrar": 1 s, conta em qualquer mudança do saldo, "agora" só em linha simples (DEV-130)
 - [ ] Escolhas do gesto de recolher (Início, Metas e Resumo) que o Figma não mostra: só celular, Resumo só em celular baixo (até 720 px), busca com rolagem própria, aviso de sem internet rola junto (DEV-129)
 - [ ] Escolhas da lista de uma categoria no Resumo que o Figma não mostra: "Outras" não abre, linha tocável sem sinal, estados sem quadro, mês no endereço (DEV-127)
+- [ ] Escolhas da Início no computador que o Figma não mostra: só ≥ 1024 px, clicar escolhe (sem Esc), resumo do painel, editar abre a folha do celular (DEV-131)
 - [ ] Escolhas da fila offline que o Figma não mostra: aviso "na fila", recusado fora do saldo, aviso só na Início, dados não guardados, Motivo, Apagar sem confirmação (DEV-126)
 - [ ] Escolhas do Horizonte (4.2) que o Figma não mostra: texto do aviso negativo, carregando e não carregou, ponto do fim de novembro, "Registrar conta fixa" (DEV-125)
 - [ ] Estados carregando e não carregou do A receber (3.4), e a ordem das pessoas e das contas (DEV-123)
@@ -182,7 +183,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 
 ## Fase 7 · Desktop e acabamento
 
-- [ ] Início, Registrar (diálogo de 560), Metas, Resumo e Perfil no layout desktop
+- [~] Início, Registrar (diálogo de 560), Metas, Resumo e Perfil no layout desktop: a Início (lista num cartão na coluna central e painel de detalhe de 400 px, D1.1 e D1.2) está feita; faltam Registrar, Metas, Resumo e Perfil
 - [ ] Atalhos de teclado: ↑↓ ↵ Esc N ←→
 - [ ] Largura média (768): barra lateral compacta de 72 e painel como gaveta
 - [x] Auditoria de acessibilidade (feita pelo código, sem navegador): contraste AA testado (`contrast.test.ts`, todos os pares passam nos dois temas); `aria-invalid` e `aria-describedby` no campo de dia do cartão (era o que faltava); título de nível 1 na Início; aviso do Desfazer pausa com mouse ou foco; setas nos grupos de escolha, nos meses e no calendário (`lib/arrow-keys.ts`); Esc já fechava todos os diálogos; tamanhos de texto dos tokens em rem; onboarding lê só o passo atual. Não medido no navegador: alvos de 44 px e "selecionado nunca só pela cor"
@@ -220,3 +221,4 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - 2026-11-24 — Fase 3: contagem do saldo e destaque da linha recém-registrada (Início) feitos; contagem e expiração testadas (`count-to.test.ts`, `recent-registered.test.ts`). Não conferido no navegador: a animação só foi verificada pela leitura do código.
 - 2026-11-24 — Auditoria do movimento reduzido: tudo já coberto pela regra global, exceto o spinner `.animate-spin` (carregamento do entrar), que ficava parado; corrigido. Verificado pela leitura do CSS e do código, sem navegador.
 - 2026-11-24 — Auditoria de acessibilidade pelo código: contraste (teste novo), título da Início, pausa do aviso, setas do teclado nos grupos, tokens de texto em rem e onboarding; DEV-114. Alvos de 44 px e seleção não só pela cor ficam para conferir no navegador.
+- 2026-11-24 — Fase 7: Início no computador (painel de detalhe de 400 px com o "Resumo do mês" ou o detalhe da transação escolhida, lista em cartão). `TransactionDetail` virou componente compartilhado entre a página e o painel; a casca ganhou a coluna do painel (`useDetailSlot`). Não conferido no navegador: layout só verificado por build e leitura do CSS.

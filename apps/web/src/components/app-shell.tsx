@@ -6,7 +6,7 @@ import {
 	UserIcon,
 } from "@phosphor-icons/react";
 import { Link, useLocation } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { createContext, type ReactNode, useContext, useState } from "react";
 import { Logo } from "@/components/logo";
 import { OutboxProvider } from "@/components/offline/outbox-provider";
 import {
@@ -23,6 +23,14 @@ const tabs = [
 
 type ShellUser = { id: string; name: string; email: string };
 
+// A coluna de 400 px do painel de detalhe (computador). Cada tela que tem painel desenha nele com
+// um portal; sem ninguém desenhando, a coluna fica vazia e some.
+const DetailSlotContext = createContext<HTMLElement | null>(null);
+
+export function useDetailSlot() {
+	return useContext(DetailSlotContext);
+}
+
 /**
  * Casca do app autenticado.
  * Celular (< 640): barra inferior com o + no meio.
@@ -38,17 +46,25 @@ export function AppShell({
 	user: ShellUser;
 	children: ReactNode;
 }) {
+	const [detailSlot, setDetailSlot] = useState<HTMLElement | null>(null);
 	return (
 		<OutboxProvider userId={user.id}>
 			<RegisterProvider>
-				<div className="min-h-svh sm:flex">
-					<CompactSidebar />
-					<FullSidebar user={user} />
-					<main className="min-w-0 flex-1 pb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] sm:pb-0">
-						{children}
-					</main>
-					<BottomBar />
-				</div>
+				<DetailSlotContext.Provider value={detailSlot}>
+					<div className="min-h-svh sm:flex lg:h-svh lg:overflow-hidden">
+						<CompactSidebar />
+						<FullSidebar user={user} />
+						<main className="min-w-0 flex-1 pb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] sm:pb-0 lg:h-svh lg:overflow-y-auto">
+							{children}
+						</main>
+						<aside
+							ref={setDetailSlot}
+							aria-label="Detalhe"
+							className="hidden shrink-0 lg:block lg:h-svh lg:empty:hidden"
+						/>
+						<BottomBar />
+					</div>
+				</DetailSlotContext.Provider>
 			</RegisterProvider>
 		</OutboxProvider>
 	);

@@ -3192,6 +3192,18 @@
 	}
 }
 
+/* Computador (≥1024): a lista de transações da Início vira um cartão na coluna central, e a tela
+   rola dentro da coluna (a barra lateral e o painel de detalhe ficam parados) */
+@media (min-width: 1024px) {
+	.collapse-area > .sheet.sheet--desk {
+		flex: none;
+		min-height: 0;
+		border-radius: var(--radius-xl);
+		padding: var(--spacing-6) var(--spacing-2) var(--spacing-4);
+		margin: 0 var(--spacing-5) var(--spacing-8);
+	}
+}
+
 /* Saldo compacto na barra superior: aparece quando o saldo grande saiu da tela */
 .top-bar__balance {
 	flex: 1;
