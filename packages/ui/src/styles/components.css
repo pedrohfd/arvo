@@ -3280,14 +3280,18 @@
 	display: contents;
 }
 
-/* Movimento reduzido: sem transições nem animações, exceto o spinner (que gira devagar) */
+/* Movimento reduzido: sem transições nem animações, exceto os spinners (que giram devagar: um
+   spinner parado parece travado). `.animate-spin` é o do carregamento das telas de entrar. */
 @media (prefers-reduced-motion: reduce) {
-	*:not(.spinner),
-	*:not(.spinner)::before,
-	*:not(.spinner)::after {
+	*:not(.spinner):not(.animate-spin),
+	*:not(.spinner):not(.animate-spin)::before,
+	*:not(.spinner):not(.animate-spin)::after {
 		transition-duration: 0.01ms !important;
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
 		scroll-behavior: auto !important;
+	}
+	.animate-spin {
+		animation-duration: 2s !important;
 	}
 }
