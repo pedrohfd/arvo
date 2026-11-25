@@ -24,10 +24,13 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-
+import { createPortal } from "react-dom";
+import { useDetailSlot } from "@/components/app-shell";
 import { CategoryIcon } from "@/components/category-icon";
+import { InicioPanel } from "@/components/home/inicio-panel";
 import { MonthSheet } from "@/components/home/month-sheet";
 import { useOutbox } from "@/components/offline/outbox-provider";
+import { useRegister } from "@/components/register/register-provider";
 import {
 	dayLabel,
 	formatMoney,
@@ -47,6 +50,7 @@ import {
 import { useRecent } from "@/lib/recent-registered";
 import { useCollapse } from "@/lib/use-collapse";
 import { useCountTo } from "@/lib/use-count-to";
+import { useDesktop } from "@/lib/use-desktop";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/inicio")({
@@ -68,6 +72,11 @@ function Inicio() {
 	const [searching, setSearching] = useState(false);
 	const [query, setQuery] = useState("");
 	const outbox = useOutbox();
+	// Computador: tocar numa linha escolhe a transação e o painel da direita mostra o detalhe.
+	const desktop = useDesktop();
+	const detailSlot = useDetailSlot();
+	const register = useRegister();
+	const [selectedId, setSelectedId] = useState<string | null>(null);
 	// Celular: ao subir a lista, o saldo grande sai da tela e o saldo compacto aparece no topo.
 	const {
 		scrollRef: setScrollEl,
@@ -171,6 +180,23 @@ function Inicio() {
 		/>
 	) : null;
 
+	const panel =
+		desktop && detailSlot
+			? createPortal(
+					<InicioPanel
+						selectedId={selectedId}
+						month={home.data.month}
+						balanceCents={balance.balanceCents}
+						onClear={() => setSelectedId(null)}
+						onDeleted={(deleted) => {
+							setSelectedId(null);
+							register.deleted(deleted);
+						}}
+					/>,
+					detailSlot,
+				)
+			: null;
+
 	// 1.8: busca. Só no mês escolhido, sem acento e sem maiúsculas; o saldo e os cartões saem de
 	// cena para a lista ocupar a tela.
 	if (searching) {
@@ -213,12 +239,19 @@ function Inicio() {
 							/>
 						) : (
 							results.map((day) => (
-								<Day key={day.date} day={day} today={today} />
+								<Day
+									key={day.date}
+									day={day}
+									today={today}
+									selectedId={selectedId}
+									onSelect={desktop ? setSelectedId : undefined}
+								/>
 							))
 						)}
 					</section>
 				</div>
 				{monthSheet}
+				{panel}
 			</Page>
 		);
 	}
@@ -305,7 +338,7 @@ function Inicio() {
 					) : null}
 				</section>
 
-				<section className="sheet" aria-label="Transações do mês">
+				<section className="sheet sheet--desk" aria-label="Transações do mês">
 					<div className="sheet__head">
 						<h2 className="sheet__title">Transações</h2>
 						{isEmpty ? null : (
@@ -326,11 +359,20 @@ function Inicio() {
 							/>
 						)
 					) : (
-						days.map((day) => <Day key={day.date} day={day} today={today} />)
+						days.map((day) => (
+							<Day
+								key={day.date}
+								day={day}
+								today={today}
+								selectedId={selectedId}
+								onSelect={desktop ? setSelectedId : undefined}
+							/>
+						))
 					)}
 				</section>
 			</div>
 			{monthSheet}
+			{panel}
 		</Page>
 	);
 }
@@ -339,7 +381,7 @@ function Inicio() {
 // baixo dela (com 120 px de respiro), como no Figma.
 function Page({ children }: { children: ReactNode }) {
 	return (
-		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] max-sm:h-svh">
+		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] max-sm:h-svh lg:pt-5">
 			<h1 className="sr-only">Início</h1>
 			{children}
 		</div>
@@ -455,9 +497,15 @@ function SearchBar({
 function Day({
 	day,
 	today,
+	selectedId,
+	onSelect,
 }: {
 	day: ReturnType<typeof groupByDay>[number];
 	today: string;
+	/** Computador: a transação escolhida (o painel mostra o detalhe dela). */
+	selectedId?: string | null;
+	/** Computador: escolhe a transação em vez de abrir a tela de detalhe. */
+	onSelect?: (id: string) => void;
 }) {
 	return (
 		<div>
@@ -468,7 +516,14 @@ function Day({
 			<div className="tx-list">
 				{day.items.map((item) => {
 					if (item.type === "tx")
-						return <TxRow key={item.tx.id} tx={item.tx} />;
+						return (
+							<TxRow
+								key={item.tx.id}
+								tx={item.tx}
+								selected={selectedId === item.tx.id}
+								onSelect={onSelect}
+							/>
+						);
 					if (item.type === "queued") {
 						return <QueuedTxRow key={item.row.key} row={item.row} />;
 					}
@@ -713,7 +768,15 @@ function detailFor(tx: Tx, recent: boolean): { icon: ReactNode; text: string } {
 	return { icon: null, text: tx.time ? `${method} · ${tx.time}` : method };
 }
 
-function TxRow({ tx }: { tx: Tx }) {
+function TxRow({
+	tx,
+	selected,
+	onSelect,
+}: {
+	tx: Tx;
+	selected?: boolean;
+	onSelect?: (id: string) => void;
+}) {
 	const income = tx.kind === "INCOME";
 	const recent = useRecent().has(tx.id);
 	const detail = detailFor(tx, recent);
@@ -724,7 +787,18 @@ function TxRow({ tx }: { tx: Tx }) {
 		<Link
 			to="/transacao/$transactionId"
 			params={{ transactionId: tx.id }}
-			className={cn("tx-row", income && "tx-row--income", recent && "is-new")}
+			aria-current={selected ? "true" : undefined}
+			onClick={(event) => {
+				if (!onSelect) return;
+				event.preventDefault();
+				onSelect(tx.id);
+			}}
+			className={cn(
+				"tx-row",
+				income && "tx-row--income",
+				recent && "is-new",
+				selected && "is-selected",
+			)}
 		>
 			<span className="tx-row__icon">
 				<CategoryIcon name={tx.category.icon} />
