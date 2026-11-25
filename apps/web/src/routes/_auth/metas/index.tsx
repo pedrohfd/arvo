@@ -1,5 +1,6 @@
 import { todayInSaoPaulo } from "@arvo/api/lib/calendar";
 import type { AppRouter } from "@arvo/api/routers/index";
+import { cn } from "@arvo/ui/lib/utils";
 import {
 	CaretRightIcon,
 	CheckIcon,
@@ -20,6 +21,7 @@ import {
 	formatShortDate,
 	moneyParts,
 } from "@/lib/format";
+import { useCollapse } from "@/lib/use-collapse";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/metas/")({
@@ -29,8 +31,8 @@ export const Route = createFileRoute("/_auth/metas/")({
 type Goal = inferRouterOutputs<AppRouter>["goal"]["list"][number];
 
 // Tela 5.1 do Figma (página "Arvo · 5 Metas"): lista, vazio, meta atingida, carregando e não
-// carregou, com a "Nova meta" (5.3) e as "Concluídas" (5.6). Ainda não existem: o gesto de recolher
-// o resumo e o aviso de sem internet.
+// carregou, com a "Nova meta" (5.3), as "Concluídas" (5.6) e o gesto de recolher o resumo (5.1
+// "lista recolhida", no celular). Ainda não existe o aviso de sem internet.
 function Metas() {
 	const [creating, setCreating] = useState(false);
 	const goals = useQuery(trpc.goal.list.queryOptions());
@@ -38,7 +40,7 @@ function Metas() {
 	const home = useQuery(trpc.summary.home.queryOptions());
 
 	return (
-		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
+		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] max-sm:h-svh">
 			{goals.isError || home.isError ? (
 				<>
 					<Header />
@@ -66,12 +68,30 @@ function Metas() {
 	);
 }
 
-function Header({ onNew }: { onNew?: () => void }) {
+function Header({
+	onNew,
+	compactText,
+	showCompact,
+}: {
+	onNew?: () => void;
+	/** Valor guardado, compacto ao lado do título; aparece quando o grande saiu da tela. */
+	compactText?: string;
+	showCompact?: boolean;
+}) {
 	return (
-		<div className="flex h-11 items-center justify-between pt-1 pr-3 pl-5">
+		<div className="flex h-11 shrink-0 items-center justify-between pt-1 pr-3 pl-5">
 			<h1 className="display text-(length:--text-size-display) leading-[var(--text-leading-display)]">
 				Metas
 			</h1>
+			<span
+				className={cn(
+					"!text-left top-bar__balance",
+					!showCompact && "is-hidden",
+				)}
+				aria-hidden={!showCompact}
+			>
+				{compactText}
+			</span>
 			{onNew ? (
 				<button
 					type="button"
@@ -97,6 +117,7 @@ function Ready({
 }) {
 	const goals = allGoals.filter((goal) => !goal.completedAt);
 	const completed = allGoals.filter((goal) => goal.completedAt);
+	const { scrollRef, targetRef, collapsed } = useCollapse();
 
 	if (allGoals.length === 0) {
 		return (
@@ -130,42 +151,48 @@ function Ready({
 
 	return (
 		<>
-			<Header onNew={onNew} />
-			<section className="flex flex-col gap-0.5 px-5 pt-4 pb-5">
-				<span className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-[var(--text-leading-small)]">
-					Guardado nas metas
-				</span>
-				<span className="balance__value">
-					{parts.integer}
-					<span className="balance__cents text-[22px] leading-7">
-						{parts.cents}
+			<Header
+				onNew={onNew}
+				compactText={formatMoney(savedCents)}
+				showCompact={collapsed}
+			/>
+			<div className="collapse-area" ref={scrollRef}>
+				<section className="flex flex-col gap-0.5 px-5 pt-4 pb-5">
+					<span className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-[var(--text-leading-small)]">
+						Guardado nas metas
 					</span>
-				</span>
-				<p className="text-(length:--text-size-small) pt-2 text-[var(--color-text-muted)] leading-[var(--text-leading-small)]">
-					Disponível no saldo{" "}
-					<b className="font-semibold text-[var(--color-text)]">
-						{formatMoney(availableCents)}
-					</b>
-				</p>
-			</section>
-			<section
-				className="flex flex-col gap-2 px-5 pb-32"
-				aria-label="Suas metas"
-			>
-				{goals.map((goal) => (
-					<GoalCard key={goal.id} goal={goal} />
-				))}
-				{completed.length > 0 ? (
-					<>
-						<h2 className="text-(length:--text-size-label) px-1 pt-3 font-semibold text-[var(--color-text-muted)] uppercase leading-[var(--text-leading-label)] tracking-[var(--text-tracking-label)]">
-							Concluídas · {completed.length}
-						</h2>
-						{completed.map((goal) => (
-							<CompletedCard key={goal.id} goal={goal} />
-						))}
-					</>
-				) : null}
-			</section>
+					<span className="balance__value" ref={targetRef}>
+						{parts.integer}
+						<span className="balance__cents text-[22px] leading-7">
+							{parts.cents}
+						</span>
+					</span>
+					<p className="text-(length:--text-size-small) pt-2 text-[var(--color-text-muted)] leading-[var(--text-leading-small)]">
+						Disponível no saldo{" "}
+						<b className="font-semibold text-[var(--color-text)]">
+							{formatMoney(availableCents)}
+						</b>
+					</p>
+				</section>
+				<section
+					className="flex flex-col gap-2 px-5 pb-32"
+					aria-label="Suas metas"
+				>
+					{goals.map((goal) => (
+						<GoalCard key={goal.id} goal={goal} />
+					))}
+					{completed.length > 0 ? (
+						<>
+							<h2 className="text-(length:--text-size-label) px-1 pt-3 font-semibold text-[var(--color-text-muted)] uppercase leading-[var(--text-leading-label)] tracking-[var(--text-tracking-label)]">
+								Concluídas · {completed.length}
+							</h2>
+							{completed.map((goal) => (
+								<CompletedCard key={goal.id} goal={goal} />
+							))}
+						</>
+					) : null}
+				</section>
+			</div>
 		</>
 	);
 }

@@ -18,6 +18,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { CategoryIcon } from "@/components/category-icon";
 import { formatMoney, moneyParts, monthName } from "@/lib/format";
+import { useCollapse } from "@/lib/use-collapse";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/resumo/")({
@@ -34,13 +35,30 @@ function Resumo() {
 	const currentMonth = new Date().toLocaleDateString("sv-SE").slice(0, 7);
 	const [month, setMonth] = useState(currentMonth);
 	const summary = useQuery(trpc.summary.month.queryOptions({ month }));
+	const { scrollRef, targetRef, collapsed } = useCollapse();
 
 	return (
-		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
-			<div className="flex h-11 items-center justify-between pt-1 pr-3 pl-5">
-				<h1 className="display text-(length:--text-size-display) leading-[var(--text-leading-display)]">
+		<div className="fit-screen mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
+			<div className="flex h-11 shrink-0 items-center justify-between pt-1 pr-3 pl-5">
+				<h1
+					className={cn(
+						"display",
+						collapsed
+							? "text-(length:--text-size-title) leading-[var(--text-leading-title)]"
+							: "text-(length:--text-size-display) leading-[var(--text-leading-display)]",
+					)}
+				>
 					Resumo
 				</h1>
+				<span
+					className={cn(
+						"!text-left top-bar__balance",
+						!collapsed && "is-hidden",
+					)}
+					aria-hidden={!collapsed}
+				>
+					{summary.data ? formatMoney(summary.data.totals.sobrouCents) : null}
+				</span>
 				<Link
 					to="/resumo/horizonte"
 					className="month-btn !h-10 !px-4 !gap-2 font-semibold text-[var(--color-text)]"
@@ -53,17 +71,20 @@ function Resumo() {
 
 			<MonthRow selected={month} current={currentMonth} onSelect={setMonth} />
 
-			{summary.isError ? (
-				<Problem onRetry={() => summary.refetch()} />
-			) : !summary.data ? (
-				<Loading month={month} />
-			) : (
-				<Ready
-					data={summary.data}
-					current={currentMonth}
-					onBackToCurrent={() => setMonth(currentMonth)}
-				/>
-			)}
+			<div className="collapse-area" ref={scrollRef}>
+				{summary.isError ? (
+					<Problem onRetry={() => summary.refetch()} />
+				) : !summary.data ? (
+					<Loading month={month} />
+				) : (
+					<Ready
+						data={summary.data}
+						current={currentMonth}
+						onBackToCurrent={() => setMonth(currentMonth)}
+						balanceRef={targetRef}
+					/>
+				)}
+			</div>
 		</div>
 	);
 }
@@ -118,10 +139,13 @@ function Ready({
 	data,
 	current,
 	onBackToCurrent,
+	balanceRef,
 }: {
 	data: MonthSummary;
 	current: string;
 	onBackToCurrent: () => void;
+	/** Marca o valor grande para o gesto de recolher. */
+	balanceRef: (element: HTMLElement | null) => void;
 }) {
 	const { totals, spending, isFuture } = data;
 	const name = monthName(data.month).toLowerCase();
@@ -167,10 +191,12 @@ function Ready({
 	return (
 		<>
 			<section className="flex flex-col gap-0.5 px-5 pt-4 pb-5">
-				<span className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-[var(--text-leading-small)]">
-					{label}
-				</span>
-				<Amount cents={totals.sobrouCents} />
+				<div ref={balanceRef} className="flex flex-col gap-0.5">
+					<span className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-[var(--text-leading-small)]">
+						{label}
+					</span>
+					<Amount cents={totals.sobrouCents} />
+				</div>
 				<div className="mt-2 flex flex-col">
 					<div className="flex flex-wrap gap-x-4">
 						<Line

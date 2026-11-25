@@ -83,7 +83,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 ## Retomada (próxima sessão)
 
 1. A Fase 1 está completa, salvo os testes dos grupos 10 e 11 do TESTES.md.
-2. Falta na Fase 3: "Outro" em "Por quantos meses". O gesto de recolher falta em Metas e no Resumo (DEV-128).
+2. Falta na Fase 3: "Outro" em "Por quantos meses".
 3. Falta na Fase 4: o aviso de sem internet (Resumo e Horizonte).
 4. Fase 7 inteira (desktop e acabamento) e a conferência visual da Fase 0 no navegador.
 5. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 e D9 (Figma), propagar o Campo nas telas do Figma, desenhar `/redefinir-senha`.
@@ -148,7 +148,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [x] 5.4 Guardar e 5.5 Resgatar (só o que está disponível)
 - [x] 5.6 Concluir meta (devolve o valor ao saldo)
 - [x] Meta atingida (selo e círculo amarelos)
-- [ ] Gesto de recolher em Metas (5.1 "lista recolhida") e no Resumo (celular pequeno), como na Início (DEV-128)
+- [x] Gesto de recolher em Metas (5.1 "lista recolhida") e no Resumo (celular baixo), como na Início (DEV-128; `lib/use-collapse.ts`, `.fit-screen`)
 - [x] 5.7 Guardar/resgatar aparecem na Início como "Guardado em <meta>"
 
 ## Fase 6 · Perfil
@@ -172,7 +172,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Gesto de deslizar a linha (editar à direita, apagar à esquerda) em cartões, categorias e pessoas (DEV-120)
 - [ ] Detalhe da meta concluída (o cartão não abre nada) e "Apagar meta" na edição, sem folha de confirmação (DEV-121)
 - [ ] Escolhas da Início com mês e busca que o Figma não mostra: sem "No crédito, a pagar" em mês passado, rótulo do mês futuro, busca com resultado, mês atual vazio sem botão (DEV-124)
-- [ ] Escolhas do gesto de recolher na Início que o Figma não mostra: só celular, busca com rolagem própria, aviso de sem internet rola junto (DEV-129)
+- [ ] Escolhas do gesto de recolher (Início, Metas e Resumo) que o Figma não mostra: só celular, Resumo só em celular baixo (até 720 px), busca com rolagem própria, aviso de sem internet rola junto (DEV-129)
 - [ ] Escolhas da lista de uma categoria no Resumo que o Figma não mostra: "Outras" não abre, linha tocável sem sinal, estados sem quadro, mês no endereço (DEV-127)
 - [ ] Escolhas da fila offline que o Figma não mostra: aviso "na fila", recusado fora do saldo, aviso só na Início, dados não guardados, Motivo, Apagar sem confirmação (DEV-126)
 - [ ] Escolhas do Horizonte (4.2) que o Figma não mostra: texto do aviso negativo, carregando e não carregou, ponto do fim de novembro, "Registrar conta fixa" (DEV-125)
@@ -215,3 +215,4 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - 2026-11-24 — Fase 3: fila offline do + feita (registrar sem rede, enviar na volta, linha "Na fila para enviar" / "Salvando…" / "Não foi salvo", aviso "Sem internet", detalhe local); 15 testes da fila em `offline-queue.test.ts` (grupo 11 do TESTES.md). Testado no banco local: reenvio com o mesmo `clientId` não duplica e as linhas planejadas no aparelho batem com as do servidor. Não conferido no navegador nem sem rede de verdade.
 - 2026-11-24 — Fase 4: lista das saídas de uma categoria no mês (tela "Resumo · categoria") feita, aberta pelas linhas do "Para onde foi"; testado no banco local (total da lista bate com o do Resumo, vencimento da fatura na linha). Não conferido no navegador contra o Figma.
 - 2026-11-24 — Fase 3: gesto de recolher o saldo na Início (1.11) feito; Metas e Resumo (celular pequeno) ficam para depois (DEV-128). Não conferido no navegador: o comportamento de rolagem só foi verificado pela leitura do CSS e do código.
+- 2026-11-24 — Gesto de recolher feito também em Metas e no Resumo (celular baixo); o gancho `useCollapse` agora serve as três telas. Não conferido no navegador: o comportamento de rolagem só foi verificado pela leitura do CSS e do código.
