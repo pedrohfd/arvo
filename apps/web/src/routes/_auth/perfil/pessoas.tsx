@@ -38,8 +38,8 @@ function Pessoas() {
 	const onNew = () => setSheet({ kind: "form" });
 
 	return (
-		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
-			<div className="flex h-12 items-center pt-1 pr-3 pl-2">
+		<div className="perfil-screen mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
+			<div className="perfil-back-bar flex h-12 items-center pt-1 pr-3 pl-2">
 				<Link to="/perfil" className="icon-btn" aria-label="Voltar">
 					<CaretLeftIcon size={22} aria-hidden />
 				</Link>
