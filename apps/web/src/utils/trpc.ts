@@ -52,6 +52,8 @@ export const queryClient = new QueryClient({
 				window.location.assign("/login?sessao=expirada");
 				return;
 			}
+			// Sem rede a Início já avisa ("Sem internet"); um aviso por consulta seria barulho.
+			if (typeof navigator !== "undefined" && !navigator.onLine) return;
 			toast.error(error.message, {
 				action: {
 					label: "retry",

@@ -83,7 +83,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 ## Retomada (próxima sessão)
 
 1. A Fase 1 está completa, salvo os testes dos grupos 10 e 11 do TESTES.md.
-2. Falta na Fase 3: gesto de recolher o saldo, fila offline do **+** e "Outro" em "Por quantos meses".
+2. Falta na Fase 3: gesto de recolher o saldo (1.11) e "Outro" em "Por quantos meses".
 3. Falta na Fase 4: a lista ao tocar numa categoria e o aviso de sem internet (Resumo e Horizonte).
 4. Fase 7 inteira (desktop e acabamento) e a conferência visual da Fase 0 no navegador.
 5. Pendências com você: C5 (Vercel), C11 (proteção da `master`), D7 e D9 (Figma), propagar o Campo nas telas do Figma, desenhar `/redefinir-senha`.
@@ -118,14 +118,14 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [~] Lista agrupada por dia (`groupByDay`, em `inicio.tsx`) feita; falta o gesto de recolher o saldo ao subir a lista
 - [x] Seletor de mês (folha 1.10, `components/home/month-sheet.tsx`, `lib/home-month.ts`) e saldo "no fim de <mês>" em mês passado; `summary.home` devolve `firstMonth`; a 1.3 "mês sem movimento" feita
 - [x] Busca sem acento e sem maiúsculas, só no mês escolhido (título, categoria e meta), com a 1.8 "busca sem resultado"
-- [~] Estados: carregando e não carregou feitos; faltam sem internet e erro na linha da transação
+- [x] Estados: carregando, não carregou, sem internet (aviso com a hora dos dados) e a linha salvando / na fila / não foi salvo
 - [x] 2.1 Valor com teclado numérico (vírgula, centavos só depois dela): `components/register/register-sheet.tsx` e `lib/amount-input.ts` (grupo 9 do TESTES.md, 14 testes); teclado do computador também
 - [~] 2.2 Detalhes: categoria (com a folha "Mais"), título, forma de pagamento, repetir (sem fim, 2, 3, 6, 10, 12) e aviso de saldo mínimo feitos; faltam "Outro" em "Por quantos meses" e o parcelamento (D9, sem tela)
 - [x] 2.3 Dividir com: interruptor "Dividir a conta" na 2.2 (só saída que não se repete) e folha `components/register/split-sheet.tsx` (escolher pessoas, nome novo cria a pessoa, nome repetido avisa); dica da parte de cada um em `lib/split-with.ts` (com testes)
 - [x] 2.4 Seletor de data: `components/register/date-sheet.tsx` e `lib/date-picker.ts` (atalhos Ontem/Hoje/Amanhã, calendário do mês, até 24 meses à frente; aviso "Ainda não entra no saldo" na data futura)
 - [x] Aviso de saldo mínimo ao registrar (âmbar, não bloqueia; feito na 2.2)
-- [ ] **+** funciona offline: fila em IndexedDB, enviada quando a rede volta
-- [~] 3.1 Detalhe da transação: rota `/transacao/$transactionId` (simples, dividida, tudo acertado, entrada, parcela/repete, data futura, apagada em outro aparelho, carregando, erro), marcar/desmarcar pago e apagar; textos em `lib/transaction-detail.ts` (com testes). Falta "não salvou" (depende da fila offline)
+- [x] **+** funciona offline: fila em IndexedDB (`lib/offline-queue.ts`, `lib/offline-storage.ts`, `components/offline/outbox-provider.tsx`), enviada ao abrir, quando a rede volta e ao voltar ao primeiro plano; o `clientId` do aparelho impede duplicar; o que está na fila já conta no saldo e no mês (`lib/queued-view.ts`). Limite: os dados da tela não ficam guardados no aparelho (abrir o app do zero sem rede mostra "Não deu pra carregar")
+- [~] 3.1 Detalhe da transação: rota `/transacao/$transactionId` (simples, dividida, tudo acertado, entrada, parcela/repete, data futura, apagada em outro aparelho, carregando, erro), marcar/desmarcar pago e apagar; textos em `lib/transaction-detail.ts` (com testes). "Não foi salvo" feito para registros da fila (`local-...`, com Tentar de novo e Apagar)
 - [x] 3.2 Editar: o mesmo `RegisterSheet` em modo edição (`editing`), sem repetir nem dividir; valor travado em saída dividida, parcela só em cartão de crédito, reembolso não se edita; em série, folha "Salvar em quais parcelas/repetições?" (começa em "Esta e as próximas"); com outra data, as seguintes acompanham (`lib/plan-edit.ts`, com testes), e o início e o dia da série são refeitos para a renovação continuar do mesmo ponto; "Só esta" / "Esta e as próximas" em recorrentes
 - [x] 3.3 Apagar: folha de confirmação, "Só esta" / "Esta e as próximas" em série, e aviso "Saída apagada · Desfazer" (10 s) na Início. O `transaction.delete` devolve um retrato do que saiu (com os reembolsos) e o `transaction.restore` recria com os mesmos ids. Obs. para a renovação do "sem fim" (P2): "esta e as próximas" não encerra a série, então a renovação não pode recriar o que foi apagado
 - [x] 3.4 A receber, por pessoa: rota `/receber` (`routes/_auth/receber.tsx`), aberta pelo cartão "A receber" da Início; pessoas e contas via `split.pending` (`lib/pending-splits.ts`, com testes), bolinha abre "Fulano pagou?"; normal e "Tudo acertado" do Figma, carregando e não carregou sem quadro
@@ -171,6 +171,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Gesto de deslizar a linha (editar à direita, apagar à esquerda) em cartões, categorias e pessoas (DEV-120)
 - [ ] Detalhe da meta concluída (o cartão não abre nada) e "Apagar meta" na edição, sem folha de confirmação (DEV-121)
 - [ ] Escolhas da Início com mês e busca que o Figma não mostra: sem "No crédito, a pagar" em mês passado, rótulo do mês futuro, busca com resultado, mês atual vazio sem botão (DEV-124)
+- [ ] Escolhas da fila offline que o Figma não mostra: aviso "na fila", recusado fora do saldo, aviso só na Início, dados não guardados, Motivo, Apagar sem confirmação (DEV-126)
 - [ ] Escolhas do Horizonte (4.2) que o Figma não mostra: texto do aviso negativo, carregando e não carregou, ponto do fim de novembro, "Registrar conta fixa" (DEV-125)
 - [ ] Estados carregando e não carregou do A receber (3.4), e a ordem das pessoas e das contas (DEV-123)
 - [ ] Escolhas da 3.2 Editar que o Figma não mostra: valor travado em saída dividida, só crédito em parcela, Editar desligado em reembolso, padrão da folha de escopo ("Só esta" no Figma × "Esta e as próximas" no DESIGN.md) e sem aviso de saldo mínimo (DEV-122)
@@ -208,3 +209,4 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - 2026-11-24 — Fase 3: A receber (3.4) feito (`/receber`, `split.pending`); testado no banco local (soma por pessoa, marcar pago tira da lista). Não conferido no navegador contra o Figma.
 - 2026-11-24 — Fase 3: seletor de mês (1.10), saldo "no fim de <mês>", mês sem movimento (1.3) e busca (1.8) feitos; testado no banco local (`firstMonth`, saldo de mês passado). Não conferido no navegador contra o Figma.
 - 2026-11-24 — Fase 4: Horizonte (4.2) com a linha de saldo mínimo feito; `summary.horizon` testado no banco local (fatura no vencimento, salário recorrente, mínimo). Rota do Resumo movida para `resumo/index.tsx`. Não conferido no navegador contra o Figma.
+- 2026-11-24 — Fase 3: fila offline do + feita (registrar sem rede, enviar na volta, linha "Na fila para enviar" / "Salvando…" / "Não foi salvo", aviso "Sem internet", detalhe local); 15 testes da fila em `offline-queue.test.ts` (grupo 11 do TESTES.md). Testado no banco local: reenvio com o mesmo `clientId` não duplica e as linhas planejadas no aparelho batem com as do servidor. Não conferido no navegador nem sem rede de verdade.
