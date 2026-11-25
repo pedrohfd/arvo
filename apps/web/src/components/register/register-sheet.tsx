@@ -48,6 +48,7 @@ import {
 } from "@/lib/register";
 import { splitHint } from "@/lib/split-with";
 import type { DeleteScope } from "@/lib/transaction-detail";
+import { useDesktop } from "@/lib/use-desktop";
 import { trpc } from "@/utils/trpc";
 import { DateSheet } from "./date-sheet";
 import { Chip, Grabber, useEscape } from "./parts";
@@ -124,6 +125,33 @@ export function RegisterSheet({
 	}, [onClose]);
 
 	const cents = toCents(raw);
+	const desktop = useDesktop();
+
+	// Computador (D2.1): uma etapa só, num diálogo de 560 centrado, com o valor digitado no campo.
+	if (desktop) {
+		return (
+			<div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-overlay)] p-6">
+				<div
+					ref={dialogRef}
+					role="dialog"
+					aria-modal="true"
+					aria-label={dialogLabel(flow, Boolean(editing))}
+					tabIndex={-1}
+					className="relative flex max-h-full w-full max-w-[560px] flex-col rounded-[var(--radius-xl)] bg-[var(--color-surface)] shadow-[var(--shadow-strong)] outline-none"
+				>
+					<DetailsStep
+						flow={flow}
+						cents={cents}
+						editing={editing}
+						onBack={onClose}
+						onRegistered={onRegistered}
+						onSaved={onSaved}
+						dialog={{ raw, onRaw: setRaw, onFlow: setFlow, onClose }}
+					/>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--color-overlay)]">
@@ -338,6 +366,7 @@ function DetailsStep({
 	onBack,
 	onRegistered,
 	onSaved,
+	dialog,
 }: {
 	flow: Flow;
 	cents: number;
@@ -345,6 +374,13 @@ function DetailsStep({
 	onBack: () => void;
 	onRegistered: (registered: Registered) => void;
 	onSaved?: () => void;
+	/** Computador: o diálogo de 560 (D2.1) com o valor no próprio campo, sem a etapa do teclado. */
+	dialog?: {
+		raw: string;
+		onRaw: (raw: string) => void;
+		onFlow: (flow: Flow) => void;
+		onClose: () => void;
+	};
 }) {
 	const today = todayInSaoPaulo();
 	const outbox = useOutbox();
@@ -537,6 +573,26 @@ function DetailsStep({
 		else queueOffline(payload);
 	}
 
+	// Computador: Enter registra, a não ser que o foco esteja num botão (aí o Enter aperta o botão).
+	const submitRef = useRef(submit);
+	submitRef.current = submit;
+	const busy = create.isPending || update.isPending;
+	useEffect(() => {
+		if (!dialog) return;
+		function onKey(event: KeyboardEvent) {
+			if (event.key !== "Enter" || event.defaultPrevented) return;
+			if (event.metaKey || event.ctrlKey || event.altKey) return;
+			const target = event.target as HTMLElement | null;
+			if (target?.closest("button, [role=switch], [role=dialog] [role=dialog]"))
+				return;
+			if (busy) return;
+			event.preventDefault();
+			submitRef.current();
+		}
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [dialog, busy]);
+
 	const money = moneyParts(cents);
 	const hint = creditHint(selectedCard, date);
 	// Compra no crédito já tem o aviso da fatura; as demais avisam que a data ainda não chegou.
@@ -545,35 +601,84 @@ function DetailsStep({
 
 	return (
 		<>
-			<div className="flex h-14 shrink-0 items-center gap-2 px-3 pt-1 pb-2">
-				<button
-					type="button"
-					className="icon-btn"
-					aria-label="Voltar ao valor"
-					onClick={onBack}
-				>
-					<CaretLeftIcon size={22} aria-hidden />
-				</button>
-				<h2 className="text-(length:--text-size-headline) font-semibold leading-6">
-					{dialogLabel(flow, Boolean(editing))}
-				</h2>
-			</div>
+			{dialog ? (
+				<div className="flex shrink-0 items-center justify-between gap-2 px-7 pt-6 pb-4">
+					<h2 className="font-[family-name:var(--font-display)] text-[24px] leading-8 tracking-[-0.01em] [font-variation-settings:'SOFT'_100,'WONK'_0]">
+						{dialogLabel(flow, Boolean(editing))}
+					</h2>
+					<button
+						type="button"
+						className="icon-btn"
+						aria-label="Fechar"
+						onClick={dialog.onClose}
+					>
+						<XIcon size={22} aria-hidden />
+					</button>
+				</div>
+			) : (
+				<div className="flex h-14 shrink-0 items-center gap-2 px-3 pt-1 pb-2">
+					<button
+						type="button"
+						className="icon-btn"
+						aria-label="Voltar ao valor"
+						onClick={onBack}
+					>
+						<CaretLeftIcon size={22} aria-hidden />
+					</button>
+					<h2 className="text-(length:--text-size-headline) font-semibold leading-6">
+						{dialogLabel(flow, Boolean(editing))}
+					</h2>
+				</div>
+			)}
 
-			<div className="flex flex-1 flex-col gap-6 overflow-y-auto px-5 pb-4">
-				<button
-					type="button"
-					className="self-start text-left"
-					aria-label={`Valor ${formatMoney(cents)}, tocar para alterar`}
-					disabled={editing?.lockAmount}
-					onClick={onBack}
-				>
-					<span className="font-[family-name:var(--font-display)] text-[32px] leading-[38px] tracking-[-0.02em] [font-variation-settings:'SOFT'_100,'WONK'_0]">
-						{money.integer}
-					</span>
-					<span className="font-[family-name:var(--font-display)] text-[var(--color-text-placeholder)] text-base leading-6 [font-variation-settings:'SOFT'_100,'WONK'_0]">
-						{money.cents}
-					</span>
-				</button>
+			<div
+				className={cn(
+					"flex flex-1 flex-col gap-6 overflow-y-auto pb-4",
+					dialog ? "px-7" : "px-5",
+				)}
+			>
+				{dialog ? (
+					<>
+						{editing ? null : (
+							<div ref={arrowKeys()} className="segmented self-start">
+								{(["EXPENSE", "INCOME"] as const).map((value) => (
+									<button
+										key={value}
+										type="button"
+										aria-pressed={flow === value}
+										className={cn(
+											"segmented__opt",
+											flow === value && "is-selected",
+										)}
+										onClick={() => dialog.onFlow(value)}
+									>
+										{value === "EXPENSE" ? "Saída" : "Entrada"}
+									</button>
+								))}
+							</div>
+						)}
+						<AmountField
+							raw={dialog.raw}
+							disabled={editing?.lockAmount}
+							onRaw={dialog.onRaw}
+						/>
+					</>
+				) : (
+					<button
+						type="button"
+						className="self-start text-left"
+						aria-label={`Valor ${formatMoney(cents)}, tocar para alterar`}
+						disabled={editing?.lockAmount}
+						onClick={onBack}
+					>
+						<span className="font-[family-name:var(--font-display)] text-[32px] leading-[38px] tracking-[-0.02em] [font-variation-settings:'SOFT'_100,'WONK'_0]">
+							{money.integer}
+						</span>
+						<span className="font-[family-name:var(--font-display)] text-[var(--color-text-placeholder)] text-base leading-6 [font-variation-settings:'SOFT'_100,'WONK'_0]">
+							{money.cents}
+						</span>
+					</button>
+				)}
 
 				{showWarning ? (
 					<div className="banner m-0">
@@ -620,46 +725,57 @@ function DetailsStep({
 					) : null}
 				</Group>
 
-				<div className="field">
-					<label className="field__label" htmlFor="register-title">
-						Título <small>· opcional</small>
-					</label>
-					<div className="field__control">
-						<input
-							id="register-title"
-							value={title}
-							maxLength={80}
-							placeholder={flow === "INCOME" ? "Ex.: Salário" : undefined}
-							onChange={(event) => setTitle(event.target.value)}
-						/>
+				<div
+					className={cn(
+						dialog && "grid grid-cols-[1fr_200px] items-start gap-3",
+					)}
+				>
+					<div className="field">
+						<label className="field__label" htmlFor="register-title">
+							Título <small>· opcional</small>
+						</label>
+						<div className="field__control">
+							<input
+								id="register-title"
+								value={title}
+								maxLength={80}
+								placeholder={flow === "INCOME" ? "Ex.: Salário" : undefined}
+								onChange={(event) => setTitle(event.target.value)}
+							/>
+						</div>
 					</div>
-				</div>
 
-				<div className="flex flex-col gap-3">
-					<div className="field field--select">
-						<span className="field__label" id="register-date-label">
-							Data
-						</span>
-						<button
-							type="button"
-							className="field__control text-left"
-							aria-labelledby="register-date-label"
-							aria-haspopup="dialog"
-							onClick={() => setDateOpen(true)}
-						>
-							<CalendarBlankIcon size={18} aria-hidden />
-							<span className="field__value">
-								{dateFieldLabel(date, today)}
+					<div className="flex flex-col gap-3">
+						<div className="field field--select">
+							<span className="field__label" id="register-date-label">
+								Data
 							</span>
-							<CaretDownIcon size={18} aria-hidden />
-						</button>
+							<button
+								type="button"
+								className="field__control text-left"
+								aria-labelledby="register-date-label"
+								aria-haspopup="dialog"
+								onClick={() => setDateOpen(true)}
+							>
+								<CalendarBlankIcon size={18} aria-hidden />
+								<span className="field__value">
+									{dateFieldLabel(date, today)}
+								</span>
+								<CaretDownIcon size={18} aria-hidden />
+							</button>
+						</div>
+						{futureHint && !dialog ? (
+							<p className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-5">
+								{futureHint}
+							</p>
+						) : null}
 					</div>
-					{futureHint ? (
-						<p className="text-(length:--text-size-small) text-[var(--color-text-muted)] leading-5">
-							{futureHint}
-						</p>
-					) : null}
 				</div>
+				{futureHint && dialog ? (
+					<p className="text-(length:--text-size-small) -mt-3 text-[var(--color-text-muted)] leading-5">
+						{futureHint}
+					</p>
+				) : null}
 
 				<Group
 					label={
@@ -807,14 +923,32 @@ function DetailsStep({
 				) : null}
 			</div>
 
-			<div className="shrink-0 px-5 pt-3 pb-6">
+			<div
+				className={cn(
+					"shrink-0",
+					dialog
+						? "flex justify-end gap-3 border-[var(--color-border)] border-t px-7 py-4"
+						: "px-5 pt-3 pb-6",
+				)}
+			>
+				{dialog ? (
+					<button
+						type="button"
+						className="btn-secondary"
+						onClick={dialog.onClose}
+					>
+						Cancelar
+						<kbd className="kbd">Esc</kbd>
+					</button>
+				) : null}
 				<button
 					type="button"
 					className={cn(
-						"btn-primary btn-primary--block",
-						(create.isPending || update.isPending) && "is-loading",
+						"btn-primary",
+						!dialog && "btn-primary--block",
+						busy && "is-loading",
 					)}
-					disabled={create.isPending || update.isPending}
+					disabled={busy}
 					onClick={submit}
 				>
 					<span>
@@ -824,12 +958,14 @@ function DetailsStep({
 								? "Registrar saída"
 								: "Registrar entrada"}
 					</span>
-					{create.isPending || update.isPending ? (
+					{busy ? (
 						<span
 							className="spinner"
 							role="status"
 							aria-label={editing ? "Salvando" : "Registrando"}
 						/>
+					) : dialog ? (
+						<kbd className="kbd kbd--on-primary">↵</kbd>
 					) : null}
 				</button>
 			</div>
@@ -938,6 +1074,52 @@ function EditScopeSheet({
 				</button>
 			</div>
 		</Sheet>
+	);
+}
+
+// D2.1: o valor digitado no próprio campo (teclado do computador): dígitos, vírgula e Backspace.
+function AmountField({
+	raw,
+	disabled,
+	onRaw,
+}: {
+	raw: string;
+	disabled?: boolean;
+	onRaw: (raw: string) => void;
+}) {
+	const { typed, ghost } = displayParts(raw);
+	const ref = useRef<HTMLInputElement>(null);
+	useEffect(() => {
+		if (!disabled) ref.current?.focus();
+	}, [disabled]);
+	return (
+		<div className="field">
+			<label className="field__label" htmlFor="register-amount">
+				Valor
+			</label>
+			<div className="field__control field__control--amount">
+				<input
+					ref={ref}
+					id="register-amount"
+					inputMode="decimal"
+					autoComplete="off"
+					disabled={disabled}
+					value={`${typed}${ghost}`}
+					aria-label="Valor"
+					onChange={() => {}}
+					onKeyDown={(event) => {
+						if (event.metaKey || event.ctrlKey || event.altKey) return;
+						if (/^\d$/.test(event.key))
+							onRaw(pressKey(raw, event.key as AmountKey));
+						else if (event.key === "," || event.key === ".")
+							onRaw(pressKey(raw, ","));
+						else if (event.key === "Backspace") onRaw(pressKey(raw, "back"));
+						else return;
+						event.preventDefault();
+					}}
+				/>
+			</div>
+		</div>
 	);
 }
 
