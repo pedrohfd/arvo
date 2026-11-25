@@ -3198,6 +3198,27 @@
 /* Computador (≥1024): a lista de transações da Início vira um cartão na coluna central, e a tela
    rola dentro da coluna (a barra lateral e o painel de detalhe ficam parados) */
 @media (min-width: 1024px) {
+	/* Perfil: a lista de seções na coluna central e a tela da seção no painel (D5.1 e D5.2). As telas do
+	   celular entram no painel sem o cabeçalho de voltar, sem a margem de cima e com o título menor. */
+	.setting-row[data-status="active"] {
+		background: var(--color-primary-soft);
+	}
+	.perfil-panel .perfil-screen {
+		min-height: 0;
+		max-width: none;
+		margin: 0 calc(var(--spacing-5) * -1);
+		padding-top: 0;
+	}
+	.perfil-panel .perfil-back-bar {
+		display: none;
+	}
+	.perfil-panel .perfil-screen .display {
+		font-size: var(--text-size-title);
+		line-height: var(--text-leading-title);
+	}
+	.perfil-panel .perfil-screen [class*="pb-32"] {
+		padding-bottom: var(--spacing-4);
+	}
 	/* Resumo: "Para onde foi" direto no fundo, sem cartão (D4.1) */
 	.collapse-area > .sheet.sheet--plain {
 		flex: none;
