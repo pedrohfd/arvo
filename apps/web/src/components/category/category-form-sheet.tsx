@@ -10,6 +10,7 @@ import {
 	DEFAULT_CATEGORY_ICON,
 } from "@/components/category-icon";
 import { Grabber } from "@/components/register/parts";
+import { arrowKeys } from "@/lib/arrow-keys";
 import { type CategoryKind, validateCategoryName } from "@/lib/category-form";
 import { queryClient, trpc } from "@/utils/trpc";
 
@@ -160,7 +161,7 @@ export function CategoryFormSheet({
 					{editing ? null : (
 						<fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
 							<legend className="field__label mb-2 p-0">Tipo</legend>
-							<div className="segmented self-start">
+							<div ref={arrowKeys()} className="segmented self-start">
 								<button
 									type="button"
 									aria-pressed={kind === "EXPENSE"}

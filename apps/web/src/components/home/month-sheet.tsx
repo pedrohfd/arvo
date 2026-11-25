@@ -3,6 +3,7 @@ import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
 import { Sheet } from "@/components/card/card-sheets";
+import { arrowKeys } from "@/lib/arrow-keys";
 import { monthName } from "@/lib/format";
 import { monthSheetModel } from "@/lib/home-month";
 
@@ -53,7 +54,7 @@ export function MonthSheet({
 					<CaretRightIcon size={22} aria-hidden />
 				</button>
 			</div>
-			<div className="month-grid px-5 pt-4 pb-8">
+			<div ref={arrowKeys(3)} className="month-grid px-5 pt-4 pb-8">
 				{months.map(({ month, disabled }) => (
 					<button
 						key={month}

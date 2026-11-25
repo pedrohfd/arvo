@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Sheet } from "@/components/card/card-sheets";
+import { arrowKeys } from "@/lib/arrow-keys";
 import { findPersonByName, initials, splitHint } from "@/lib/split-with";
 import { queryClient, trpc } from "@/utils/trpc";
 
@@ -136,7 +137,7 @@ export function SplitSheet({
 				{recent.length > 0 ? (
 					<section className="flex flex-col gap-2">
 						<h3 className="field__label">Recentes</h3>
-						<div className="choices">
+						<div ref={arrowKeys()} className="choices">
 							{recent.map((person) => (
 								<button
 									key={person.id}

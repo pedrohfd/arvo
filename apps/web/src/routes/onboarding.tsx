@@ -112,6 +112,9 @@ function OnboardingPage() {
 						className="onb__slide"
 						aria-roledescription="slide"
 						aria-label={`${i + 1} de ${SLIDES.length}`}
+						// Só o passo atual é lido; os outros não têm nada focável, então aria-hidden basta (e não
+						// atrapalha o arrasto, como o inert poderia).
+						aria-hidden={i !== index}
 					>
 						<div className="onb__art" aria-hidden>
 							{slide.art}

@@ -17,6 +17,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { CategoryIcon } from "@/components/category-icon";
+import { arrowKeys } from "@/lib/arrow-keys";
 import { formatMoney, moneyParts, monthName } from "@/lib/format";
 import { useCollapse } from "@/lib/use-collapse";
 import { trpc } from "@/utils/trpc";
@@ -117,7 +118,7 @@ function MonthRow({
 	}, [selected]);
 
 	return (
-		<div className="month-row h-12 px-5 pt-3">
+		<div ref={arrowKeys()} className="month-row h-12 px-5 pt-3">
 			{monthsAround(current).map((month) => (
 				<button
 					key={month}

@@ -340,6 +340,7 @@ function Inicio() {
 function Page({ children }: { children: ReactNode }) {
 	return (
 		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] max-sm:h-svh">
+			<h1 className="sr-only">Início</h1>
 			{children}
 		</div>
 	);

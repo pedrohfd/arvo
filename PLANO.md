@@ -185,7 +185,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Início, Registrar (diálogo de 560), Metas, Resumo e Perfil no layout desktop
 - [ ] Atalhos de teclado: ↑↓ ↵ Esc N ←→
 - [ ] Largura média (768): barra lateral compacta de 72 e painel como gaveta
-- [ ] Auditoria de acessibilidade: contraste AA, alvos de 44 px, `aria-invalid` nos erros, setas nos grupos, Esc nos diálogos
+- [x] Auditoria de acessibilidade (feita pelo código, sem navegador): contraste AA testado (`contrast.test.ts`, todos os pares passam nos dois temas); `aria-invalid` e `aria-describedby` no campo de dia do cartão (era o que faltava); título de nível 1 na Início; aviso do Desfazer pausa com mouse ou foco; setas nos grupos de escolha, nos meses e no calendário (`lib/arrow-keys.ts`); Esc já fechava todos os diálogos; tamanhos de texto dos tokens em rem; onboarding lê só o passo atual. Não medido no navegador: alvos de 44 px e "selecionado nunca só pela cor"
 - [x] `prefers-reduced-motion` em todas as transições: a regra global de `components.css` zera transições e animações (só os spinners giram devagar, inclusive o `.animate-spin` do carregamento do entrar, que antes ficava parado); a contagem do saldo e o carrossel do onboarding já leem a preferência; o destaque da linha nova e o traço do splash têm regra própria. Auditado lendo o CSS e o código, não no navegador
 - [ ] Revisão de desempenho do PWA e do uso offline
 
@@ -219,3 +219,4 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - 2026-11-24 — Gesto de recolher feito também em Metas e no Resumo (celular baixo); o gancho `useCollapse` agora serve as três telas. Não conferido no navegador: o comportamento de rolagem só foi verificado pela leitura do CSS e do código.
 - 2026-11-24 — Fase 3: contagem do saldo e destaque da linha recém-registrada (Início) feitos; contagem e expiração testadas (`count-to.test.ts`, `recent-registered.test.ts`). Não conferido no navegador: a animação só foi verificada pela leitura do código.
 - 2026-11-24 — Auditoria do movimento reduzido: tudo já coberto pela regra global, exceto o spinner `.animate-spin` (carregamento do entrar), que ficava parado; corrigido. Verificado pela leitura do CSS e do código, sem navegador.
+- 2026-11-24 — Auditoria de acessibilidade pelo código: contraste (teste novo), título da Início, pausa do aviso, setas do teclado nos grupos, tokens de texto em rem e onboarding; DEV-114. Alvos de 44 px e seleção não só pela cor ficam para conferir no navegador.

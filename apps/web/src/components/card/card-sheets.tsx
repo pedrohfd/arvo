@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Grabber, useEscape } from "@/components/register/parts";
+import { arrowKeys } from "@/lib/arrow-keys";
 import { formatMoney, formatShortDate } from "@/lib/format";
 import { queryClient, trpc } from "@/utils/trpc";
 
@@ -88,7 +89,10 @@ export function DaySheet({
 
 	return (
 		<Sheet title={title} onClose={onClose}>
-			<fieldset className="day-grid m-0 min-w-0 border-0 px-5 pt-2 pb-4">
+			<fieldset
+				ref={arrowKeys(7)}
+				className="day-grid m-0 min-w-0 border-0 px-5 pt-2 pb-4"
+			>
 				<legend className="sr-only">{title}</legend>
 				{Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
 					<button
