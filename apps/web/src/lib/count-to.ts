@@ -2,8 +2,8 @@
 // valor, em centavos inteiros, num ponto da animação. O gancho que anima na tela fica em
 // `use-count-to.ts`.
 
-/** Duração da contagem, entre os 250 ms das trocas e os 400 ms das folhas (um pouco mais, é um número). */
-export const COUNT_DURATION_MS = 600;
+/** Duração da contagem: 1 s (mais que os 250 a 400 ms das outras animações, porque é um número que muda). */
+export const COUNT_DURATION_MS = 1000;
 
 /** Curva suave que desacelera no fim (a "curva única" do app). */
 export function easeOut(progress: number) {

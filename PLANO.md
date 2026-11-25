@@ -172,7 +172,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Gesto de deslizar a linha (editar à direita, apagar à esquerda) em cartões, categorias e pessoas (DEV-120)
 - [ ] Detalhe da meta concluída (o cartão não abre nada) e "Apagar meta" na edição, sem folha de confirmação (DEV-121)
 - [ ] Escolhas da Início com mês e busca que o Figma não mostra: sem "No crédito, a pagar" em mês passado, rótulo do mês futuro, busca com resultado, mês atual vazio sem botão (DEV-124)
-- [ ] Escolhas da contagem do saldo e da linha "acabou de registrar": 600 ms, conta em qualquer mudança do saldo, "agora" só em linha simples (DEV-130)
+- [ ] Escolhas da contagem do saldo e da linha "acabou de registrar": 1 s, conta em qualquer mudança do saldo, "agora" só em linha simples (DEV-130)
 - [ ] Escolhas do gesto de recolher (Início, Metas e Resumo) que o Figma não mostra: só celular, Resumo só em celular baixo (até 720 px), busca com rolagem própria, aviso de sem internet rola junto (DEV-129)
 - [ ] Escolhas da lista de uma categoria no Resumo que o Figma não mostra: "Outras" não abre, linha tocável sem sinal, estados sem quadro, mês no endereço (DEV-127)
 - [ ] Escolhas da fila offline que o Figma não mostra: aviso "na fila", recusado fora do saldo, aviso só na Início, dados não guardados, Motivo, Apagar sem confirmação (DEV-126)
