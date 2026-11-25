@@ -44,7 +44,9 @@ import {
 	queuedEffects,
 	queuedRowsOfMonth,
 } from "@/lib/queued-view";
+import { useRecent } from "@/lib/recent-registered";
 import { useCollapse } from "@/lib/use-collapse";
+import { useCountTo } from "@/lib/use-count-to";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/inicio")({
@@ -96,7 +98,7 @@ function Inicio() {
 
 	const bar = (
 		disabled?: boolean,
-		balanceText?: string,
+		balanceText?: ReactNode,
 		showBalance = false,
 	) => (
 		<TopBar
@@ -223,7 +225,14 @@ function Inicio() {
 
 	return (
 		<Page>
-			{bar(isEmpty, formatMoney(balance.balanceCents), compact)}
+			{bar(
+				isEmpty,
+				<AnimatedMoney
+					cents={balance.balanceCents}
+					resetKey={home.data.month}
+				/>,
+				compact,
+			)}
 			<div className="collapse-area" ref={setScrollEl}>
 				{outbox.online ? null : (
 					<div className="banner" role="status">
@@ -240,7 +249,7 @@ function Inicio() {
 						<span className="balance__label">
 							{balanceLabel(home.data.month, currentMonth)}
 						</span>
-						<Balance cents={balance.balanceCents} />
+						<Balance cents={balance.balanceCents} resetKey={home.data.month} />
 					</div>
 					{!isPast && credit.totalCents > 0 && credit.nextDueDate ? (
 						<p className="text-(length:--text-size-small) mt-2 flex items-center gap-1 text-[var(--color-text-muted)]">
@@ -348,7 +357,7 @@ function TopBar({
 }: {
 	month: string;
 	/** Saldo compacto, no meio da barra; só aparece quando `showBalance` (o grande saiu da tela). */
-	balanceText?: string;
+	balanceText?: ReactNode;
 	showBalance?: boolean;
 	searchDisabled?: boolean;
 	monthDisabled?: boolean;
@@ -537,8 +546,10 @@ function NoResults({
 	);
 }
 
-function Balance({ cents }: { cents: number }) {
-	const parts = moneyParts(cents);
+// O saldo conta até o valor novo depois de um registro (sem contar com "reduzir movimento", nem
+// ao trocar de mês).
+function Balance({ cents, resetKey }: { cents: number; resetKey: string }) {
+	const parts = moneyParts(useCountTo(cents, resetKey));
 	return (
 		<span className="balance__value">
 			{parts.integer}
@@ -547,6 +558,17 @@ function Balance({ cents }: { cents: number }) {
 			</span>
 		</span>
 	);
+}
+
+// "R$ 2.513,40" que conta até o valor novo, como o saldo grande (o compacto do topo).
+function AnimatedMoney({
+	cents,
+	resetKey,
+}: {
+	cents: number;
+	resetKey: string;
+}) {
+	return formatMoney(useCountTo(cents, resetKey));
 }
 
 function StatCard({
@@ -651,7 +673,7 @@ const METHOD_LABEL = {
 
 // Linha de detalhe sob o título, com o ícone pequeno do Figma: dividida ("1 de 2 já pagou"),
 // série (parcela 3/10), crédito (cartão · fatura) ou só a forma de pagamento (com a hora, se houver).
-function detailFor(tx: Tx): { icon: ReactNode; text: string } {
+function detailFor(tx: Tx, recent: boolean): { icon: ReactNode; text: string } {
 	const method = METHOD_LABEL[tx.paymentMethod] ?? tx.cardName ?? "Cartão";
 	const total = tx.splits.length;
 	const paid = tx.splits.filter((split) => split.paidAt).length;
@@ -685,12 +707,15 @@ function detailFor(tx: Tx): { icon: ReactNode; text: string } {
 			text: `${method} · fatura ${formatShortDate(tx.dueDate)}`,
 		};
 	}
+	// Acabou de registrar (Figma 1.7): "Débito · agora" no lugar da hora.
+	if (recent) return { icon: null, text: `${method} · agora` };
 	return { icon: null, text: tx.time ? `${method} · ${tx.time}` : method };
 }
 
 function TxRow({ tx }: { tx: Tx }) {
 	const income = tx.kind === "INCOME";
-	const detail = detailFor(tx);
+	const recent = useRecent().has(tx.id);
+	const detail = detailFor(tx, recent);
 	const owedCents = tx.splits
 		.filter((split) => !split.paidAt)
 		.reduce((sum, split) => sum + split.amountCents, 0);
@@ -698,7 +723,7 @@ function TxRow({ tx }: { tx: Tx }) {
 		<Link
 			to="/transacao/$transactionId"
 			params={{ transactionId: tx.id }}
-			className={cn("tx-row", income && "tx-row--income")}
+			className={cn("tx-row", income && "tx-row--income", recent && "is-new")}
 		>
 			<span className="tx-row__icon">
 				<CategoryIcon name={tx.category.icon} />

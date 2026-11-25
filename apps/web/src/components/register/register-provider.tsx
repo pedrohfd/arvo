@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { useOutbox } from "@/components/offline/outbox-provider";
 import { formatMoney } from "@/lib/format";
+import { markRecent } from "@/lib/recent-registered";
 import { refreshMoney } from "@/lib/refresh-money";
 import type { Flow } from "@/lib/register";
 import { deletedToast } from "@/lib/transaction-detail";
@@ -108,6 +109,7 @@ export function RegisterProvider({ children }: { children: ReactNode }) {
 					initialFlow={session.flow}
 					onClose={close}
 					onRegistered={(result) => {
+						markRecent(result.ids);
 						refreshMoney();
 						setToast({
 							type: "registered",

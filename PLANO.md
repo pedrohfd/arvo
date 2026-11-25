@@ -129,7 +129,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 - [x] 3.2 Editar: o mesmo `RegisterSheet` em modo edição (`editing`), sem repetir nem dividir; valor travado em saída dividida, parcela só em cartão de crédito, reembolso não se edita; em série, folha "Salvar em quais parcelas/repetições?" (começa em "Esta e as próximas"); com outra data, as seguintes acompanham (`lib/plan-edit.ts`, com testes), e o início e o dia da série são refeitos para a renovação continuar do mesmo ponto; "Só esta" / "Esta e as próximas" em recorrentes
 - [x] 3.3 Apagar: folha de confirmação, "Só esta" / "Esta e as próximas" em série, e aviso "Saída apagada · Desfazer" (10 s) na Início. O `transaction.delete` devolve um retrato do que saiu (com os reembolsos) e o `transaction.restore` recria com os mesmos ids. Obs. para a renovação do "sem fim" (P2): "esta e as próximas" não encerra a série, então a renovação não pode recriar o que foi apagado
 - [x] 3.4 A receber, por pessoa: rota `/receber` (`routes/_auth/receber.tsx`), aberta pelo cartão "A receber" da Início; pessoas e contas via `split.pending` (`lib/pending-splits.ts`, com testes), bolinha abre "Fulano pagou?"; normal e "Tudo acertado" do Figma, carregando e não carregou sem quadro
-- [ ] Contagem do saldo ao registrar (respeitando "reduzir movimento")
+- [x] Contagem do saldo ao registrar (`lib/count-to.ts`, `lib/use-count-to.ts`; sem contar com "reduzir movimento") e a linha "acabou de registrar" (destaque e "agora", `lib/recent-registered.ts`)
 
 ## Fase 4 · Resumo e Horizonte
 
@@ -172,6 +172,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Gesto de deslizar a linha (editar à direita, apagar à esquerda) em cartões, categorias e pessoas (DEV-120)
 - [ ] Detalhe da meta concluída (o cartão não abre nada) e "Apagar meta" na edição, sem folha de confirmação (DEV-121)
 - [ ] Escolhas da Início com mês e busca que o Figma não mostra: sem "No crédito, a pagar" em mês passado, rótulo do mês futuro, busca com resultado, mês atual vazio sem botão (DEV-124)
+- [ ] Escolhas da contagem do saldo e da linha "acabou de registrar": 1 s, conta em qualquer mudança do saldo, "agora" só em linha simples (DEV-130)
 - [ ] Escolhas do gesto de recolher (Início, Metas e Resumo) que o Figma não mostra: só celular, Resumo só em celular baixo (até 720 px), busca com rolagem própria, aviso de sem internet rola junto (DEV-129)
 - [ ] Escolhas da lista de uma categoria no Resumo que o Figma não mostra: "Outras" não abre, linha tocável sem sinal, estados sem quadro, mês no endereço (DEV-127)
 - [ ] Escolhas da fila offline que o Figma não mostra: aviso "na fila", recusado fora do saldo, aviso só na Início, dados não guardados, Motivo, Apagar sem confirmação (DEV-126)
@@ -216,3 +217,4 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - 2026-11-24 — Fase 4: lista das saídas de uma categoria no mês (tela "Resumo · categoria") feita, aberta pelas linhas do "Para onde foi"; testado no banco local (total da lista bate com o do Resumo, vencimento da fatura na linha). Não conferido no navegador contra o Figma.
 - 2026-11-24 — Fase 3: gesto de recolher o saldo na Início (1.11) feito; Metas e Resumo (celular pequeno) ficam para depois (DEV-128). Não conferido no navegador: o comportamento de rolagem só foi verificado pela leitura do CSS e do código.
 - 2026-11-24 — Gesto de recolher feito também em Metas e no Resumo (celular baixo); o gancho `useCollapse` agora serve as três telas. Não conferido no navegador: o comportamento de rolagem só foi verificado pela leitura do CSS e do código.
+- 2026-11-24 — Fase 3: contagem do saldo e destaque da linha recém-registrada (Início) feitos; contagem e expiração testadas (`count-to.test.ts`, `recent-registered.test.ts`). Não conferido no navegador: a animação só foi verificada pela leitura do código.
