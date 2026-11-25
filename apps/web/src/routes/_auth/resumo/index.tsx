@@ -139,6 +139,7 @@ function Ready({
 	const rows = [
 		...spending.categories.map((row) => ({
 			key: row.categoryId,
+			categoryId: row.categoryId as string | null,
 			name: row.category?.name ?? "Sem categoria",
 			icon: <CategoryIcon name={row.category?.icon ?? "tag"} size={18} />,
 			totalCents: row.totalCents,
@@ -148,6 +149,7 @@ function Ready({
 			? [
 					{
 						key: "others",
+						categoryId: null,
 						name: `Outras · ${spending.others.count} ${
 							spending.others.count === 1 ? "categoria" : "categorias"
 						}`,
@@ -233,27 +235,43 @@ function Ready({
 					/>
 				) : (
 					<div className="cat-bars">
-						{rows.map((row, index) => (
-							<div
-								key={row.key}
-								className={cn("cat-bar", index === 0 && "cat-bar--top")}
-							>
-								<div className="cat-bar__top">
-									{row.icon}
-									<span className="cat-bar__name">{row.name}</span>
-									<span className="cat-bar__value">
-										{formatMoney(row.totalCents)}
-									</span>
-									<span className="cat-bar__pct">{row.percent}%</span>
+						{rows.map((row, index) => {
+							const className = cn("cat-bar", index === 0 && "cat-bar--top");
+							const content = (
+								<>
+									<div className="cat-bar__top">
+										{row.icon}
+										<span className="cat-bar__name">{row.name}</span>
+										<span className="cat-bar__value">
+											{formatMoney(row.totalCents)}
+										</span>
+										<span className="cat-bar__pct">{row.percent}%</span>
+									</div>
+									<div className="cat-bar__track">
+										<div
+											className="cat-bar__fill"
+											style={{ width: `${(row.totalCents / biggest) * 100}%` }}
+										/>
+									</div>
+								</>
+							);
+							// Tocar numa categoria abre a lista das saídas dela no mês; "Outras" não abre.
+							return row.categoryId ? (
+								<Link
+									key={row.key}
+									to="/resumo/categoria/$categoryId"
+									params={{ categoryId: row.categoryId }}
+									search={{ month: data.month }}
+									className={cn(className, "block")}
+								>
+									{content}
+								</Link>
+							) : (
+								<div key={row.key} className={className}>
+									{content}
 								</div>
-								<div className="cat-bar__track">
-									<div
-										className="cat-bar__fill"
-										style={{ width: `${(row.totalCents / biggest) * 100}%` }}
-									/>
-								</div>
-							</div>
-						))}
+							);
+						})}
 					</div>
 				)}
 			</section>
