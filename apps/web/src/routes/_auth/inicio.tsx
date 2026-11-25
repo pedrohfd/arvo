@@ -44,6 +44,7 @@ import {
 	queuedEffects,
 	queuedRowsOfMonth,
 } from "@/lib/queued-view";
+import { useCollapse } from "@/lib/use-collapse";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/inicio")({
@@ -66,21 +67,11 @@ function Inicio() {
 	const [query, setQuery] = useState("");
 	const outbox = useOutbox();
 	// Celular: ao subir a lista, o saldo grande sai da tela e o saldo compacto aparece no topo.
-	const [scrollEl, setScrollEl] = useState<HTMLElement | null>(null);
-	const [balanceEl, setBalanceEl] = useState<HTMLElement | null>(null);
-	const [compact, setCompact] = useState(false);
-	useEffect(() => {
-		if (!scrollEl || !balanceEl) {
-			setCompact(false);
-			return;
-		}
-		const observer = new IntersectionObserver(
-			([entry]) => setCompact(!entry?.isIntersecting),
-			{ root: scrollEl, threshold: 0 },
-		);
-		observer.observe(balanceEl);
-		return () => observer.disconnect();
-	}, [scrollEl, balanceEl]);
+	const {
+		scrollRef: setScrollEl,
+		targetRef: setBalanceEl,
+		collapsed: compact,
+	} = useCollapse();
 	const home = useQuery({
 		...trpc.summary.home.queryOptions({ month: selected ?? undefined }),
 		placeholderData: keepPreviousData,

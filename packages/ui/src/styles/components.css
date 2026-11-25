@@ -3184,6 +3184,14 @@
 	border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
+/* Celular baixo (ex.: 667 px): a tela tem a altura da janela e só a área de baixo da barra rola
+   (o Resumo recolhe só aqui; nos celulares altos "Para onde foi" cabe na tela) */
+@media (max-width: 639px) and (max-height: 720px) {
+	.fit-screen {
+		height: 100svh;
+	}
+}
+
 /* Saldo compacto na barra superior: aparece quando o saldo grande saiu da tela */
 .top-bar__balance {
 	flex: 1;
