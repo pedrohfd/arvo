@@ -114,7 +114,7 @@ Abordagem: o CSS aprovado de `design/components.css` foi copiado para `packages/
 
 ## Fase 3 · Início e Registrar
 
-- [~] 1.1 Início: saldo, entrou/saiu, "A receber", "No crédito, a pagar" e lista por dia feitos (`routes/_auth/inicio.tsx`, com carregando, não carregou e 1.2 vazia); falta conferir no navegador contra o Figma
+- [x] 1.1 Início: saldo, entrou/saiu, "A receber", "No crédito, a pagar" e lista por dia feitos (`routes/_auth/inicio.tsx`, com carregando, não carregou e 1.2 vazia); a conferência visual no navegador contra o Figma fica para a DEV-55
 - [x] Lista agrupada por dia (`groupByDay`, em `inicio.tsx`) com o gesto de recolher: ao subir a lista (celular) o saldo e os cartões sobem junto, o título "Transações" gruda e o saldo compacto aparece no topo (`.collapse-area`, observador de interseção)
 - [x] Seletor de mês (folha 1.10, `components/home/month-sheet.tsx`, `lib/home-month.ts`) e saldo "no fim de <mês>" em mês passado; `summary.home` devolve `firstMonth`; a 1.3 "mês sem movimento" feita
 - [x] Busca sem acento e sem maiúsculas, só no mês escolhido (título, categoria e meta), com a 1.8 "busca sem resultado"
