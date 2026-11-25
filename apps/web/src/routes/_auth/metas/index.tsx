@@ -12,8 +12,11 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
+import { useDetailSlot } from "@/components/app-shell";
 import { GoalFormSheet } from "@/components/goal/goal-form-sheet";
+import { MetasPanel } from "@/components/goal/metas-panel";
 import { GoalRing } from "@/components/goal-ring";
 import {
 	dayLabel,
@@ -22,6 +25,7 @@ import {
 	moneyParts,
 } from "@/lib/format";
 import { useCollapse } from "@/lib/use-collapse";
+import { useDesktop } from "@/lib/use-desktop";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/metas/")({
@@ -40,7 +44,7 @@ function Metas() {
 	const home = useQuery(trpc.summary.home.queryOptions());
 
 	return (
-		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] max-sm:h-svh">
+		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] max-sm:h-svh lg:max-w-[600px] lg:pt-5">
 			{goals.isError || home.isError ? (
 				<>
 					<Header />
@@ -118,6 +122,10 @@ function Ready({
 	const goals = allGoals.filter((goal) => !goal.completedAt);
 	const completed = allGoals.filter((goal) => goal.completedAt);
 	const { scrollRef, targetRef, collapsed } = useCollapse();
+	// Computador: tocar numa meta escolhe e o painel da direita mostra o detalhe.
+	const desktop = useDesktop();
+	const detailSlot = useDetailSlot();
+	const [selectedId, setSelectedId] = useState<string | null>(null);
 
 	if (allGoals.length === 0) {
 		return (
@@ -148,6 +156,19 @@ function Ready({
 
 	const savedCents = goals.reduce((sum, goal) => sum + goal.savedCents, 0);
 	const parts = moneyParts(savedCents);
+	const panel =
+		desktop && detailSlot
+			? createPortal(
+					<MetasPanel
+						selectedId={selectedId}
+						savedCents={savedCents}
+						availableCents={availableCents}
+						inProgress={goals.length}
+						onClear={() => setSelectedId(null)}
+					/>,
+					detailSlot,
+				)
+			: null;
 
 	return (
 		<>
@@ -179,7 +200,12 @@ function Ready({
 					aria-label="Suas metas"
 				>
 					{goals.map((goal) => (
-						<GoalCard key={goal.id} goal={goal} />
+						<GoalCard
+							key={goal.id}
+							goal={goal}
+							selected={selectedId === goal.id}
+							onSelect={desktop ? setSelectedId : undefined}
+						/>
 					))}
 					{completed.length > 0 ? (
 						<>
@@ -193,6 +219,7 @@ function Ready({
 					) : null}
 				</section>
 			</div>
+			{panel}
 		</>
 	);
 }
@@ -209,7 +236,16 @@ function tagFor(goal: Goal) {
 	return goal.kind === "KEEP" ? "Para manter guardado" : null;
 }
 
-function GoalCard({ goal }: { goal: Goal }) {
+function GoalCard({
+	goal,
+	selected,
+	onSelect,
+}: {
+	goal: Goal;
+	selected?: boolean;
+	/** Computador: escolhe a meta em vez de abrir a tela de detalhe. */
+	onSelect?: (id: string) => void;
+}) {
 	const percent = Math.min(
 		100,
 		Math.floor((goal.savedCents * 100) / goal.targetCents),
@@ -219,7 +255,13 @@ function GoalCard({ goal }: { goal: Goal }) {
 		<Link
 			to="/metas/$goalId"
 			params={{ goalId: goal.id }}
-			className="goal-card"
+			aria-current={selected ? "true" : undefined}
+			onClick={(event) => {
+				if (!onSelect) return;
+				event.preventDefault();
+				onSelect(goal.id);
+			}}
+			className={cn("goal-card", selected && "is-selected")}
 		>
 			<GoalRing percent={percent} done={goal.reached} />
 			<span className="goal-card__text">
