@@ -1,7 +1,7 @@
 import { cn } from "@arvo/ui/lib/utils";
 import { CaretLeftIcon, CaretRightIcon, XIcon } from "@phosphor-icons/react";
 import { useState } from "react";
-
+import { arrowKeys } from "@/lib/arrow-keys";
 import {
 	isPickable,
 	monthGrid,
@@ -77,7 +77,7 @@ export function DateSheet({
 
 				<div className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-4">
 					{shortcuts ? (
-						<div className="choices">
+						<div ref={arrowKeys()} className="choices">
 							<Chip
 								selected={draft === yesterday}
 								onClick={() => pick(yesterday)}
@@ -130,7 +130,7 @@ export function DateSheet({
 							))}
 						</div>
 
-						<div className="flex flex-col">
+						<div ref={arrowKeys(7)} className="flex flex-col">
 							{monthGrid(month).map((week) => (
 								<div key={week[0]?.date} className="grid grid-cols-7">
 									{week.map((cell) => {

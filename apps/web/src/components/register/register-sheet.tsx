@@ -28,6 +28,7 @@ import {
 	pressKey,
 	toCents,
 } from "@/lib/amount-input";
+import { arrowKeys } from "@/lib/arrow-keys";
 import { formatMoney, moneyParts } from "@/lib/format";
 import { classifySendError } from "@/lib/offline-queue";
 import type { CreateInput, QueuedDisplay } from "@/lib/queued-view";
@@ -241,7 +242,7 @@ function AmountStep({
 						{dialogLabel(flow, true)}
 					</h2>
 				) : (
-					<div className="segmented">
+					<div ref={arrowKeys()} className="segmented">
 						<button
 							type="button"
 							aria-pressed={flow === "EXPENSE"}
@@ -586,7 +587,7 @@ function DetailsStep({
 				) : null}
 
 				<Group label="Categoria">
-					<div className="choices">
+					<div ref={arrowKeys()} className="choices">
 						{shown.map((category) => (
 							<Chip
 								key={category.id}
@@ -666,7 +667,7 @@ function DetailsStep({
 					}
 				>
 					<div className="flex flex-col gap-3">
-						<div className="choices">
+						<div ref={arrowKeys()} className="choices">
 							{paymentChoices.map((option) => (
 								<Chip
 									key={option.label}
@@ -715,7 +716,7 @@ function DetailsStep({
 								<span className="field__label" id="repeat-count">
 									Por quantos meses
 								</span>
-								<div className="choices">
+								<div ref={arrowKeys()} className="choices">
 									<Chip
 										selected={repeatCount === null}
 										onClick={() => setRepeatCount(null)}
@@ -995,7 +996,7 @@ function CategorySheet({
 					</h2>
 					<span className="size-11" aria-hidden />
 				</div>
-				<div className="choices px-5 pt-2">
+				<div ref={arrowKeys()} className="choices px-5 pt-2">
 					{categories.map((category) => (
 						<Chip
 							key={category.id}

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { CategoryIcon } from "@/components/category-icon";
 import { Chip, Grabber, useEscape } from "@/components/register/parts";
+import { arrowKeys } from "@/lib/arrow-keys";
 import type { CategoryKind } from "@/lib/category-form";
 import { queryClient, trpc } from "@/utils/trpc";
 
@@ -99,7 +100,7 @@ export function CategoryDeleteSheet({
 							: "Nenhuma transação usa esta categoria."}
 					</p>
 					{inUse ? (
-						<div className="choices">
+						<div ref={arrowKeys()} className="choices">
 							{targets.map((other) => (
 								<Chip
 									key={other.id}

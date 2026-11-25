@@ -313,6 +313,8 @@ function DayField({
 				className="field__control !h-[52px] !gap-3 text-left"
 				aria-labelledby={`${id}-label`}
 				aria-haspopup="dialog"
+				aria-invalid={error ? true : undefined}
+				aria-describedby={error ? `${id}-error` : undefined}
 				onClick={onOpen}
 			>
 				<span className="field__value">
@@ -321,7 +323,7 @@ function DayField({
 				<CaretDownIcon size={24} aria-hidden />
 			</button>
 			{error ? (
-				<p className="field__error" role="alert">
+				<p className="field__error" id={`${id}-error`} role="alert">
 					<WarningCircleIcon size={16} aria-hidden />
 					{error}
 				</p>
