@@ -65,6 +65,22 @@ function Inicio() {
 	const [searching, setSearching] = useState(false);
 	const [query, setQuery] = useState("");
 	const outbox = useOutbox();
+	// Celular: ao subir a lista, o saldo grande sai da tela e o saldo compacto aparece no topo.
+	const [scrollEl, setScrollEl] = useState<HTMLElement | null>(null);
+	const [balanceEl, setBalanceEl] = useState<HTMLElement | null>(null);
+	const [compact, setCompact] = useState(false);
+	useEffect(() => {
+		if (!scrollEl || !balanceEl) {
+			setCompact(false);
+			return;
+		}
+		const observer = new IntersectionObserver(
+			([entry]) => setCompact(!entry?.isIntersecting),
+			{ root: scrollEl, threshold: 0 },
+		);
+		observer.observe(balanceEl);
+		return () => observer.disconnect();
+	}, [scrollEl, balanceEl]);
 	const home = useQuery({
 		...trpc.summary.home.queryOptions({ month: selected ?? undefined }),
 		placeholderData: keepPreviousData,
@@ -87,9 +103,15 @@ function Inicio() {
 	// Trocando de mês, `home` ainda guarda o mês anterior até a resposta nova chegar.
 	const switching = home.isPlaceholderData;
 
-	const bar = (disabled?: boolean) => (
+	const bar = (
+		disabled?: boolean,
+		balanceText?: string,
+		showBalance = false,
+	) => (
 		<TopBar
 			month={shownMonth}
+			balanceText={balanceText}
+			showBalance={showBalance}
 			searchDisabled={disabled}
 			monthDisabled={!home.data}
 			onMonth={() => setSheetOpen(true)}
@@ -188,17 +210,21 @@ function Inicio() {
 						<CaretDownIcon size={14} className="icon" aria-hidden />
 					</button>
 				</div>
-				<section className="sheet" aria-label="Resultados da busca">
-					{results.length === 0 ? (
-						<NoResults
-							query={query.trim()}
-							month={home.data.month}
-							onClear={() => setQuery("")}
-						/>
-					) : (
-						results.map((day) => <Day key={day.date} day={day} today={today} />)
-					)}
-				</section>
+				<div className="collapse-area">
+					<section className="sheet" aria-label="Resultados da busca">
+						{results.length === 0 ? (
+							<NoResults
+								query={query.trim()}
+								month={home.data.month}
+								onClear={() => setQuery("")}
+							/>
+						) : (
+							results.map((day) => (
+								<Day key={day.date} day={day} today={today} />
+							))
+						)}
+					</section>
+				</div>
 				{monthSheet}
 			</Page>
 		);
@@ -206,102 +232,104 @@ function Inicio() {
 
 	return (
 		<Page>
-			{bar(isEmpty)}
-			{outbox.online ? null : (
-				<div className="banner" role="status">
-					<WifiSlashIcon size={20} aria-hidden />
-					<p className="banner__text">
-						<b>Sem internet.</b> Dados de {clockLabel(home.dataUpdatedAt)}; o
-						que você registrar é enviado depois.
-					</p>
-				</div>
-			)}
-
-			<div className="balance-wrap">
-				<div className="balance">
-					<span className="balance__label">
-						{balanceLabel(home.data.month, currentMonth)}
-					</span>
-					<Balance cents={balance.balanceCents} />
-				</div>
-				{!isPast && credit.totalCents > 0 && credit.nextDueDate ? (
-					<p className="text-(length:--text-size-small) mt-2 flex items-center gap-1 text-[var(--color-text-muted)]">
-						<CreditCardIcon size={14} aria-hidden />
-						<span>
-							No crédito, a pagar{" "}
-							<b className="font-semibold text-[var(--color-text)]">
-								{formatMoney(credit.totalCents)}
-							</b>{" "}
-							· vence {formatShortDate(credit.nextDueDate)}
-						</span>
-					</p>
-				) : null}
-			</div>
-
-			<section className="screen-summary" aria-label="Resumo do mês">
-				<div className="stat-pair">
-					<StatCard
-						variant="in"
-						label={`Entrou em ${short}`}
-						value={isEmpty ? null : `+ ${formatMoney(totals.entrouCents)}`}
-						icon={<ArrowDownLeftIcon size={16} aria-hidden />}
-					/>
-					<StatCard
-						label={`Saiu em ${short}`}
-						value={isEmpty ? null : `− ${formatMoney(totals.saiuCents)}`}
-						icon={<ArrowUpRightIcon size={16} aria-hidden />}
-					/>
-				</div>
-				{receivable.totalCents > 0 ? (
-					<Link
-						to="/receber"
-						className="stat-card stat-card--wide stat-card--owed"
-					>
-						<span className="stat-card__badge">
-							<UsersThreeIcon size={16} aria-hidden />
-						</span>
-						<div className="stat-card__text">
-							<span className="stat-card__label">
-								A receber · {receivable.byPerson.length}{" "}
-								{receivable.byPerson.length === 1 ? "pessoa" : "pessoas"}
-							</span>
-							<span className="stat-card__value">
-								{formatMoney(receivable.totalCents)}
-							</span>
-						</div>
-						<CaretRightIcon
-							size={18}
-							className="stat-card__chevron"
-							aria-hidden
-						/>
-					</Link>
-				) : null}
-			</section>
-
-			<section className="sheet" aria-label="Transações do mês">
-				<div className="sheet__head">
-					<h2 className="sheet__title">Transações</h2>
-					{isEmpty ? null : (
-						<span className="sheet__count">
-							{transactions.length + movements.data.length + queued.length} em{" "}
-							{short}
-						</span>
-					)}
-				</div>
-				{isEmpty ? (
-					firstMonth === null ? (
-						<FirstTime />
-					) : (
-						<EmptyMonth
-							month={home.data.month}
-							currentMonth={currentMonth}
-							onBack={() => setSelected(null)}
-						/>
-					)
-				) : (
-					days.map((day) => <Day key={day.date} day={day} today={today} />)
+			{bar(isEmpty, formatMoney(balance.balanceCents), compact)}
+			<div className="collapse-area" ref={setScrollEl}>
+				{outbox.online ? null : (
+					<div className="banner" role="status">
+						<WifiSlashIcon size={20} aria-hidden />
+						<p className="banner__text">
+							<b>Sem internet.</b> Dados de {clockLabel(home.dataUpdatedAt)}; o
+							que você registrar é enviado depois.
+						</p>
+					</div>
 				)}
-			</section>
+
+				<div className="balance-wrap">
+					<div className="balance" ref={setBalanceEl}>
+						<span className="balance__label">
+							{balanceLabel(home.data.month, currentMonth)}
+						</span>
+						<Balance cents={balance.balanceCents} />
+					</div>
+					{!isPast && credit.totalCents > 0 && credit.nextDueDate ? (
+						<p className="text-(length:--text-size-small) mt-2 flex items-center gap-1 text-[var(--color-text-muted)]">
+							<CreditCardIcon size={14} aria-hidden />
+							<span>
+								No crédito, a pagar{" "}
+								<b className="font-semibold text-[var(--color-text)]">
+									{formatMoney(credit.totalCents)}
+								</b>{" "}
+								· vence {formatShortDate(credit.nextDueDate)}
+							</span>
+						</p>
+					) : null}
+				</div>
+
+				<section className="screen-summary" aria-label="Resumo do mês">
+					<div className="stat-pair">
+						<StatCard
+							variant="in"
+							label={`Entrou em ${short}`}
+							value={isEmpty ? null : `+ ${formatMoney(totals.entrouCents)}`}
+							icon={<ArrowDownLeftIcon size={16} aria-hidden />}
+						/>
+						<StatCard
+							label={`Saiu em ${short}`}
+							value={isEmpty ? null : `− ${formatMoney(totals.saiuCents)}`}
+							icon={<ArrowUpRightIcon size={16} aria-hidden />}
+						/>
+					</div>
+					{receivable.totalCents > 0 ? (
+						<Link
+							to="/receber"
+							className="stat-card stat-card--wide stat-card--owed"
+						>
+							<span className="stat-card__badge">
+								<UsersThreeIcon size={16} aria-hidden />
+							</span>
+							<div className="stat-card__text">
+								<span className="stat-card__label">
+									A receber · {receivable.byPerson.length}{" "}
+									{receivable.byPerson.length === 1 ? "pessoa" : "pessoas"}
+								</span>
+								<span className="stat-card__value">
+									{formatMoney(receivable.totalCents)}
+								</span>
+							</div>
+							<CaretRightIcon
+								size={18}
+								className="stat-card__chevron"
+								aria-hidden
+							/>
+						</Link>
+					) : null}
+				</section>
+
+				<section className="sheet" aria-label="Transações do mês">
+					<div className="sheet__head">
+						<h2 className="sheet__title">Transações</h2>
+						{isEmpty ? null : (
+							<span className="sheet__count">
+								{transactions.length + movements.data.length + queued.length} em{" "}
+								{short}
+							</span>
+						)}
+					</div>
+					{isEmpty ? (
+						firstMonth === null ? (
+							<FirstTime />
+						) : (
+							<EmptyMonth
+								month={home.data.month}
+								currentMonth={currentMonth}
+								onBack={() => setSelected(null)}
+							/>
+						)
+					) : (
+						days.map((day) => <Day key={day.date} day={day} today={today} />)
+					)}
+				</section>
+			</div>
 			{monthSheet}
 		</Page>
 	);
@@ -311,7 +339,7 @@ function Inicio() {
 // baixo dela (com 120 px de respiro), como no Figma.
 function Page({ children }: { children: ReactNode }) {
 	return (
-		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
+		<div className="mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] max-sm:h-svh">
 			{children}
 		</div>
 	);
@@ -320,12 +348,17 @@ function Page({ children }: { children: ReactNode }) {
 // Mês (abre a folha 1.10) e busca.
 function TopBar({
 	month,
+	balanceText,
+	showBalance,
 	searchDisabled,
 	monthDisabled,
 	onMonth,
 	onSearch,
 }: {
 	month: string;
+	/** Saldo compacto, no meio da barra; só aparece quando `showBalance` (o grande saiu da tela). */
+	balanceText?: string;
+	showBalance?: boolean;
 	searchDisabled?: boolean;
 	monthDisabled?: boolean;
 	onMonth: () => void;
@@ -343,6 +376,12 @@ function TopBar({
 				{monthName(month)}
 				<CaretDownIcon size={14} className="icon" aria-hidden />
 			</button>
+			<span
+				className={cn("top-bar__balance", !showBalance && "is-hidden")}
+				aria-hidden={!showBalance}
+			>
+				{balanceText}
+			</span>
 			<button
 				type="button"
 				className="icon-btn"
