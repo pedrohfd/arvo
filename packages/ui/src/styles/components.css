@@ -3198,6 +3198,17 @@
 /* Computador (≥1024): a lista de transações da Início vira um cartão na coluna central, e a tela
    rola dentro da coluna (a barra lateral e o painel de detalhe ficam parados) */
 @media (min-width: 1024px) {
+	/* Resumo: "Para onde foi" direto no fundo, sem cartão (D4.1) */
+	.collapse-area > .sheet.sheet--plain {
+		flex: none;
+		min-height: 0;
+		background: transparent;
+		border-radius: 0;
+		padding: var(--spacing-2) var(--spacing-2) 0;
+	}
+	.cat-bar.is-selected {
+		background: var(--color-primary-soft);
+	}
 	.collapse-area > .sheet.sheet--desk {
 		flex: none;
 		min-height: 0;
