@@ -15,11 +15,19 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
+import { useDetailSlot } from "@/components/app-shell";
 import { CategoryIcon } from "@/components/category-icon";
+import { HorizonCard } from "@/components/summary/horizon-card";
+import {
+	ResumoPanel,
+	type SelectedCategory,
+} from "@/components/summary/resumo-panel";
 import { arrowKeys } from "@/lib/arrow-keys";
 import { formatMoney, moneyParts, monthName } from "@/lib/format";
 import { useCollapse } from "@/lib/use-collapse";
+import { useDesktop } from "@/lib/use-desktop";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/resumo/")({
@@ -37,9 +45,37 @@ function Resumo() {
 	const [month, setMonth] = useState(currentMonth);
 	const summary = useQuery(trpc.summary.month.queryOptions({ month }));
 	const { scrollRef, targetRef, collapsed } = useCollapse();
+	// Computador: tocar numa categoria escolhe, e o painel da direita lista as saídas dela.
+	const desktop = useDesktop();
+	const detailSlot = useDetailSlot();
+	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const selected: SelectedCategory | null = (() => {
+		const row = summary.data?.spending.categories.find(
+			(item) => item.categoryId === selectedId,
+		);
+		return row && row.categoryId
+			? {
+					categoryId: row.categoryId,
+					name: row.category?.name ?? "Sem categoria",
+					totalCents: row.totalCents,
+					percent: row.percent,
+				}
+			: null;
+	})();
+	const panel =
+		desktop && detailSlot
+			? createPortal(
+					<ResumoPanel
+						month={month}
+						selected={selected}
+						onClear={() => setSelectedId(null)}
+					/>,
+					detailSlot,
+				)
+			: null;
 
 	return (
-		<div className="fit-screen mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))]">
+		<div className="fit-screen mx-auto flex min-h-svh max-w-[640px] flex-col pt-[62px] max-sm:-mb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] lg:max-w-[600px] lg:pt-5">
 			<div className="flex h-11 shrink-0 items-center justify-between pt-1 pr-3 pl-5">
 				<h1
 					className={cn(
@@ -62,7 +98,7 @@ function Resumo() {
 				</span>
 				<Link
 					to="/resumo/horizonte"
-					className="month-btn !h-10 !px-4 !gap-2 font-semibold text-[var(--color-text)]"
+					className="month-btn !h-10 !px-4 !gap-2 font-semibold text-[var(--color-text)] lg:hidden"
 				>
 					<ChartLineUpIcon size={18} aria-hidden />
 					Horizonte
@@ -83,9 +119,13 @@ function Resumo() {
 						current={currentMonth}
 						onBackToCurrent={() => setMonth(currentMonth)}
 						balanceRef={targetRef}
+						selectedId={desktop ? selectedId : undefined}
+						onSelect={desktop ? setSelectedId : undefined}
 					/>
 				)}
+				{desktop && summary.data ? <HorizonCard /> : null}
 			</div>
+			{panel}
 		</div>
 	);
 }
@@ -141,12 +181,18 @@ function Ready({
 	current,
 	onBackToCurrent,
 	balanceRef,
+	selectedId,
+	onSelect,
 }: {
 	data: MonthSummary;
 	current: string;
 	onBackToCurrent: () => void;
 	/** Marca o valor grande para o gesto de recolher. */
 	balanceRef: (element: HTMLElement | null) => void;
+	/** Computador: a categoria escolhida (o painel lista as saídas dela). */
+	selectedId?: string | null;
+	/** Computador: escolhe a categoria em vez de abrir a tela dela. */
+	onSelect?: (categoryId: string) => void;
 }) {
 	const { totals, spending, isFuture } = data;
 	const name = monthName(data.month).toLowerCase();
@@ -239,7 +285,7 @@ function Ready({
 				</div>
 			</section>
 
-			<section className="sheet" aria-label={sheetTitle}>
+			<section className="sheet sheet--plain" aria-label={sheetTitle}>
 				<div className="sheet__head">
 					<h2 className="sheet__title">{sheetTitle}</h2>
 					{rows.length > 0 ? (
@@ -283,6 +329,23 @@ function Ready({
 								</>
 							);
 							// Tocar numa categoria abre a lista das saídas dela no mês; "Outras" não abre.
+							const categoryId = row.categoryId;
+							if (categoryId && onSelect) {
+								return (
+									<button
+										key={row.key}
+										type="button"
+										aria-pressed={selectedId === categoryId}
+										className={cn(
+											className,
+											selectedId === categoryId && "is-selected",
+										)}
+										onClick={() => onSelect(categoryId)}
+									>
+										{content}
+									</button>
+								);
+							}
 							return row.categoryId ? (
 								<Link
 									key={row.key}

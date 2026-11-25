@@ -178,6 +178,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Escolhas da Início no computador que o Figma não mostra: só ≥ 1024 px, clicar escolhe (sem Esc), resumo do painel, editar abre a folha do celular (DEV-131)
 - [ ] Escolhas do Registrar no computador que o Figma não mostra: o mesmo diálogo serve a edição, as folhas de data, dividir e categorias continuam subindo de baixo, aviso de saldo mínimo e de erro de categoria no lugar do celular, Enter registra (DEV-132)
 - [ ] Escolhas das Metas no computador que o Figma não mostra: painel só na lista pronta (vazio, carregando e não carregou ficam sem painel), Editar/Guardar/Resgatar/Concluir abrem as folhas do celular, tecla G abre o Guardar, meta concluída não abre no painel (DEV-133)
+- [ ] Escolhas do Resumo no computador que o Figma não mostra: o botão Horizonte some (o gráfico é um cartão na coluna), categoria escolhida no painel (Esc volta, sem trocar o endereço), linhas do painel abrem a página da transação, estados carregando e não carregou do painel e do cartão, "Outras" continua sem abrir (DEV-134)
 - [ ] Escolhas da fila offline que o Figma não mostra: aviso "na fila", recusado fora do saldo, aviso só na Início, dados não guardados, Motivo, Apagar sem confirmação (DEV-126)
 - [ ] Escolhas do Horizonte (4.2) que o Figma não mostra: texto do aviso negativo, carregando e não carregou, ponto do fim de novembro, "Registrar conta fixa" (DEV-125)
 - [ ] Estados carregando e não carregou do A receber (3.4), e a ordem das pessoas e das contas (DEV-123)
@@ -185,7 +186,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 
 ## Fase 7 · Desktop e acabamento
 
-- [~] Início, Registrar (diálogo de 560), Metas, Resumo e Perfil no layout desktop: a Início (lista num cartão na coluna central e painel de detalhe de 400 px, D1.1 e D1.2) o Registrar (diálogo de 560 numa etapa só, D2.1) e as Metas (lista na coluna central e painel de 400 px com o detalhe da meta ou o resumo, D3.1 e D3.2) estão feitos; faltam Resumo e Perfil
+- [~] Início, Registrar (diálogo de 560), Metas, Resumo e Perfil no layout desktop: a Início (lista num cartão na coluna central e painel de detalhe de 400 px, D1.1 e D1.2) o Registrar (diálogo de 560 numa etapa só, D2.1) e as Metas (lista na coluna central e painel de 400 px com o detalhe da meta ou o resumo, D3.1 e D3.2) e o Resumo (Horizonte como cartão na coluna central e painel com "O que vem" ou as saídas da categoria, D4.1, D4.2 e D4.12) estão feitos; falta o Perfil
 - [ ] Atalhos de teclado: ↑↓ ↵ Esc N ←→
 - [ ] Largura média (768): barra lateral compacta de 72 e painel como gaveta
 - [x] Auditoria de acessibilidade (feita pelo código, sem navegador): contraste AA testado (`contrast.test.ts`, todos os pares passam nos dois temas); `aria-invalid` e `aria-describedby` no campo de dia do cartão (era o que faltava); título de nível 1 na Início; aviso do Desfazer pausa com mouse ou foco; setas nos grupos de escolha, nos meses e no calendário (`lib/arrow-keys.ts`); Esc já fechava todos os diálogos; tamanhos de texto dos tokens em rem; onboarding lê só o passo atual. Não medido no navegador: alvos de 44 px e "selecionado nunca só pela cor"
@@ -226,3 +227,4 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - 2026-11-24 — Fase 7: Início no computador (painel de detalhe de 400 px com o "Resumo do mês" ou o detalhe da transação escolhida, lista em cartão). `TransactionDetail` virou componente compartilhado entre a página e o painel; a casca ganhou a coluna do painel (`useDetailSlot`). Não conferido no navegador: layout só verificado por build e leitura do CSS.
 - 2026-11-24 — Fase 7: Registrar no computador (diálogo de 560 centrado, valor digitado no campo, Esc e Enter). Não conferido no navegador: só build e leitura do CSS.
 - 2026-11-24 — Fase 7: Metas no computador (painel de detalhe de 400 px). `GoalDetail` virou componente compartilhado entre a página e o painel. Não conferido no navegador: só build e leitura do CSS.
+- 2026-11-24 — Fase 7: Resumo no computador (Horizonte como cartão e painel de 400 px). `UpcomingList` compartilhada entre a tela do Horizonte e o painel. Não conferido no navegador: só build e leitura do CSS.
