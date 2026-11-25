@@ -10,7 +10,9 @@ import {
 	useState,
 } from "react";
 import { toast } from "sonner";
+import { useOutbox } from "@/components/offline/outbox-provider";
 import { formatMoney } from "@/lib/format";
+import { refreshMoney } from "@/lib/refresh-money";
 import type { Flow } from "@/lib/register";
 import { deletedToast } from "@/lib/transaction-detail";
 import { queryClient, trpc } from "@/utils/trpc";
@@ -44,13 +46,7 @@ export function useRegister() {
 	return context;
 }
 
-// Depois de registrar, apagar ou desfazer, tudo o que depende das transações precisa recarregar.
-export function refreshMoney() {
-	queryClient.invalidateQueries(trpc.summary.pathFilter());
-	queryClient.invalidateQueries(trpc.transaction.pathFilter());
-	queryClient.invalidateQueries(trpc.split.pathFilter());
-	queryClient.invalidateQueries(trpc.person.pathFilter());
-}
+export { refreshMoney };
 
 export function RegisterProvider({ children }: { children: ReactNode }) {
 	// `session` muda a cada abertura: a folha começa do zero (valor, escolhas e clientId novos).
@@ -58,6 +54,7 @@ export function RegisterProvider({ children }: { children: ReactNode }) {
 		null,
 	);
 	const [notice, setToast] = useState<Toast | null>(null);
+	const outbox = useOutbox();
 
 	const open = useCallback((flow: Flow = "EXPENSE") => {
 		setSession((current) => ({ id: (current?.id ?? 0) + 1, flow }));
@@ -114,7 +111,7 @@ export function RegisterProvider({ children }: { children: ReactNode }) {
 						refreshMoney();
 						setToast({
 							type: "registered",
-							key: result.ids[0] ?? "registered",
+							key: result.ids[0] ?? result.queuedId ?? "registered",
 							registered: result,
 						});
 						close();
@@ -124,15 +121,20 @@ export function RegisterProvider({ children }: { children: ReactNode }) {
 			{notice?.type === "registered" ? (
 				<UndoToast
 					key={notice.key}
-					title={`${notice.registered.flow === "EXPENSE" ? "Saída" : "Entrada"} registrada`}
+					title={`${notice.registered.flow === "EXPENSE" ? "Saída" : "Entrada"} ${notice.registered.queuedId ? "na fila" : "registrada"}`}
 					detail={formatMoney(notice.registered.amountCents)}
 					seconds={6}
 					onUndo={() => {
-						// Em série, "esta e as próximas" a partir da primeira apaga tudo.
-						undo.mutate({
-							id: notice.registered.ids[0] as string,
-							scope: "THIS_AND_NEXT",
-						});
+						if (notice.registered.queuedId) {
+							// Ainda não saiu do aparelho: basta tirar da fila.
+							outbox.discard(notice.registered.queuedId);
+						} else {
+							// Em série, "esta e as próximas" a partir da primeira apaga tudo.
+							undo.mutate({
+								id: notice.registered.ids[0] as string,
+								scope: "THIS_AND_NEXT",
+							});
+						}
 						setToast(null);
 					}}
 					onExpire={dismiss}

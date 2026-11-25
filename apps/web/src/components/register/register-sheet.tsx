@@ -1,4 +1,5 @@
 import { todayInSaoPaulo } from "@arvo/api/lib/calendar";
+import { planTransaction } from "@arvo/api/lib/plan-transaction";
 import { minimumBalanceWarning } from "@arvo/api/rules/minimum-balance";
 import { cn } from "@arvo/ui/lib/utils";
 import {
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 import { Sheet } from "@/components/card/card-sheets";
 import { CategoryFormSheet } from "@/components/category/category-form-sheet";
 import { CategoryIcon } from "@/components/category-icon";
+import { useOutbox } from "@/components/offline/outbox-provider";
 import {
 	type AmountKey,
 	centsToRaw,
@@ -27,7 +29,10 @@ import {
 	toCents,
 } from "@/lib/amount-input";
 import { formatMoney, moneyParts } from "@/lib/format";
+import { classifySendError } from "@/lib/offline-queue";
+import type { CreateInput, QueuedDisplay } from "@/lib/queued-view";
 import {
+	cardLabel,
 	creditHint,
 	dateFieldLabel,
 	defaultPayment,
@@ -52,6 +57,8 @@ export type Registered = {
 	ids: string[];
 	flow: Flow;
 	amountCents: number;
+	/** Sem rede: o registro ficou na fila offline com este id, e ainda não tem transação. */
+	queuedId?: string;
 };
 
 /** A transação que a folha edita (3.2): a mesma 2.2, sem repetir nem dividir. */
@@ -339,6 +346,7 @@ function DetailsStep({
 	onSaved?: () => void;
 }) {
 	const today = todayInSaoPaulo();
+	const outbox = useOutbox();
 	const categories = useQuery(trpc.category.list.queryOptions());
 	const cards = useQuery(trpc.card.list.queryOptions());
 	const home = useQuery(trpc.summary.home.queryOptions());
@@ -403,11 +411,78 @@ function DetailsStep({
 	// Gasto agendado não mexe no saldo agora: o aviso só vale para hoje ou datas passadas.
 	const showWarning = !editing && warning.warn && date <= today;
 
+	// Sem rede, o registro vai para a fila offline e a lista já mostra "Na fila para enviar".
+	async function queueOffline(payload: CreateInput) {
+		let rows: QueuedDisplay["rows"];
+		try {
+			rows = planTransaction(
+				{
+					kind: flow,
+					amountCents: cents,
+					date,
+					paymentMethod: payload.paymentMethod,
+					card: selectedCard
+						? {
+								type: selectedCard.type,
+								closingDay: selectedCard.closingDay,
+								dueDay: selectedCard.dueDay,
+							}
+						: null,
+					repeat: payload.repeat,
+					installments: payload.installments,
+				},
+				today,
+			).rows;
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Registro inválido");
+			return;
+		}
+		const category = flowCategories.find(
+			(item) => item.id === payload.categoryId,
+		);
+		const methodLabel =
+			payment.kind === "card"
+				? selectedCard
+					? cardLabel(selectedCard)
+					: "Cartão"
+				: payment.kind === "PIX"
+					? "Pix"
+					: payment.kind === "CASH"
+						? "Dinheiro"
+						: "Depósito";
+		await outbox.enqueue({
+			id: clientId.current,
+			input: payload,
+			display: {
+				kind: flow,
+				title: payload.title ?? null,
+				categoryId: payload.categoryId,
+				categoryName: category?.name ?? "",
+				categoryIcon: category?.icon ?? "",
+				cardId: payload.cardId ?? null,
+				methodLabel,
+				rows,
+			},
+		});
+		onRegistered({
+			ids: [],
+			flow,
+			amountCents: cents,
+			queuedId: clientId.current,
+		});
+	}
+
 	const create = useMutation(
 		trpc.transaction.create.mutationOptions({
 			onSuccess: (result) =>
 				onRegistered({ ids: result.ids, flow, amountCents: cents }),
-			onError: (error) => toast.error(error.message),
+			onError: (error, variables) => {
+				if (classifySendError(error).type === "network") {
+					queueOffline(variables);
+				} else {
+					toast.error(error.message);
+				}
+			},
 		}),
 	);
 
@@ -442,7 +517,7 @@ function DetailsStep({
 			else save("ONLY_THIS");
 			return;
 		}
-		create.mutate({
+		const payload: CreateInput = {
 			clientId: clientId.current,
 			kind: flow,
 			amountCents: cents,
@@ -456,7 +531,9 @@ function DetailsStep({
 				splitting && splitPeople.length > 0
 					? splitPeople.map((person) => person.id)
 					: undefined,
-		});
+		};
+		if (navigator.onLine) create.mutate(payload);
+		else queueOffline(payload);
 	}
 
 	const money = moneyParts(cents);

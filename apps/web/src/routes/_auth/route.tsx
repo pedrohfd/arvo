@@ -21,7 +21,13 @@ function AuthLayout() {
 	const user = session.data?.user;
 
 	return (
-		<AppShell user={{ name: user?.name ?? "", email: user?.email ?? "" }}>
+		<AppShell
+			user={{
+				id: user?.id ?? "",
+				name: user?.name ?? "",
+				email: user?.email ?? "",
+			}}
+		>
 			<Outlet />
 		</AppShell>
 	);

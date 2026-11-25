@@ -1,6 +1,7 @@
 import type { AppRouter } from "@arvo/api/routers/index";
 import { cn } from "@arvo/ui/lib/utils";
 import {
+	ArrowsClockwiseIcon,
 	CaretLeftIcon,
 	CheckCircleIcon,
 	PencilSimpleIcon,
@@ -10,10 +11,11 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import type { inferRouterOutputs } from "@trpc/server";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { CategoryIcon } from "@/components/category-icon";
+import { useOutbox } from "@/components/offline/outbox-provider";
 import {
 	refreshMoney,
 	useRegister,
@@ -69,17 +71,19 @@ function editingFrom(tx: Tx): EditingTransaction {
 }
 
 // Tela 3.1 do Figma (página "Arvo · 3 Transação"): simples, dividida, tudo acertado, entrada,
-// parcela, data futura e apagada em outro aparelho; marcar e desmarcar pago; 3.2 editar; 3.3
-// apagar. Ainda não existe "não salvou" (depende da fila offline).
+// parcela, data futura, apagada em outro aparelho e não foi salvo (um registro da fila offline,
+// com id `local-...`); marcar e desmarcar pago; 3.2 editar; 3.3 apagar.
 function TransacaoDetalhe() {
 	const { transactionId } = Route.useParams();
 	const navigate = useNavigate();
 	const register = useRegister();
 	// Depois de apagar aqui, a tela some sem passar pelo "apagada em outro aparelho".
 	const [gone, setGone] = useState(false);
+	// "local-<id>": um registro que ainda está na fila offline e não tem transação no servidor.
+	const local = transactionId.startsWith("local-");
 	const tx = useQuery({
 		...trpc.transaction.get.queryOptions({ id: transactionId }),
-		enabled: !gone,
+		enabled: !gone && !local,
 		retry: (count, error) => error.data?.code !== "NOT_FOUND" && count < 2,
 	});
 
@@ -94,7 +98,9 @@ function TransacaoDetalhe() {
 					</Link>
 				</div>
 			)}
-			{gone ? null : notFound ? (
+			{gone ? null : local ? (
+				<LocalDetail id={transactionId.slice("local-".length)} />
+			) : notFound ? (
 				<Deleted />
 			) : tx.isError ? (
 				<Problem onRetry={() => tx.refetch()} />
@@ -337,6 +343,114 @@ function Division({
 				</button>
 			))}
 		</div>
+	);
+}
+
+// 3.1 "não foi salvo": um registro da fila offline. Recusado pelo servidor mostra o motivo e "Tentar
+// de novo"; esperando ou sendo enviado só deixa apagar. Quando o envio dá certo o item sai da fila
+// e a tela volta para a Início.
+function LocalDetail({ id }: { id: string }) {
+	const outbox = useOutbox();
+	const navigate = useNavigate();
+	const item = outbox.items.find((entry) => entry.id === id);
+	useEffect(() => {
+		if (!item) navigate({ to: "/inicio" });
+	}, [item, navigate]);
+	if (!item) return null;
+
+	const { display } = item;
+	const income = display.kind === "INCOME";
+	const amount = moneyParts(item.input.amountCents);
+	const failed = item.status === "failed";
+	const name = display.title || display.categoryName;
+	const first = display.rows[0];
+
+	return (
+		<>
+			<section className="flex flex-col items-start gap-2 px-5 pt-4 pb-6">
+				<span
+					className={cn(
+						"tx-row__icon !size-[52px]",
+						income &&
+							"!bg-[var(--color-income-bg)] !text-[var(--color-income)]",
+					)}
+				>
+					<CategoryIcon name={display.categoryIcon} size={26} />
+				</span>
+				<h1 className="sheet__title pt-3">{name}</h1>
+				<p
+					className={cn(
+						"balance__value",
+						income && "!text-[var(--color-income-text)]",
+					)}
+				>
+					<span className="sr-only">
+						{income ? "Entrada de " : "Saída de "}
+					</span>
+					<span aria-hidden>{income ? "+ " : "− "}</span>
+					{amount.integer}
+					<span
+						className={cn(
+							"balance__cents",
+							income && "!text-current opacity-70",
+						)}
+					>
+						{amount.cents}
+					</span>
+				</p>
+				<span className={cn("badge mt-2", failed && "badge--problem")}>
+					{failed ? (
+						<WarningCircleIcon size={14} className="icon" aria-hidden />
+					) : null}
+					{failed
+						? "Não foi salvo"
+						: item.status === "sending"
+							? "Salvando…"
+							: "Na fila para enviar"}
+				</span>
+			</section>
+
+			<section className="sheet !px-5" aria-label="Detalhes">
+				<div className="detail-list">
+					<Row label="Categoria">
+						<CategoryIcon name={display.categoryIcon} size={18} />
+						{display.categoryName}
+					</Row>
+					{first ? (
+						<Row label="Data">
+							{dateLabel({ date: first.date, time: null, today: first.date })}
+						</Row>
+					) : null}
+					<Row label={income ? "Recebimento" : "Pagamento"}>
+						{display.methodLabel}
+					</Row>
+					{failed && item.error ? <Row label="Motivo">{item.error}</Row> : null}
+				</div>
+			</section>
+
+			<div className="footer-float">
+				<div className="flex w-full max-w-[640px] items-start gap-3 px-2">
+					{failed ? (
+						<button
+							type="button"
+							className="btn-secondary flex-1"
+							onClick={() => outbox.retry(item.id)}
+						>
+							<ArrowsClockwiseIcon size={18} aria-hidden />
+							Tentar de novo
+						</button>
+					) : null}
+					<button
+						type="button"
+						className="btn-secondary btn-secondary--danger flex-1"
+						onClick={() => outbox.discard(item.id)}
+					>
+						<TrashIcon size={18} aria-hidden />
+						Apagar
+					</button>
+				</div>
+			</div>
+		</>
 	);
 }
 

@@ -1,6 +1,8 @@
+import { referenceForMonth } from "@arvo/api/lib/calendar";
 import type { AppRouter } from "@arvo/api/routers/index";
 import { cn } from "@arvo/ui/lib/utils";
 import {
+	ArrowClockwiseIcon,
 	ArrowDownLeftIcon,
 	ArrowsClockwiseIcon,
 	ArrowUpRightIcon,
@@ -15,6 +17,7 @@ import {
 	TargetIcon,
 	UsersThreeIcon,
 	WarningCircleIcon,
+	WifiSlashIcon,
 	XIcon,
 } from "@phosphor-icons/react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
@@ -24,6 +27,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { CategoryIcon } from "@/components/category-icon";
 import { MonthSheet } from "@/components/home/month-sheet";
+import { useOutbox } from "@/components/offline/outbox-provider";
 import {
 	dayLabel,
 	formatMoney,
@@ -34,6 +38,12 @@ import {
 	monthShort,
 } from "@/lib/format";
 import { balanceLabel, matchesSearch } from "@/lib/home-month";
+import {
+	clockLabel,
+	type QueuedRow,
+	queuedEffects,
+	queuedRowsOfMonth,
+} from "@/lib/queued-view";
 import { trpc } from "@/utils/trpc";
 
 export const Route = createFileRoute("/_auth/inicio")({
@@ -54,6 +64,7 @@ function Inicio() {
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [searching, setSearching] = useState(false);
 	const [query, setQuery] = useState("");
+	const outbox = useOutbox();
 	const home = useQuery({
 		...trpc.summary.home.queryOptions({ month: selected ?? undefined }),
 		placeholderData: keepPreviousData,
@@ -109,9 +120,25 @@ function Inicio() {
 		);
 	}
 
-	const { today, balance, totals, credit, receivable, firstMonth } = home.data;
+	const { today, credit, receivable, firstMonth } = home.data;
 	const transactions = list.data;
-	const days = groupByDay(transactions, movements.data);
+	// O que ainda está na fila offline já conta no saldo e no mês, como no Figma 1.6.
+	const queued = queuedRowsOfMonth(outbox.items, home.data.month);
+	const effects = queuedEffects(
+		outbox.items,
+		home.data.month,
+		referenceForMonth(home.data.month, today),
+	);
+	const balance = {
+		...home.data.balance,
+		balanceCents: home.data.balance.balanceCents + effects.balanceDeltaCents,
+	};
+	const totals = {
+		...home.data.totals,
+		entrouCents: home.data.totals.entrouCents + effects.entrouDeltaCents,
+		saiuCents: home.data.totals.saiuCents + effects.saiuDeltaCents,
+	};
+	const days = groupByDay(transactions, movements.data, queued);
 	const isEmpty = days.length === 0;
 	const short = monthShort(home.data.month);
 	const isPast = home.data.month < currentMonth;
@@ -139,6 +166,7 @@ function Inicio() {
 			movements.data.filter((movement) =>
 				matchesSearch(query, movement.goalName),
 			),
+			queued.filter((row) => matchesSearch(query, row.title, row.categoryName)),
 		);
 		return (
 			<Page>
@@ -179,6 +207,15 @@ function Inicio() {
 	return (
 		<Page>
 			{bar(isEmpty)}
+			{outbox.online ? null : (
+				<div className="banner" role="status">
+					<WifiSlashIcon size={20} aria-hidden />
+					<p className="banner__text">
+						<b>Sem internet.</b> Dados de {clockLabel(home.dataUpdatedAt)}; o
+						que você registrar é enviado depois.
+					</p>
+				</div>
+			)}
 
 			<div className="balance-wrap">
 				<div className="balance">
@@ -246,7 +283,8 @@ function Inicio() {
 					<h2 className="sheet__title">Transações</h2>
 					{isEmpty ? null : (
 						<span className="sheet__count">
-							{transactions.length + movements.data.length} em {short}
+							{transactions.length + movements.data.length + queued.length} em{" "}
+							{short}
 						</span>
 					)}
 				</div>
@@ -388,13 +426,16 @@ function Day({
 				<span className="day-header__total">{formatSigned(day.netCents)}</span>
 			</div>
 			<div className="tx-list">
-				{day.items.map((item) =>
-					item.type === "tx" ? (
-						<TxRow key={item.tx.id} tx={item.tx} />
-					) : (
+				{day.items.map((item) => {
+					if (item.type === "tx")
+						return <TxRow key={item.tx.id} tx={item.tx} />;
+					if (item.type === "queued") {
+						return <QueuedTxRow key={item.row.key} row={item.row} />;
+					}
+					return (
 						<GoalMovementRow key={item.movement.id} movement={item.movement} />
-					),
-				)}
+					);
+				})}
 			</div>
 		</div>
 	);
@@ -513,11 +554,16 @@ function StatCard({
 
 type DayItem =
 	| { type: "tx"; tx: Tx }
-	| { type: "goal"; movement: GoalMovement };
+	| { type: "goal"; movement: GoalMovement }
+	| { type: "queued"; row: QueuedRow };
 
 // Agrupa por dia, do mais novo para o mais antigo. O total do dia só soma o que entrou e saiu:
 // guardar e resgatar não contam (5.7).
-function groupByDay(transactions: Tx[], movements: GoalMovement[]) {
+function groupByDay(
+	transactions: Tx[],
+	movements: GoalMovement[],
+	queued: QueuedRow[] = [],
+) {
 	const entries: (DayItem & { date: string; createdAt: string })[] = [
 		...transactions.map((tx) => ({
 			type: "tx" as const,
@@ -530,6 +576,12 @@ function groupByDay(transactions: Tx[], movements: GoalMovement[]) {
 			movement,
 			date: movement.date,
 			createdAt: movement.createdAt,
+		})),
+		...queued.map((row) => ({
+			type: "queued" as const,
+			row,
+			date: row.date,
+			createdAt: row.createdAt,
 		})),
 	].sort(
 		(a, b) =>
@@ -549,6 +601,12 @@ function groupByDay(transactions: Tx[], movements: GoalMovement[]) {
 				entry.tx.kind === "INCOME"
 					? entry.tx.amountCents
 					: -entry.tx.amountCents;
+		} else if (entry.type === "queued" && entry.row.status !== "failed") {
+			// O que o servidor recusou não entra nas contas.
+			day.netCents +=
+				entry.row.kind === "INCOME"
+					? entry.row.amountCents
+					: -entry.row.amountCents;
 		}
 	}
 	return days;
@@ -636,6 +694,79 @@ function TxRow({ tx }: { tx: Tx }) {
 				) : null}
 			</div>
 		</Link>
+	);
+}
+
+// 1.6 e 1.9: linha de um registro que ainda não chegou ao servidor. Na fila: "Na fila para
+// enviar"; sendo enviado: "Salvando…"; recusado: "Não foi salvo" com o botão de tentar de novo.
+function QueuedTxRow({ row }: { row: QueuedRow }) {
+	const outbox = useOutbox();
+	const income = row.kind === "INCOME";
+	const name = row.title || row.categoryName;
+	const value = formatSigned(income ? row.amountCents : -row.amountCents);
+
+	if (row.status === "failed") {
+		return (
+			<div className="tx-row !h-auto !items-stretch flex-col gap-2 py-3">
+				<Link
+					to="/transacao/$transactionId"
+					params={{ transactionId: `local-${row.itemId}` }}
+					className="flex items-center gap-3"
+				>
+					<span className="tx-row__icon">
+						<CategoryIcon name={row.categoryIcon} />
+					</span>
+					<span className="tx-row__text">
+						<span className="tx-row__title">{name}</span>
+					</span>
+					<span className="tx-row__value">{value}</span>
+				</Link>
+				<div className="flex items-center justify-between pl-[56px]">
+					<span className="tx-row__meta tx-row__meta--problem">
+						<WarningCircleIcon size={14} aria-hidden />
+						<span>Não foi salvo</span>
+					</span>
+					<button
+						type="button"
+						className="icon-btn bg-[var(--color-fill-1)]"
+						aria-label={`Tentar de novo: ${name}, ${value}`}
+						onClick={() => outbox.retry(row.itemId)}
+					>
+						<ArrowClockwiseIcon size={20} aria-hidden />
+					</button>
+				</div>
+			</div>
+		);
+	}
+
+	const sending = row.status === "sending";
+	return (
+		<div className={cn("tx-row", sending && "is-saving")}>
+			<span className="tx-row__icon">
+				<CategoryIcon name={row.categoryIcon} />
+			</span>
+			<div className="tx-row__text">
+				<span className="tx-row__title">{name}</span>
+				<span className="tx-row__meta">
+					{sending ? (
+						<span className="spinner" aria-hidden />
+					) : (
+						<WifiSlashIcon size={14} aria-hidden />
+					)}
+					<span>{sending ? "Salvando…" : "Na fila para enviar"}</span>
+				</span>
+			</div>
+			<div className="tx-row__amount">
+				<span
+					className={cn(
+						"tx-row__value",
+						income && "text-[var(--color-income-text)]",
+					)}
+				>
+					{value}
+				</span>
+			</div>
+		</div>
 	);
 }
 

@@ -149,13 +149,13 @@ Fica em `apps/web`, porque é regra de tela, mas também é função pura.
 
 Fila simples em IndexedDB; a lógica de ordem e reenvio é testada com um armazenamento em memória.
 
-- [ ] Registrar sem rede coloca o gasto na fila com estado "pendente"
-- [ ] Ao voltar a rede, envia na ordem em que foram registrados
-- [ ] Envio com sucesso remove o item da fila
-- [ ] Envio com erro de rede mantém o item e tenta de novo depois
-- [ ] Envio recusado pelo servidor (dados inválidos) marca "Não foi salvo" e mantém o item para "Tentar de novo"
-- [ ] Reenviar um item que já foi salvo não cria transação duplicada (cada item tem um identificador único gerado no aparelho)
-- [ ] Fila vazia não faz nenhuma chamada
+- [x] Registrar sem rede coloca o gasto na fila com estado "pendente"
+- [x] Ao voltar a rede, envia na ordem em que foram registrados
+- [x] Envio com sucesso remove o item da fila
+- [x] Envio com erro de rede mantém o item e tenta de novo depois
+- [x] Envio recusado pelo servidor (dados inválidos) marca "Não foi salvo" e mantém o item para "Tentar de novo"
+- [x] Reenviar um item que já foi salvo não cria transação duplicada (cada item tem um identificador único gerado no aparelho)
+- [x] Fila vazia não faz nenhuma chamada
 
 ## Fora do escopo (por enquanto)
 

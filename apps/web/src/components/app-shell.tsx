@@ -8,6 +8,7 @@ import {
 import { Link, useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/logo";
+import { OutboxProvider } from "@/components/offline/outbox-provider";
 import {
 	RegisterProvider,
 	useRegister,
@@ -20,7 +21,7 @@ const tabs = [
 	{ to: "/perfil", label: "Perfil", Icon: UserIcon },
 ] as const;
 
-type ShellUser = { name: string; email: string };
+type ShellUser = { id: string; name: string; email: string };
 
 /**
  * Casca do app autenticado.
@@ -38,16 +39,18 @@ export function AppShell({
 	children: ReactNode;
 }) {
 	return (
-		<RegisterProvider>
-			<div className="min-h-svh sm:flex">
-				<CompactSidebar />
-				<FullSidebar user={user} />
-				<main className="min-w-0 flex-1 pb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] sm:pb-0">
-					{children}
-				</main>
-				<BottomBar />
-			</div>
-		</RegisterProvider>
+		<OutboxProvider userId={user.id}>
+			<RegisterProvider>
+				<div className="min-h-svh sm:flex">
+					<CompactSidebar />
+					<FullSidebar user={user} />
+					<main className="min-w-0 flex-1 pb-[calc(68px+var(--spacing-6)+env(safe-area-inset-bottom))] sm:pb-0">
+						{children}
+					</main>
+					<BottomBar />
+				</div>
+			</RegisterProvider>
+		</OutboxProvider>
 	);
 }
 
