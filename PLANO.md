@@ -186,7 +186,7 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - [ ] Atalhos de teclado: ↑↓ ↵ Esc N ←→
 - [ ] Largura média (768): barra lateral compacta de 72 e painel como gaveta
 - [ ] Auditoria de acessibilidade: contraste AA, alvos de 44 px, `aria-invalid` nos erros, setas nos grupos, Esc nos diálogos
-- [ ] `prefers-reduced-motion` em todas as transições
+- [x] `prefers-reduced-motion` em todas as transições: a regra global de `components.css` zera transições e animações (só os spinners giram devagar, inclusive o `.animate-spin` do carregamento do entrar, que antes ficava parado); a contagem do saldo e o carrossel do onboarding já leem a preferência; o destaque da linha nova e o traço do splash têm regra própria. Auditado lendo o CSS e o código, não no navegador
 - [ ] Revisão de desempenho do PWA e do uso offline
 
 ## Registro
@@ -218,3 +218,4 @@ Construídas sem quadro no Figma. Cada item tem uma issue no Linear; ao revisar,
 - 2026-11-24 — Fase 3: gesto de recolher o saldo na Início (1.11) feito; Metas e Resumo (celular pequeno) ficam para depois (DEV-128). Não conferido no navegador: o comportamento de rolagem só foi verificado pela leitura do CSS e do código.
 - 2026-11-24 — Gesto de recolher feito também em Metas e no Resumo (celular baixo); o gancho `useCollapse` agora serve as três telas. Não conferido no navegador: o comportamento de rolagem só foi verificado pela leitura do CSS e do código.
 - 2026-11-24 — Fase 3: contagem do saldo e destaque da linha recém-registrada (Início) feitos; contagem e expiração testadas (`count-to.test.ts`, `recent-registered.test.ts`). Não conferido no navegador: a animação só foi verificada pela leitura do código.
+- 2026-11-24 — Auditoria do movimento reduzido: tudo já coberto pela regra global, exceto o spinner `.animate-spin` (carregamento do entrar), que ficava parado; corrigido. Verificado pela leitura do CSS e do código, sem navegador.
