@@ -22,12 +22,21 @@ export default defineConfig({
 		react(),
 		VitePWA({
 			registerType: "autoUpdate",
-			workbox: { globPatterns: ["**/*.{js,css,html,png,svg,ico}"] },
+			workbox: {
+				globPatterns: ["**/*.{js,css,html,png,svg,ico,woff2}"],
+				// pt-BR só usa os subconjuntos latinos das fontes
+				globIgnores: [
+					"**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2",
+				],
+			},
 			manifest: {
 				name: "arvo",
 				short_name: "arvo",
-				description: "arvo - PWA Application",
-				theme_color: "#0c0c0c",
+				description: "Suas finanças, do seu jeito.",
+				lang: "pt-BR",
+				display: "standalone",
+				theme_color: "#F2F5FA",
+				background_color: "#F2F5FA",
 			},
 			pwaAssets: { disabled: false, config: true },
 			devOptions: { enabled: true },

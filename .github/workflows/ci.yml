@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, master]
+  push:
+    branches: [dev, master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      HUSKY: "0"
+      # Valores falsos só para validar o env tipado (varlock); nenhum segredo real.
+      NODE_ENV: test
+      BETTER_AUTH_SECRET: ci-only-secret-ci-only-secret-ci-only-secret
+      BETTER_AUTH_URL: http://localhost:3000/api/auth
+      CORS_ORIGIN: http://localhost:3001
+      DATABASE_URL: postgresql://arvo:arvo@localhost:5432/arvo
+      VITE_SERVER_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.8
+
+      - run: bun install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: bunx prisma generate
+        working-directory: packages/db
+
+      - name: Lint and format
+        run: bunx biome ci .
+
+      - name: Types
+        run: bun run check-types
+
+      - name: Tests
+        run: bun run test

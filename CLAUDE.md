@@ -43,3 +43,5 @@ Commit messages must be a single subject line: no body and no `Co-Authored-By` (
 No AI co-authorship or attribution anywhere: not in commits, PR titles or descriptions, PR/issue comments, code comments, docs, or generated files. That means no `Co-Authored-By` trailer, no "Generated with Claude Code" line, and no 🤖 footer.
 
 Branch names must be in English (e.g. `design/new-category-review`), even though the product and DESIGN.md are in Portuguese.
+
+Never commit directly to `dev` (or `master`). All work goes into a branch created from `dev` and reaches `dev` through a pull request; `dev` is merged into `master` only after review. If you are on `dev` when asked to commit, create a branch first.

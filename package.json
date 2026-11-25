@@ -14,7 +14,6 @@
 			"@types/node": "26.6.1",
 			"@trpc/server": "11.19.0",
 			"better-auth": "1.7.3",
-			"lucide-react": "1.47.0",
 			"next-themes": "0.4.6",
 			"react": "19.3.0",
 			"react-dom": "19.3.0",
@@ -30,8 +29,11 @@
 		"dev": "turbo run dev",
 		"build": "turbo run build",
 		"check-types": "turbo run check-types",
+		"test": "turbo run test",
 		"dev:web": "turbo run dev -F web --",
 		"dev:server": "turbo run dev -F server --",
+		"db:up": "docker compose up -d --wait db",
+		"db:down": "docker compose down",
 		"db:push": "turbo run db:push -F @arvo/db --",
 		"db:studio": "turbo run db:studio -F @arvo/db --",
 		"db:generate": "turbo run db:generate -F @arvo/db --",
@@ -50,7 +52,6 @@
 		"prepare": "husky"
 	},
 	"dependencies": {
-		"@rive-app/react-webgl2": "4.34.3",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

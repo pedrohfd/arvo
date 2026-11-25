@@ -9,12 +9,14 @@
 		"serve": "vite preview",
 		"start": "vite",
 		"check-types": "vite build && tsc --noEmit",
+		"test": "bun test",
 		"generate-pwa-assets": "pwa-assets-generator",
 		"env:generate": "varlock codegen"
 	},
 	"dependencies": {
 		"@arvo/api": "workspace:*",
 		"@arvo/ui": "workspace:*",
+		"@phosphor-icons/react": "2.1.10",
 		"@tailwindcss/vite": "4.3.3",
 		"@tanstack/react-form": "1.33.5",
 		"@tanstack/react-query": "5.103.1",
@@ -24,7 +26,6 @@
 		"@trpc/tanstack-react-query": "11.19.0",
 		"@varlock/vite-integration": "1.5.1",
 		"better-auth": "catalog:",
-		"lucide-react": "catalog:",
 		"next-themes": "catalog:",
 		"react": "catalog:",
 		"react-dom": "catalog:",
@@ -34,6 +35,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
+		"@types/bun": "catalog:",
 		"@arvo/config": "workspace:*",
 		"@tanstack/react-query-devtools": "5.103.1",
 		"@tanstack/react-router-devtools": "1.167.2",

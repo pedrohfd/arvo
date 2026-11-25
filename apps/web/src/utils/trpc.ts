@@ -45,6 +45,15 @@ function getServerUrl(url: string) {
 export const queryClient = new QueryClient({
 	queryCache: new QueryCache({
 		onError: (error, query) => {
+			// Sessão expirada: a rota /login mostra o aviso 7.3 "Sua sessão expirou".
+			if (
+				(error as { data?: { code?: string } }).data?.code === "UNAUTHORIZED"
+			) {
+				window.location.assign("/login?sessao=expirada");
+				return;
+			}
+			// Sem rede a Início já avisa ("Sem internet"); um aviso por consulta seria barulho.
+			if (typeof navigator !== "undefined" && !navigator.onLine) return;
 			toast.error(error.message, {
 				action: {
 					label: "retry",

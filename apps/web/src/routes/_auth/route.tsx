@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
+import { AppShell } from "@/components/app-shell";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_auth")({
@@ -16,5 +17,18 @@ export const Route = createFileRoute("/_auth")({
 });
 
 function AuthLayout() {
-	return <Outlet />;
+	const { session } = Route.useRouteContext();
+	const user = session.data?.user;
+
+	return (
+		<AppShell
+			user={{
+				id: user?.id ?? "",
+				name: user?.name ?? "",
+				email: user?.email ?? "",
+			}}
+		>
+			<Outlet />
+		</AppShell>
+	);
 }

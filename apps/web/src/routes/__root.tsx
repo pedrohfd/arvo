@@ -8,7 +8,6 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import type { trpc } from "@/utils/trpc";
 
@@ -28,7 +27,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 			},
 			{
 				name: "description",
-				content: "arvo is a web application",
+				content: "Suas finanças, do seu jeito.",
 			},
 		],
 		links: [
@@ -45,15 +44,13 @@ function RootComponent() {
 		<>
 			<HeadContent />
 			<ThemeProvider
-				attribute="class"
-				defaultTheme="dark"
+				attribute="data-theme"
+				defaultTheme="system"
+				enableSystem
 				disableTransitionOnChange
-				storageKey="vite-ui-theme"
+				storageKey="arvo-theme"
 			>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
-					<Header />
-					<Outlet />
-				</div>
+				<Outlet />
 				<Toaster richColors />
 			</ThemeProvider>
 			<TanStackRouterDevtools position="bottom-left" />
