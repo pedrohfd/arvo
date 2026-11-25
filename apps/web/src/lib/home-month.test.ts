@@ -4,8 +4,10 @@ import {
 	balanceLabel,
 	matchesSearch,
 	monthSheetModel,
+	moveSelection,
 	normalizeSearch,
 	shiftMonth,
+	stepMonth,
 } from "./home-month";
 
 describe("shiftMonth", () => {
@@ -93,5 +95,42 @@ describe("busca", () => {
 	});
 	test("busca vazia acha tudo", () => {
 		expect(matchesSearch("  ", "qualquer")).toBe(true);
+	});
+});
+
+describe("stepMonth", () => {
+	test("anda um mês para os lados", () => {
+		expect(stepMonth("2026-11", -1, "2026-11", "2026-09")).toBe("2026-10");
+		expect(stepMonth("2026-11", 1, "2026-11", "2026-09")).toBe("2026-12");
+	});
+	test("não passa do primeiro mês com transação", () => {
+		expect(stepMonth("2026-09", -1, "2026-11", "2026-09")).toBeNull();
+	});
+	test("sem transação, não volta antes do mês atual", () => {
+		expect(stepMonth("2026-11", -1, "2026-11", null)).toBeNull();
+	});
+	test("não passa do limite à frente", () => {
+		expect(stepMonth("2028-11", 1, "2026-11", null)).toBeNull();
+		expect(stepMonth("2028-10", 1, "2026-11", null)).toBe("2028-11");
+	});
+});
+
+describe("moveSelection", () => {
+	const ids = ["a", "b", "c"];
+	test("sem escolha, para baixo vai à primeira e para cima à última", () => {
+		expect(moveSelection(ids, null, "ArrowDown")).toBe("a");
+		expect(moveSelection(ids, null, "ArrowUp")).toBe("c");
+	});
+	test("anda uma linha e para nas pontas", () => {
+		expect(moveSelection(ids, "a", "ArrowDown")).toBe("b");
+		expect(moveSelection(ids, "c", "ArrowDown")).toBe("c");
+		expect(moveSelection(ids, "a", "ArrowUp")).toBe("a");
+	});
+	test("escolha que saiu da lista recomeça", () => {
+		expect(moveSelection(ids, "x", "ArrowDown")).toBe("a");
+	});
+	test("lista vazia e outras teclas não escolhem nada", () => {
+		expect(moveSelection([], null, "ArrowDown")).toBeNull();
+		expect(moveSelection(ids, "a", "Enter")).toBeNull();
 	});
 });

@@ -40,7 +40,12 @@ import {
 	monthName,
 	monthShort,
 } from "@/lib/format";
-import { balanceLabel, matchesSearch } from "@/lib/home-month";
+import {
+	balanceLabel,
+	matchesSearch,
+	moveSelection,
+	stepMonth,
+} from "@/lib/home-month";
 import {
 	clockLabel,
 	type QueuedRow,
@@ -77,6 +82,17 @@ function Inicio() {
 	const detailSlot = useDetailSlot();
 	const register = useRegister();
 	const [selectedId, setSelectedId] = useState<string | null>(null);
+	// Teclado do computador: ↑ ↓ escolhem a transação, Esc solta, ← → trocam o mês. O que o teclado
+	// precisa saber só existe depois das consultas, então chega por esta referência.
+	const keys = useRef<{
+		ids: string[];
+		month: string;
+		current: string;
+		first: string | null;
+		pick: (month: string) => void;
+	} | null>(null);
+	const selectedRef = useRef(selectedId);
+	selectedRef.current = selectedId;
 	// Celular: ao subir a lista, o saldo grande sai da tela e o saldo compacto aparece no topo.
 	const {
 		scrollRef: setScrollEl,
@@ -104,6 +120,49 @@ function Inicio() {
 	const currentMonth = home.data?.today.slice(0, 7) ?? shownMonth;
 	// Trocando de mês, `home` ainda guarda o mês anterior até a resposta nova chegar.
 	const switching = home.isPlaceholderData;
+
+	useEffect(() => {
+		if (!desktop) return;
+		function onKey(event: KeyboardEvent) {
+			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey)
+				return;
+			const target = event.target as HTMLElement | null;
+			if (target?.closest("input, textarea, select, [contenteditable]")) return;
+			if (document.querySelector('[role="dialog"]')) return;
+			const state = keys.current;
+			if (!state) return;
+			if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+				const next = moveSelection(state.ids, selectedRef.current, event.key);
+				if (!next) return;
+				event.preventDefault();
+				setSelectedId(next);
+			} else if (event.key === "Escape") {
+				if (!selectedRef.current) return;
+				setSelectedId(null);
+			} else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+				const next = stepMonth(
+					state.month,
+					event.key === "ArrowRight" ? 1 : -1,
+					state.current,
+					state.first,
+				);
+				if (!next) return;
+				event.preventDefault();
+				state.pick(next);
+			}
+		}
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [desktop]);
+
+	// A linha escolhida pelo teclado fica à vista.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: só roda quando a escolha muda
+	useEffect(() => {
+		if (!selectedId) return;
+		document
+			.querySelector(".tx-row.is-selected")
+			?.scrollIntoView({ block: "nearest" });
+	}, [selectedId]);
 
 	const bar = (
 		disabled?: boolean,
@@ -166,6 +225,19 @@ function Inicio() {
 	const isEmpty = days.length === 0;
 	const short = monthShort(home.data.month);
 	const isPast = home.data.month < currentMonth;
+
+	keys.current = {
+		ids: days.flatMap((day) =>
+			day.items.flatMap((item) => (item.type === "tx" ? [item.tx.id] : [])),
+		),
+		month: home.data.month,
+		current: currentMonth,
+		first: firstMonth,
+		pick: (picked) => {
+			setSelected(picked === currentMonth ? null : picked);
+			setSelectedId(null);
+		},
+	};
 
 	const monthSheet = sheetOpen ? (
 		<MonthSheet

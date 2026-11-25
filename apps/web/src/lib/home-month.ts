@@ -60,3 +60,36 @@ export function matchesSearch(query: string, ...texts: (string | null)[]) {
 	if (!needle) return true;
 	return texts.some((text) => text && normalizeSearch(text).includes(needle));
 }
+
+/**
+ * O mês ao lado de `month` (`delta` ±1), ou nulo se passa do limite: antes do mês da primeira
+ * transação (sem nenhuma, antes do mês atual) ou além dos meses à frente. Setas do computador.
+ */
+export function stepMonth(
+	month: string,
+	delta: number,
+	current: string,
+	first: string | null,
+) {
+	const lowest = first && first < current ? first : current;
+	const highest = shiftMonth(current, MONTHS_AHEAD);
+	const next = shiftMonth(month, delta);
+	return next < lowest || next > highest ? null : next;
+}
+
+/**
+ * A linha escolhida depois de ↑ ou ↓ numa lista de ids (do mais novo para o mais antigo). Sem escolha,
+ * ↓ vai para a primeira e ↑ para a última. Nas pontas, fica onde está. Outras teclas: nulo.
+ */
+export function moveSelection(
+	ids: readonly string[],
+	current: string | null,
+	key: string,
+) {
+	if (key !== "ArrowDown" && key !== "ArrowUp") return null;
+	if (ids.length === 0) return null;
+	const index = current ? ids.indexOf(current) : -1;
+	if (index === -1) return key === "ArrowDown" ? ids[0] : ids[ids.length - 1];
+	const next = key === "ArrowDown" ? index + 1 : index - 1;
+	return ids[Math.min(ids.length - 1, Math.max(0, next))];
+}
